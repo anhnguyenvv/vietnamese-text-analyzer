@@ -1,0 +1,75 @@
+
+
+.feature-container {
+  /* display: flex; */
+  height: 97vh;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #eef9ff, #ffe9fd, #dcf0f3);
+}
+
+/* Sidebar styles */
+.sidebar {
+  position: fixed;         /* Để cố định */
+  top: 59px; 
+  left: 0;                /* Đặt ở mép phải */
+  /* height: calc(100vh - 60px);            */
+  height: 75vh; /* Chiều cao của sidebar */
+  width: 230px;
+  background-color: #ffffff;
+  color: rgb(15, 0, 0);
+  padding: 20px;
+  border-radius: 16px; 
+  margin: 13px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;           /* Đảm bảo nằm trên */
+  
+} 
+
+
+.sidebar-title {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 10px; 
+  cursor: pointer;
+  gap: 10px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-item:hover {
+  background-color: #E6E9EC;
+}
+
+.sidebar-item.active {
+  background-color: #92E6FA;
+}
+
+.sidebar-item .icon {
+  margin-right: 10px;
+}
+
+/* Content styles */
+.content {
+  padding: 80px 30px 30px 300px; /* top, right, bottom, left */
+}
+
+.main-content {
+  background-color: rgb(249, 249, 249);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.05);
+}
+.menu-icon {
+  font-size: 20px; /* tăng hoặc giảm kích thước */
+}

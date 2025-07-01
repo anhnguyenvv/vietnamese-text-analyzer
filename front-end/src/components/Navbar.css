@@ -1,0 +1,89 @@
+.navbar {
+  position: fixed;         /* Giữ navbar cố định ở đầu trang */
+  top: 0;                  /* Dính sát trên cùng */
+  left: 0;                 /* Dính sát bên trái */
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 40px;
+  background-color: #fdfdfd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 999;            /* Đảm bảo nằm trên các phần khác */
+}
+
+
+.logo-section {
+display: flex;
+align-items: center;
+}
+
+.circle {
+width: 28px;
+height: 28px;
+background-color: white;
+border: 2px solid black;
+border-radius: 50%;
+margin-right: 10px;
+}
+
+.title {
+  font-size: 25px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+
+  background: linear-gradient(to right, #e7fd25, #ff61d5, #46bcfc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bold {
+  font-weight: 800; /* đậm */
+}
+
+.light {
+  font-weight: 300; /* mảnh */
+}
+
+.menu {
+display: flex;
+gap: 45px;
+}
+
+.menu span {
+cursor: pointer;
+font-weight: 100;
+color: #ededf3;
+transition: color 0.3s ease;
+}
+
+.menu span:hover {
+color: #fefefe;
+}
+body {
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+/* .nav-link {
+  color: rgb(1, 0, 0);
+  text-decoration: none;
+} */
+
+.nav-link:visited {
+  color: rgb(1, 53, 62);
+}
+.nav-link:hover {
+  color: #1294eb;
+}
+
+.nav-link {
+text-decoration: none;
+color: #333;
+margin-left: 16px;
+transition: color 0.2s ease;
+}
+
+.nav-link.active {
+color: #238FDE;
+/* font-weight: bold; */
+/* border-bottom: 2px solid #238FDE; hoặc background-color nếu bạn muốn */
+}

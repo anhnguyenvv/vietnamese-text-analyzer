@@ -1,0 +1,119 @@
+
+.preprocessing-tool  strong,
+.sentiment-analysis-tool  strong,
+.named-entity-tool  strong,
+.summarization-tool  strong,
+.text-summarization-tool  strong,
+.pos-tagging-tool  strong,
+.statistics-tool  strong {
+  display: inline-block;
+  margin-bottom: 15px;
+  font-size: 16.5px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+
+/* Phần tùy chọn */
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px; /* hàng cách nhau 10px, cột cách nhau 24px */
+  margin-bottom: 10px;
+  /* margin-left: 50px; */
+  max-width: 1000px; 
+}
+
+.options label {
+  display: flex;
+  align-items: center;
+  width: 200px; /* Đảm bảo mỗi label chiếm đúng chiều rộng để căn đều 2 hàng */
+  font-size: 12px;
+}
+
+/* Văn bản và kết quả */
+.text-area-container {
+  display: flex;
+  gap: 40px;
+  margin-top: 15px;
+}
+
+.input-area,
+.result-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+}
+
+textarea:focus,
+input:focus {
+  outline: none; 
+  border: 1px solid #238FDE; /* Tạo viền xanh dương đậm */
+  box-shadow: 0 0 4px rgba(35, 143, 222, 0.4); 
+}
+
+textarea {
+  resize: vertical;
+  min-height: 200px;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #ffffff;
+}
+
+/* Nút phân tích */
+.analyze-button {
+  width: 100px;
+  background-color: #00b96b;
+  color: white;
+  font-weight: bold;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background-color 0.3s ease;
+}
+
+.analyze-button:hover {
+  background-color: #029e5d;
+}
+
+/* Nút chọn file */
+.file-upload {
+  margin-top: 16px;
+}
+
+.file-button {
+  background-color: #238fde;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.file-button:hover {
+  background-color: #1a72b5;
+}
+
+
+
+.input-area label,
+.result-area label {
+  display: block;
+  margin-bottom: 8px; /* tạo khoảng cách giữa label và textarea */
+  font-weight: bold;
+}
+
+.file-name strong {
+  font-size: 14px;
+  color: #000000;
+  font-weight: normal;
+  font-family: 'Segoe UI', sans-serif;
+  margin-left: 5px;
+}

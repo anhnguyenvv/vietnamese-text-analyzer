@@ -1,0 +1,16 @@
+body {
+background-color: #F4F7F0;
+font-family: 'Be Vietnam Pro', sans-serif;
+margin: 0;
+padding: 0;
+}
+
+button {
+background-color: #238FDE;
+color: white;
+border: none;
+padding: 8px 12px;
+border-radius: 5px;
+cursor: pointer;
+}
+

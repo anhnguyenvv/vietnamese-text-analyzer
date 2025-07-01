@@ -1,0 +1,15 @@
+Flask
+Flask-Cors
+Flask-SQLAlchemy
+Flask-Migrate
+pandas
+numpy
+vncorenlp
+transformers
+torch
+requests
+pytest
+pytest-flask
+python-dotenv
+wordcloud
+sentencepiece
