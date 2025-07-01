@@ -23,14 +23,7 @@ function highlightEntities(text, entities) {
   entities.forEach(ent => {
     // Tìm vị trí từ tiếp theo trong text, bắt đầu từ currentIdx
     const word = ent.word;
-    const searchIdx = text.indexOf(word, currentIdx);
-    if (searchIdx === -1) {
-      // Không tìm thấy từ, bỏ qua
-      return;
-    }
-    // Thêm phần text trước từ
-    result += text.slice(currentIdx, searchIdx);
-
+    
     // Nếu là entity (label khác O), highlight
     if (ent.label && ent.label !== "O") {
       const labelShort = ent.label.replace(/^B-/, "").replace(/^I-/, "");
@@ -39,7 +32,6 @@ function highlightEntities(text, entities) {
     } else {
       result += word;
     }
-    currentIdx = searchIdx + word.length;
   });
 
   // Thêm phần còn lại của text
