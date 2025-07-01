@@ -8,7 +8,6 @@ MODELS = [
     # (model_name, pipeline_task, model_class)
     #("VietAI/vit5-base-vietnews-summarization", "summarization", AutoModelForSeq2SeqLM),
     #("5CD-AI/Vietnamese-Sentiment-visobert", "text-classification", AutoModelForSequenceClassification),
-    #("bmd1905/vietnamese-correction", "text2text-generation", AutoModelForSeq2SeqLM),
     #("PaulTran/vietnamese_essay_identify", "text-classification", AutoModelForSequenceClassification),
 ]
 

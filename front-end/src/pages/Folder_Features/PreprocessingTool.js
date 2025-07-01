@@ -6,7 +6,11 @@ const PreprocessingTool = () => {
   const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [removeStopwords, setRemoveStopwords] = useState(true);
+  const [removeEmojis, setRemoveEmojis] = useState(false);
+  const [removeSpecialChars, setRemoveSpecialChars] = useState(true);
+  const [removeDuplicates, setRemoveDuplicates] = useState(false);
+  const [lowercase, setLowercase] = useState(true);
   const handleFileSelect = (content) => {
     setTextInput(content);
   };
@@ -18,7 +22,13 @@ const PreprocessingTool = () => {
       const res = await fetch("http://localhost:5000/api/preprocessing/preprocess", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textInput }),
+        body: JSON.stringify({ text: textInput 
+          , remove_stopwords: removeStopwords,
+          remove_emojis: removeEmojis,
+          remove_special_chars: removeSpecialChars,
+          remove_duplicates: removeDuplicates,
+          lowercase: lowercase,
+        }),
       });
       const data = await res.json();
       if (data.preprocessed_text) {
@@ -36,12 +46,47 @@ const PreprocessingTool = () => {
     <div className="preprocessing-tool">
       <strong>Tùy chọn Tiền xử lý:</strong>
       <div className="options">
-        <label><input type="checkbox" defaultChecked /> Loại bỏ kí tự đặc biệt</label>
-        <label><input type="checkbox" /> Loại bỏ biểu tượng cảm xúc</label>
-        <label><input type="checkbox" /> Loại bỏ stopword</label>
-        <label><input type="checkbox" /> Tách từ</label>
-        <label><input type="checkbox" /> Chuyển về chữ thường</label>
-        <label><input type="checkbox" /> Xóa từ giống nhau </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={removeStopwords}
+            onChange={(e) => setRemoveStopwords(e.target.checked)}
+          />
+          Loại bỏ stopwords
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={removeEmojis}
+            onChange={(e) => setRemoveEmojis(e.target.checked)}
+          />
+          Loại bỏ emojis
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={removeSpecialChars}
+            onChange={(e) => setRemoveSpecialChars(e.target.checked)}
+          />
+          Loại bỏ ký tự đặc biệt
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={removeDuplicates}
+            onChange={(e) => setRemoveDuplicates(e.target.checked)}
+          />
+          Loại bỏ trùng lặp
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={lowercase}
+            onChange={(e) => setLowercase(e.target.checked)}
+          />
+          Chuyển sang chữ thường
+        </label>
+        
       </div>
       <FileUploader onFileSelect={handleFileSelect} />
 

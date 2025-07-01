@@ -32,12 +32,11 @@ def preprocess():
         return jsonify({"error": "No text provided"}), 400
 
     # Lấy các biến option từ frontend, mặc định nếu không có sẽ lấy giá trị hợp lý
-    remove_special = data.get('remove_special', True)
-    remove_emoji = data.get('remove_emoji', False)
-    remove_stopword = data.get('remove_stopword', False)
-    tokenize = data.get('tokenize', False)
-    to_lower = data.get('to_lower', False)
-    deduplicate = data.get('deduplicate', False)
+    remove_special = data.get('remove_special_chars', True)
+    remove_emoji = data.get('remove_emojis', False)
+    remove_stopword = data.get('remove_stopwords', False)
+    to_lower = data.get('lowercase', False)
+    deduplicate = data.get('remove_duplicates', False)
 
     # Tiền xử lý văn bản theo các option
     # Bạn cần cập nhật hàm preprocess_text để nhận các tham số này nếu chưa có

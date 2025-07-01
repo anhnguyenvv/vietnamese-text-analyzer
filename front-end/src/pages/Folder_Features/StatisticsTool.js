@@ -25,6 +25,7 @@ const StatisticsTool = () => {
   const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [removeStopwords, setRemoveStopwords] = useState(true);
 
   const handleFileSelect = (content) => {
     setTextInput(content);
@@ -37,6 +38,7 @@ const StatisticsTool = () => {
     try {
       const res = await axios.post("http://localhost:5000/api/statistics/statistics", {
         text: textInput,
+        remove_stopwords: removeStopwords
       });
       setResult(res.data);
     } catch (err) {
@@ -55,8 +57,11 @@ const StatisticsTool = () => {
       avg_sentence_len,
       avg_word_len,
       vocab_size,
-      stopword_ratio,
-      pos_counts
+      num_stopwords,
+      pos_counts,
+      num_digits,
+      num_special_chars,
+      num_emojis
     } = stats;
 
     return (
@@ -72,10 +77,14 @@ const StatisticsTool = () => {
         <div><strong>Số câu:</strong> {num_sentences}</div>
         <div><strong>Số từ:</strong> {num_words}</div>
         <div><strong>Số ký tự:</strong> {num_chars}</div>
+        <div><strong>Số chữ số:</strong> {num_digits}</div>
+        <div><strong>Số ký tự đặc biệt:</strong> {num_special_chars}</div>
+        <div><strong>Số emoji:</strong> {num_emojis}</div>
         <div><strong>Độ dài TB câu:</strong> {avg_sentence_len}</div>
         <div><strong>Độ dài TB từ:</strong> {avg_word_len}</div>
         <div><strong>Kích thước từ vựng:</strong> {vocab_size}</div>
-        <div><strong>Tỉ lệ stopword:</strong> {stopword_ratio}%</div>
+        <div><strong>Số stopword:</strong> {num_stopwords}</div>
+        <div><strong>Tỉ lệ stopword:</strong> {((100 * num_stopwords) / num_words).toFixed(2)}%</div>
         {pos_counts && (
           <div style={{ marginTop: 8 }}>
             <strong>Thống kê từ loại:</strong>
@@ -96,14 +105,14 @@ const StatisticsTool = () => {
     <div className="statistics-tool">
       <strong>Tùy chọn Thống kê:</strong>
       <div className="options">
-        <label><input type="checkbox" defaultChecked /> Số ký tự</label>
-        <label><input type="checkbox" /> Số dòng</label>
-        <label><input type="checkbox" /> Số ký tự viết hoa</label>
-        <label><input type="checkbox" /> Số ký tự viết thường</label>
-        <label><input type="checkbox" /> Số ký tự số</label>
-        <label><input type="checkbox" /> Số ký tự phân biệt</label>
-        <label><input type="checkbox" /> Số biểu tượng cảm xúc</label>
-        <label><input type="checkbox" /> Số từ</label>
+        <label>
+          <input
+            type="checkbox"
+            checked={removeStopwords}
+            onChange={(e) => setRemoveStopwords(e.target.checked)}
+          />
+          Loại bỏ từ dừng
+        </label>
       </div>
 
       <FileUploader onFileSelect={handleFileSelect} />

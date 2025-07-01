@@ -6,7 +6,7 @@ from modules.preprocessing.preprocess import get_stopwords
 from modules.preprocessing.normalization import normalize_text
 from modules.preprocessing.tokenization import tokenize_sentences, tokenize_words
 from wordcloud import WordCloud
-
+import emoji
 
 def create_wordcloud(word_freq):
     """
@@ -52,31 +52,36 @@ def count_pos_tags(words):
     pos_counter = collections.Counter(tag for _, tag in tagged)
     return pos_counter
 
-def analyze_text(text, remove_stopwords=False):    
+def analyze_text(text, remove_stopwords=True):    
     text = normalize_text(text)
     sentences = tokenize_sentences(text) 
-    words = tokenize_words(text) 
+    words = tokenize_words(text)
+    num_digits = sum(c.isdigit() for c in text) 
     # xóa số và ký tự đặc biệt
     words = [w for w in words if w.isalpha()]
     chars = len(text)
 
     stopwords = set(get_stopwords())
+    print('stopwords:', stopwords)
     filtered_words = [w for w in words if w.lower() not in stopwords] if remove_stopwords else words
     stopword_count =  sum(1 for w in words if w.lower() in stopwords)
     word_freq = collections.Counter([w.replace('_', ' ') for w in filtered_words])
     pos_tags = count_pos_tags(filtered_words)
-
-    return {
+    result = {
         "num_sentences": len(sentences),
         "num_words": len(filtered_words),
         "num_chars": chars,
         "avg_sentence_len": round(sum(len(tokenize_words(s)) for s in sentences) / len(sentences), 2) if sentences else 0,
         "avg_word_len": round(sum(len(w) for w in filtered_words) / len(filtered_words), 2) if filtered_words else 0,
         "vocab_size": len(set(filtered_words)),
-        "stopword_ratio": round(100 * stopword_count / len(words), 2) if remove_stopwords and words else 0,
+        "num_digits": num_digits,
+        "num_special_chars": sum(1 for c in text if not c.isalnum() and not c.isspace()),
+        "num_emojis": sum(1 for c in text if emoji.is_emoji(c)),
+        "num_stopwords": stopword_count,
         "word_freq": word_freq,
         "pos_counts": pos_tags
     }
+    return result
 
 def analyze_file(file_path, remove_stopwords=False):
     if not allowed_file(file_path):
