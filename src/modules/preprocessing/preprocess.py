@@ -36,18 +36,21 @@ def remove_stopwords(tokens: str) -> str:
 
 
 def preprocess_text(text: str, remove_duplicates: bool = False, remove_icon: bool = True,
-                   remove_numbers: bool = True, remove_special_chars: bool = True, remove_stopwords: bool = True) -> str:
+                   remove_numbers: bool = True, remove_special_chars: bool = True, remove_stopword: bool = True) -> str:
     text = unicodedata.normalize("NFC", text)
 
     text = normalize_text(text, remove_icon=remove_icon)
     tokens = tokenize_words(text)
+    if remove_special_chars:
+        tokens = [token for token in tokens if token.isalnum() or token.isspace()]
     if remove_numbers:
         tokens = [token for token in tokens if not token.isdigit()]
-    if remove_stopwords:
+    if remove_stopword:
         tokens = remove_stopwords(tokens)
     #nếu yêu cầu loại bỏ từ lặp lại
     if remove_duplicates:
         tokens = list(dict.fromkeys(tokens))
+    
     return ' '.join(tokens)
 
 if __name__ == "__main__":
