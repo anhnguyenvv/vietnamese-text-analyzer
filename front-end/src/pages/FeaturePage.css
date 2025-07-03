@@ -2,7 +2,7 @@
 
 .feature-container {
   /* display: flex; */
-  height: 97vh;
+  min-height: 97vh;
   font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(to right, #eef9ff, #ffe9fd, #dcf0f3);
 }

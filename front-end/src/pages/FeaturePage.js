@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import {
   MdOutlineInsertChart,      // Thống kê văn bản
-  MdCleaningServices          // Tiền xử lý
+  MdCleaningServices,          // Tiền xử lý
+  MdOutlineCategory          // Phân loại
 } from "react-icons/md";
 import { FaTags } from "react-icons/fa";                 // Gán nhãn từ loại
 import { BiBrain } from "react-icons/bi";                // Thực thể có tên
@@ -23,7 +24,7 @@ const options = [
   { value: "gan-nhan", label: "Gán nhãn từ loại", icon: <FaTags /> },
   { value: "ner", label: "Thực thể có tên", icon: <BiBrain /> },
   { value: "cam-xuc", label: "Cảm xúc", icon: <BsEmojiSmile /> },
-  { value: "phan-loai", label: "Phân loại", icon: <BsEmojiSmile /> },
+  { value: "phan-loai", label: "Phân loại", icon: <MdOutlineCategory /> },
   { value: "tom-tat", label: "Tóm tắt văn bản", icon: <HiOutlineDocumentText /> },
 ];
 
