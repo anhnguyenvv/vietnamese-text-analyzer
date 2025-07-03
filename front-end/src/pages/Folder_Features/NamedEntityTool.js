@@ -119,57 +119,69 @@ const NamedEntityTool = () => {
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
           />
-          <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
-            {loading ? "Đang phân tích..." : "Phân tích"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
+              Phân tích
+            </button>
+
+             {loading && (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
+                  Đang phân tích...
+                </div>
+                <div className="loading-bar-container">
+                  <div className="loading-bar" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="result-area">
           <label>Kết quả (NER)</label>
-          <div
-            style={{
-              minHeight: 120,
-              border: "1px solid #ccc",
-              borderRadius: 4,
-              padding: 8,
-              background: "#fafbfc",
-              fontSize: 16,
-              whiteSpace: "pre-wrap",
-              marginBottom: 12,
-            }}
-            dangerouslySetInnerHTML={{ __html: resultHtml }}
-          />
-          {Object.keys(entityCount).length > 0 && (
-            <div>
-              
-              <strong>Thống kê số lượt xuất hiện:</strong>
-              <table style={{ width: "100%", marginTop: 4, borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>Entity</th>
-                    <th style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>Số lượt</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(entityCount).map(([label, count]) => (
-                    <tr key={label}>
-                      <td>
-                        <span style={{
-                          background: ENTITY_COLORS[label] || "#dfe6e9",
-                          borderRadius: 4,
-                          padding: "1px 6px",
-                          marginRight: 4,
-                          color: "#222"
-                        }}>{label}</span>
-                      </td>
-                      <td>{count}</td>
+          <div className="result-box">
+            <div dangerouslySetInnerHTML={{ __html: resultHtml }} />
+
+            {Object.keys(entityCount).length > 0 && (
+              <div>
+                <strong>Thống kê số lượt xuất hiện:</strong>
+                <table
+                  style={{
+                    width: "100%",
+                    marginTop: 4,
+                    borderCollapse: "collapse",
+                  }}
+                >
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>Entity</th>
+                      <th style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>Số lượt</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-          )}
+                  </thead>
+                  <tbody>
+                    {Object.entries(entityCount).map(([label, count]) => (
+                      <tr key={label}>
+                        <td>
+                          <span
+                            style={{
+                              background: ENTITY_COLORS[label] || "#dfe6e9",
+                              borderRadius: 4,
+                              padding: "1px 6px",
+                              marginRight: 4,
+                              color: "#222",
+                            }}
+                          >
+                            {label}
+                          </span>
+                        </td>
+                        <td>{count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div style={{
