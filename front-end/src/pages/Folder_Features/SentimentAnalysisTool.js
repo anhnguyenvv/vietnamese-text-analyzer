@@ -64,41 +64,79 @@ const SentimentAnalysisTool = () => {
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
           />
-          <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
-            {loading ? "Đang phân tích..." : "Phân tích"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
+              Phân tích
+            </button>
+
+             {loading && (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
+                  Đang phân tích...
+                </div>
+                <div className="loading-bar-container">
+                  <div className="loading-bar" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="result-area">
           <label>Kết quả</label>
-          {result && result.error && (
-            <div style={{ color: "red" }}>{result.error}</div>
-          )}
-          {pieData && (
-            <Pie
-              data={pieData}
-              options={{
-                plugins: {
-                  legend: { display: true, position: "bottom" },
-                  tooltip: {
-                    callbacks: {
-                      label: function(context) {
-                        return `${context.label}: ${context.parsed.toFixed(2)}%`;
-                      }
-                    }
-                  }
-                }
-              }}
-              style={{ maxWidth: 400, margin: "0 auto" }}
-            />
-          )}
-          {result && !result.error && (
-            <div style={{ marginTop: 16 }}>
-              <strong>Nhận định: </strong>
-              <span style={{ color: "#0984e3", fontWeight: 600 }}>{result.label}</span>
-              <br />              
-            </div>
-          )}
+          <div className="result-box">
+            
+            {!result && (
+            <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
+            )}
+            
+            {result && result.error && (
+              <div style={{ color: "red" }}>{result.error}</div>
+            )}
+
+            {pieData && (
+              <Pie
+                data={pieData}
+                className="custom-pie-chart"
+                options={{
+                  plugins: {
+                    legend: {
+                      display: true,
+                      position: "bottom",
+                      labels: {
+                        usePointStyle: true,
+                        boxWidth: 10,
+                        padding: 15,
+                      },
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function (context) {
+                          return `${context.label}: ${context.parsed.toFixed(2)}%`;
+                        },
+                      },
+                    },
+                  },
+                  layout: {
+                    padding: {
+                      top: 10,
+                      bottom: 10,
+                    },
+                  },
+                }}
+                style={{ maxWidth: 500, margin: "16px auto" }}
+              />
+            )}
+
+            {result && !result.error && (
+              <div style={{ marginTop: 16 }}>
+                <strong>Nhận định: </strong>
+                <span style={{ color: "#0984e3", fontWeight: 600 }}>
+                  {result.label}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

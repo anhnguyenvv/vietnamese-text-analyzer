@@ -72,42 +72,55 @@ const FileUploader = ({ onFileSelect }) => {
         style={{ display: "none" }}
         onChange={handleChange}
       />
-      <button
-        type="button"
-        className="file-button"
-        onClick={() => document.getElementById("fileInput").click()}
-      >
-        Chọn file
-      </button>
-      <span style={{ marginLeft: 8 }}>
-        <label>
-          <input
-            type="radio"
-            name="readMode"
-            value="paragraph"
-            checked={readMode === "paragraph"}
-            onChange={() => setReadMode("paragraph")}
-          /> Đọc theo đoạn
-        </label>
-        <label style={{ marginLeft: 12 }}>
-          <input
-            type="radio"
-            name="readMode"
-            value="all"
-            checked={readMode === "all"}
-            onChange={() => setReadMode("all")}
-          /> Đọc toàn bộ file
-        </label>
-      </span>
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <button
+          type="button"
+          className="file-button"
+          onClick={() => document.getElementById("fileInput").click()}
+        >
+          Chọn file
+        </button>
+        {fileName && (
+          <span className="file-name" >
+            <strong>{fileName}</strong>
+          </span>
+        )}
+      </div>
+
       {fileName && (
-        <span className="file-name">
-          <strong>{fileName}</strong>
-        </span>
+        <div style={{ marginTop: 10 }}>
+          <label style={{ marginRight: 10 }}>
+            <input
+              type="radio"
+              name="readMode"
+              value="paragraph"
+              checked={readMode === "paragraph"}
+              onChange={() => setReadMode("paragraph")}
+            />{" "}
+            Đọc theo đoạn
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="readMode"
+              value="all"
+              checked={readMode === "all"}
+              onChange={() => setReadMode("all")}
+            />{" "}
+            Đọc toàn bộ file
+          </label>
+        </div>
       )}
-      {lines.length > 0 && (
+
+      {/* Chỉ hiển thị nếu chọn đọc theo đoạn */}
+      {fileName && readMode === "paragraph" && lines.length > 0 && (
         <div style={{ marginTop: 10 }}>
           <label>Chọn đoạn để xử lý:&nbsp;</label>
-          <select value={selectedLine} onChange={handleSelectLine} style={{ width: "80%" }}>
+          <select
+            value={selectedLine}
+            onChange={handleSelectLine}
+            style={{ width: "80%" }}
+          >
             {lines.map((line, idx) => (
               <option key={idx} value={line}>
                 {line.length > 100 ? line.slice(0, 100) + "..." : line}

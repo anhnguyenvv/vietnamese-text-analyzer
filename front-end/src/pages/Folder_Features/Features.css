@@ -117,3 +117,45 @@ textarea {
   font-family: 'Segoe UI', sans-serif;
   margin-left: 5px;
 }
+
+.result-box {
+  resize: vertical;              /* cho phép kéo chiều cao nếu cần */
+  min-height: 200px;             /* chiều cao tối thiểu */
+  max-height: 200px;             /* chiều cao tối đa (bạn có thể tăng/giảm) */
+  overflow-y: auto;              /* nếu vượt max-height thì cuộn */
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #ffffff;
+}
+
+ .result-box strong {
+  font-weight: bold;
+  font-size: 13.8px;
+}
+
+.loading-bar-container {
+  width: 300px;
+  height: 6px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.loading-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, #2bbf52, #8ed886);
+  animation: progress-slide 1s linear infinite;
+}
+
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

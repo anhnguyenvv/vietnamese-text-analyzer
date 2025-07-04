@@ -4,9 +4,9 @@ sentencepiece
 emoji==2.14.1
 Flask==3.1.1
 flask_cors==6.0.0
-matplotlib==3.10.3
-numpy==2.3.1
-pandas==1.4.2
+matplotlib
+numpy
+pandas
 regex==2024.11.6
 Requests==2.32.4
 torch==2.7.0

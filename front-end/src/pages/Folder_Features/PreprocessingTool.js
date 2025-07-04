@@ -100,9 +100,22 @@ const PreprocessingTool = () => {
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
           />
-          <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
-            {loading ? "Đang phân tích..." : "Phân tích"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
+              Phân tích
+            </button>
+
+             {loading && (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
+                  Đang phân tích...
+                </div>
+                <div className="loading-bar-container">
+                  <div className="loading-bar" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="result-area">

@@ -34,10 +34,10 @@ class PhoBert_Classifier(nn.Module):
     
     
 class TextClassifier:
-    def __init__(self, model_name="essay_identification", num_labels=2):
+    def __init__(self, model_name="essay_identification"):
         self.model_name = model_name or Config.MODEL_NAME
-        self.num_labels = num_labels    
-        self._load_model_and_tokenizer(self.model_name, self.num_labels)
+        self.num_labels = 2    
+        self._load_model_and_tokenizer(self.model_name)
 
     def _load_model_and_tokenizer(self, model_name):
         config = None

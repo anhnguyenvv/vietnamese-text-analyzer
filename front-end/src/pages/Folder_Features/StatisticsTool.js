@@ -65,15 +65,7 @@ const StatisticsTool = () => {
     } = stats;
 
     return (
-      <div style={{
-        background: "#fff",
-        border: "1px solid #e0e0e0",
-        borderRadius: 8,
-        padding: 20,
-        margin: "0 auto",
-        maxWidth: 500,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
-      }}>
+      <>
         <div><strong>Số câu:</strong> {num_sentences}</div>
         <div><strong>Số từ:</strong> {num_words}</div>
         <div><strong>Số ký tự:</strong> {num_chars}</div>
@@ -97,7 +89,7 @@ const StatisticsTool = () => {
             </ul>
           </div>
         )}
-      </div>
+      </>
     );
   };
 
@@ -126,50 +118,67 @@ const StatisticsTool = () => {
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
           />
-          <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
-            {loading ? "Đang phân tích..." : "Phân tích"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
+              Phân tích
+            </button>
+
+             {loading && (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
+                  Đang phân tích...
+                </div>
+                <div className="loading-bar-container">
+                  <div className="loading-bar" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="result-area"
-          style={{
-            minHeight: 220, // hoặc cùng height với textarea
-            height: "100%",
-            boxSizing: "border-box",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-start",
-          }}>
+        <div className="result-area">
           <label>Kết quả</label>
-          {result && result.error && (
-            <div style={{ color: "red" }}>{result.error}</div>
-          )}
+
+          {/* KHUNG TRẮNG GÓI PHẦN THỐNG KÊ */}
+          <div className="result-box">
+            {result && result.error && (
+              <div style={{ color: "red" }}>{result.error}</div>
+            )}
+
+            {result && !result.error && result.stats && renderStats(result.stats)}
+
+            {!result && (
+              <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
+            )}
+          </div>
+
+          {/* PHẦN BIỂU ĐỒ và WORD CLOUD BÊN NGOÀI KHUNG */}
           {result && !result.error && (
-            <div>
-              {renderStats(result.stats)}
+            <>
               {result.plot && (
-                <div style={{ margin: "16px auto", maxWidth: 500, background: "#fff", borderRadius: 8, padding: 10 }}>
+                <div style={{ margin: "16px auto", maxWidth: 500 }}>
                   <strong>Biểu đồ tần suất từ:</strong>
                   <br />
                   <img
                     src={`data:image/png;base64,${result.plot}`}
                     alt="Plot"
-                    style={{ maxWidth: "100%", margin: "10px 0" }}
+                    style={{ maxWidth: "100%", margin: "10px 0", borderRadius: 8 }}
                   />
                 </div>
               )}
+
               {result.wordcloud && (
-                <div style={{ margin: "16px auto", maxWidth: 500, background: "#fff", borderRadius: 8, padding: 10 }}>
+                <div style={{ margin: "16px auto", maxWidth: 500 }}>
                   <strong>Word Cloud:</strong>
                   <br />
                   <img
                     src={`data:image/png;base64,${result.wordcloud}`}
                     alt="Word Cloud"
-                    style={{ maxWidth: "100%", margin: "10px 0" }}
+                    style={{ maxWidth: "100%", margin: "10px 0", borderRadius: 8 }}
                   />
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>

@@ -176,27 +176,34 @@ const PosTaggingTool = () => {
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
           />
-          <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
-            {loading ? "Đang phân tích..." : "Phân tích"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
+              Phân tích
+            </button>
+
+             {loading && (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
+                  Đang phân tích...
+                </div>
+                <div className="loading-bar-container">
+                  <div className="loading-bar" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="result-area"
-          style={{
-            minHeight: 220,
-            background: "#f9f9f9",
-            borderRadius: 8,
-            padding: 10,
-            marginTop: 8,
-            boxSizing: "border-box",
-            fontSize: 16,
-            wordBreak: "break-word",
-          }}>
+        <div className="result-area">
           <label>Kết quả</label>
-          <div
-            style={{ minHeight: 180, marginTop: 8 }}
-            dangerouslySetInnerHTML={{ __html: result }}
-          />
+
+          <div className="result-box">
+            {result ? (
+              <div dangerouslySetInnerHTML={{ __html: result }} />
+            ) : (
+              <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
+            )}
+          </div>
         </div>
       </div>
     </div>
