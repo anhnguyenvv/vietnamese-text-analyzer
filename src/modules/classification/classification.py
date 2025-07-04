@@ -86,8 +86,7 @@ class TextClassifier:
             raise ValueError("Input text cannot be empty.")
         if model_name and model_name != self.model_name:
             self.model_name = model_name
-            self.num_labels = num_labels or self.num_labels
-            self._load_model_and_tokenizer(self.model_name, self.num_labels)
+            self._load_model_and_tokenizer(self.model_name)
 
         inputs = self.encode_data(text)
         outputs = self.model(input_ids=inputs['input_ids'], attention_mask=inputs['attention_mask'] if 'attention_mask' in inputs else None)

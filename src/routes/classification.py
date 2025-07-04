@@ -15,7 +15,7 @@ def classify():
     try:
         predicted_label = classifier.classify(
             text,
-            model_name=model_name if model_name else classifier.model_name,
+            model_name=model_name if model_name else classifier.model_name
         )
         label_name = classifier.id2label.get(predicted_label, str(predicted_label))
         return jsonify({
