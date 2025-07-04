@@ -50,6 +50,12 @@ vietnamese-nlp
 
 4. Set up environment variables in the `.env` file as needed.
 
+5. download the necessary models and resources.
+   ```
+   pip install gdown
+   gdown --id 1xlc5ggWtrVxOlI4UDnzNyPYsIaNtaDKJ -O src\model\vispam\PhoBERT_vispamReview.pth
+   gdown --id YOUR_FILE_ID -O src\model\clf\PhoBERT_topic_classification.pth
+   ```
 ## Usage
 
 To run the application, execute the following command:
@@ -62,10 +68,6 @@ The application will start on `http://127.0.0.1:5000/`.
 ## API Endpoints
 
 The API provides various endpoints for different functionalities. Refer to the documentation for detailed information on each endpoint.
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
 
 ## License
 

@@ -20,9 +20,10 @@ const ClassificationTool = () => {
       const res = await fetch("http://localhost:5000/api/classification/classify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textInput 
-          , model: selectedModel
-          , num_labels: 1  // Số lượng nhãn phân loại, có thể thay đổi tùy theo mô hình
+        body: JSON.stringify({
+           text: textInput,
+           model_name: selectedModel,
+           num_labels: 1  // Số lượng nhãn phân loại, có thể thay đổi tùy theo mô hình
         }),
       });
       const data = await res.json();
@@ -41,9 +42,9 @@ const ClassificationTool = () => {
       <strong>Tùy chọn Phân loại:</strong>
       <div className="options">
         <select>
-          <option value="essay_identification">Phân loại kiểu văn bản(nghị luận, biểu cảm,...)</option>
-          <option value="model2">Mô hình 2</option>
-          <option value="model3">Mô hình 3</option>
+            <option value="essay_identification">Phân loại kiểu văn bản (nghị luận, biểu cảm,...)</option>
+            <option value="vispam">Phân loại review spam</option>
+            <option value="topic_classification">Phân loại chủ đề</option>
         </select>
       </div>
       <FileUploader onFileSelect={handleFileSelect} />

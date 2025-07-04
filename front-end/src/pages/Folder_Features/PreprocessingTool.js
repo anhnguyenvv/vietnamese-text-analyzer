@@ -28,6 +28,7 @@ const PreprocessingTool = () => {
           remove_special_chars: removeSpecialChars,
           remove_duplicates: removeDuplicates,
           lowercase: lowercase,
+          
         }),
       });
       const data = await res.json();

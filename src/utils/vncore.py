@@ -23,7 +23,7 @@ class VnCore:
         Load the VnCoreNLP model from the specified path.
         """
         if not os.path.exists(vncorenlp_path):
-            raise FileNotFoundError(f"VnCoreNLP model not found at {vncorenlp_path}")
+            self.download_model(save_dir=vncorenlp_path.parent)
         self.annotator = VnCoreNLP(vncorenlp_path)
 
     def download_model(self, save_dir='./'):
@@ -82,8 +82,8 @@ class VnCore:
     def parse(self, text):
         return self.annotator.parse(text)
 
-if not os.path.exists(Config.VNCORENLP_DIR):
-    VnCore.download_model(save_dir=Config.VNCORENLP_DIR.parent)
-
 # Ensure the VnCoreNLP model is downloaded and loaded
 vncore_model = VnCore(vncorenlp_path=Config.VNCORENLP_DIR)
+if not os.path.exists(Config.VNCORENLP_DIR):
+    vncore_model.download_model(save_dir=Config.VNCORENLP_DIR.parent)
+
