@@ -7,6 +7,9 @@ from routes.summarization import summarization_bp
 from routes.statistics import statistics_bp
 from flask_cors import CORS
 from routes.feedback import feedback_bp
+import logging
+logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
+
 def create_app():
     app = Flask(__name__)
     CORS(app)

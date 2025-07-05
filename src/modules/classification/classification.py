@@ -53,7 +53,7 @@ class TextClassifier:
             self.id2label = {0: "no-spam", 1: "spam"}
         if model_name == "topic_classification":
             self.model = PhoBert_Classifier(num_classes=10).to(Config.DEVICE)
-            self.model.load_state_dict(torch.load(Config.MODELS_DIR[model_name], map_location=Config.DEVICE))
+            self.model.load_state_dict(torch.load(Config.MODELS_DIR[model_name], map_location=Config.DEVICE), strict=False)
             self.tokenizer = AutoTokenizer.from_pretrained('vinai/phobert-base')
             self.id2label = {0: 'Kinh doanh',
                         1: 'Pháp luật',
@@ -64,7 +64,7 @@ class TextClassifier:
                         6: 'Thể thao',
                         7: 'Vi tính',
                         8: 'Khoa học',
-                        9: 'Văn hóa_'}
+                        9: 'Văn hóa_giáo dục'}
         self.num_labels = len(self.id2label)
 
     def encode_data(self, text):
@@ -98,8 +98,16 @@ if __name__ == "__main__":
     classifier = TextClassifier()
     text = "Bộ Công Thương xóa một tổng cục, giảm nhiều đầu mối"
     predicted_label = classifier.classify(text)
-    print("Predicted Label:", classifier.id2label.get(predicted_label, predicted_label))
     print("Model Name:", classifier.model_name)
+
+    print("Predicted Label:", classifier.id2label.get(predicted_label, predicted_label))
+    
     text = "Shop giao hàng khá nhanh. Chất liệu cũng được dày dặn che sáng tốt, gia công hơi ẩu vạt dài vạt ngắn"
     predicted_label = classifier.classify(text, model_name="vispam")
+    print("Model Name:", classifier.model_name)
     print("Predicted Label for vispam:", classifier.id2label.get(predicted_label, predicted_label))
+
+    text = "Chủ tịch Quốc hội Vương Đình Huệ làm việc với lãnh đạo tỉnh Bình Định"
+    predicted_label = classifier.classify(text, model_name="topic_classification")
+    print("Model Name:", classifier.model_name)
+    print("Predicted Label for topic_classification:", classifier.id2label.get(predicted_label, predicted_label))
