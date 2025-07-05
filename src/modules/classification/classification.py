@@ -71,13 +71,16 @@ class TextClassifier:
         if self.model_name == "essay_identification":
             # For essay identification, we assume the input is a dictionary with 'text' key
             return self.tokenizer(text, return_tensors='pt', max_length=512, truncation=True, padding=True)
+        
         if self.model_name == "vispam":
             # For vispam, we assume the input is a single string
             return self.tokenizer(text, padding="max_length", max_length=100,
                                   return_tensors='pt', truncation=True, add_special_tokens=True)
-        return self.tokenizer(text, padding="max_length", max_length=2,
-                              return_tensors='pt', truncation=True, add_special_tokens=True)
+        
+        return self.tokenizer(text, padding="max_length", max_length=256,
+                              return_tensors='pt', truncation=True, return_attention_mask=True)
 
+    
     def classify(self, text, model_name= "essay_identification", num_labels= None, max_length=512):
         """
         Classify the input text and return the predicted label.
