@@ -15,7 +15,7 @@ class Config:
     VNCORENLP_DIR = os.getenv('VNCORENLP_DIR', os.path.join(BASE_DIR, "model/vncorenlp/VnCoreNLP-1.2.jar"))
     MODELS_DIR = {
         'vispam': os.getenv('VISPAM_MODEL', os.path.join(BASE_DIR, "model/vispam/PhoBERT_vispamReview.pth")),
-        'topic_classification': os.getenv('TOPIC_CLASSIFICATION_MODEL', os.path.join(BASE_DIR, "models/clf/PhoBERT_topic_classification.pth")),
+        'topic_classification': os.getenv('TOPIC_CLASSIFICATION_MODEL', os.path.join(BASE_DIR, "model/clf/PhoBERT_topic_classification.pth")),
         'sentiment': os.getenv('SENTIMENT_MODEL', "5CD-AI/Vietnamese-Sentiment-visobert"),
         'essay_identification': os.getenv('ESSAY_ID_MODEL', "PaulTran/vietnamese_essay_identify"),       
         'summarization': os.getenv('SUMMARIZATION_MODEL', "VietAI/vit5-base-vietnews-summarization"),
