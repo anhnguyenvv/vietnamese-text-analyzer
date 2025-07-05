@@ -13,6 +13,8 @@ logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
 def create_app():
     app = Flask(__name__)
     CORS(app)
+    # CORS(app, resources={r"/api/*": {"origins": "*"}})
+
     app.config['JSON_AS_ASCII'] = False  # To handle Vietnamese characters correctly
     # Register blueprints
     app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
