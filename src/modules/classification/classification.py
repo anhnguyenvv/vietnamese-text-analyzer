@@ -56,15 +56,15 @@ class TextClassifier:
             self.model.load_state_dict(torch.load(Config.MODELS_DIR[model_name], map_location=Config.DEVICE))
             self.tokenizer = AutoTokenizer.from_pretrained('vinai/phobert-base')
             self.id2label = {0: 'Kinh doanh',
-                        1: 'Phap luat',
-                        2: 'Suc khoe',
-                        3: 'Doi song',
-                        4: 'Chinh tri Xa hoi',
-                        5: 'The gioi',
-                        6: 'The thao',
-                        7: 'Vi tinh',
-                        8: 'Khoa hoc',
-                        9: 'Van hoa'}
+                        1: 'Pháp luật',
+                        2: 'Sức khỏe',
+                        3: 'Đời sống',
+                        4: 'Chính trị - Xã hội',
+                        5: 'Thế giới',
+                        6: 'Thể thao',
+                        7: 'Vi tính',
+                        8: 'Khoa học',
+                        9: 'Văn hóa_'}
         self.num_labels = len(self.id2label)
 
     def encode_data(self, text):

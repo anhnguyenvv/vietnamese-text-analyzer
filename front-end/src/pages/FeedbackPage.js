@@ -5,12 +5,27 @@ const FeedbackPage = () => {
   const [message, setMessage] = useState("");
   const [email, setEmail] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: xử lý gửi dữ liệu
-    alert("Cảm ơn bạn đã gửi phản hồi!");
-    setMessage("");
-    setEmail("");
+    try {
+      const res = await fetch("http://localhost:5000/api/feedback/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, message }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Cảm ơn bạn đã gửi phản hồi!");
+      } else {
+        alert(data.error || "Có lỗi xảy ra khi gửi phản hồi!");
+      }
+    } catch (err) {
+      console.error("Error submitting feedback:", err);
+      alert("Có lỗi xảy ra khi gửi phản hồi!");
+    } finally {
+      setMessage("");
+      setEmail("");
+    }
   };
 
   return (

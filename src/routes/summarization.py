@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from modules.summarization.summarization import summarize_text
+from database.db import save_history
 
 summarization_bp = Blueprint('summarization', __name__)
 
@@ -14,4 +15,11 @@ def summarize():
     summary = summarize_text(text)
     if not summary:
         return jsonify({"error": "Failed to summarize text"}), 500
+    save_history(
+        feature="summarization",
+        input_text=text,
+        result=str(summary)
+    )
+    print("Summarization result:", summary)
+    
     return jsonify({"summary": summary})

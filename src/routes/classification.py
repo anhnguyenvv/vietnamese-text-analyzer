@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from modules.classification.classification import TextClassifier
+from database.db import save_history
 
 classification_bp = Blueprint('classification', __name__)
 classifier = TextClassifier()
@@ -18,10 +19,17 @@ def classify():
             model_name=model_name if model_name else classifier.model_name
         )
         label_name = classifier.id2label.get(predicted_label, str(predicted_label))
-        return jsonify({
+        result = {
             "label_id": predicted_label,
             "label_name": label_name,
             "model_name": classifier.model_name
-        })
+        }
+        # Lưu lịch sử vào database
+        save_history(
+            feature="classification",
+            input_text=text,
+            result=str(result)
+        )
+        return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

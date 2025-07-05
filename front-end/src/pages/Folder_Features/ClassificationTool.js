@@ -56,8 +56,8 @@ const ClassificationTool = () => {
               type="radio"
               name="classification"
               value="vispam"
-              checked={selectedClassification === "model2"}
-              onChange={() => setSelectedClassification("model2")}
+              checked={selectedClassification === "vispam"}
+              onChange={() => setSelectedClassification("vispam")}
             />{" "}
             Phân loại review spam
           </label>

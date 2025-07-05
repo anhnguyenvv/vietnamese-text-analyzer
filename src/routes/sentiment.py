@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from modules.sentiment.sentiment import analyze_sentiment
+from database.db import save_history
 
 sentiment_bp = Blueprint('sentiment', __name__)
 
@@ -11,5 +12,11 @@ def analyze():
 
     text = data['text']
     result = analyze_sentiment(text)
+    # Lưu lịch sử vào database
+    save_history(
+        feature="sentiment",
+        input_text=text,
+        result=str(result)
+    )
     print("Sentiment analysis result:", result)
     return jsonify(result)

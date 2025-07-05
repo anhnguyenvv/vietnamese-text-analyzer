@@ -54,7 +54,7 @@ vietnamese-nlp
    ```
    pip install gdown
    gdown --id 1xlc5ggWtrVxOlI4UDnzNyPYsIaNtaDKJ -O src\model\vispam\PhoBERT_vispamReview.pth
-   gdown --id YOUR_FILE_ID -O src\model\clf\PhoBERT_topic_classification.pth
+   gdown --id 17uObntzxDg3UwaA98F9GMNwmAzdpGw_Z -O src\model\clf\PhoBERT_topic_classification.pth
    ```
 ## Usage
 
