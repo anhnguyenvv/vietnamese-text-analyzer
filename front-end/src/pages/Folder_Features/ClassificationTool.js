@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
 import Papa from "papaparse";
-
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -25,6 +24,7 @@ const ClassificationTool = () => {
   const handleAnalyze = async () => {
     setLoading(true);
     setResult(null);
+    setCsvResultUrl(null);
     try {
       const res = await fetch("http://localhost:5000/api/classification/classify", {
         method: "POST",
@@ -71,12 +71,11 @@ const ClassificationTool = () => {
         const baseName = selectedFile.name.replace(/\.csv$/i, "");
         setCsvDownloadName(`${baseName}_result.csv`);
 
-        // Đọc trước 5 dòng đầu file kết quả để xem trước
+        // Đọc trước file kết quả để xem trước
         const text = await blob.text();
         const parsed = Papa.parse(text.trim(), { skipEmptyLines: true });
-        const previewRows = parsed.data.slice(0, 6); // header + 5 dòng
+        const previewRows = parsed.data; 
         setCsvResultPreview(previewRows);
-
         setResult({ message: "Phân tích file CSV thành công. Bạn có thể xem trước và tải kết quả bên dưới." });
       } else {
         const data = await res.json();

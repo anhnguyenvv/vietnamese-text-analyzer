@@ -27,9 +27,17 @@ const FileUploader = ({ onFileSelect }) => {
     // eslint-disable-next-line
   }, [readMode]);
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
   const handleChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      alert("Vui lòng chọn file nhỏ hơn 5MB.");
+      e.target.value = "";
+      return;
+    }
 
     setFileName(file.name);
     setFileObj(file);
