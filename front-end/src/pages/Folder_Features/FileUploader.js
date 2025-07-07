@@ -29,6 +29,26 @@ const FileUploader = ({ onFileSelect }) => {
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+  React.useEffect(() => {
+  if (!fileName || lines.length === 0) return;
+
+  const combined = lines.join("\n\n");
+  if (readMode === "all") {
+    setLines([combined]);
+    setSelectedLine(combined);
+    onFileSelect(combined);
+  } else {
+    const splitParagraphs = combined
+      .split(/\r?\n\s*\r?\n/)
+      .map((p) => p.trim())
+      .filter((p) => p !== "");
+    setLines(splitParagraphs);
+    setSelectedLine(splitParagraphs[0] || "");
+    onFileSelect(splitParagraphs[0] || "");
+  }
+}, [readMode]);
+
+
   const handleChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;

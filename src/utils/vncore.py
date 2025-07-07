@@ -3,7 +3,7 @@ from config.settings import Config
 import os
 import requests
 from vncorenlp import VnCoreNLP
-
+from pathlib import Path
 
 def download_file(url, dst):
     r = requests.get(url, stream=True)
@@ -23,16 +23,17 @@ class VnCore:
         Load the VnCoreNLP model from the specified path.
         """
         if not os.path.exists(vncorenlp_path):
-            self.download_model(save_dir=vncorenlp_path.parent)
+            raise FileNotFoundError(f"VnCoreNLP model not found at {vncorenlp_path}")
         self.annotator = VnCoreNLP(vncorenlp_path)
 
-    def download_model(self, save_dir='./'):
+    @staticmethod
+    def download_model(save_dir='./'):
         """
         Download the VnCoreNLP model files to the specified directory.
         """
-        if save_dir[-1] == '/':
-            save_dir = save_dir[:-1]
-            jar_path = os.path.join(save_dir, "VnCoreNLP-1.2.jar")
+        save_dir = str(save_dir).rstrip("/")
+        jar_path = os.path.join(save_dir, "VnCoreNLP-1.2.jar")
+
 
         # Kiểm tra nếu model đã tồn tại
         if os.path.isdir(save_dir + "/models") and os.path.exists(jar_path):
@@ -82,8 +83,11 @@ class VnCore:
     def parse(self, text):
         return self.annotator.parse(text)
 
-# Ensure the VnCoreNLP model is downloaded and loaded
-vncore_model = VnCore(vncorenlp_path=Config.VNCORENLP_DIR)
-if not os.path.exists(Config.VNCORENLP_DIR):
-    vncore_model.download_model(save_dir=Config.VNCORENLP_DIR.parent)
+vncorenlp_path = Path(Config.VNCORENLP_DIR)
 
+# Nếu chưa có model thì tải
+if not vncorenlp_path.exists():
+    VnCore.download_model(save_dir=str(vncorenlp_path.parent))  # GỌI TRỰC TIẾP STATIC
+
+# Sau đó khởi tạo bình thường
+vncore_model = VnCore(vncorenlp_path=str(vncorenlp_path))
