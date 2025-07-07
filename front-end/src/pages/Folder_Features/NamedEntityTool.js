@@ -30,12 +30,10 @@ function highlightEntities(text, entities) {
       const color = ENTITY_COLORS[labelShort] || "#dfe6e9";
       result += `<span style="background:${color};border-radius:4px;padding:1px 4px;margin:0 1px;display:inline-block;" title="${ent.label}">${word}<sub style="color:#636e72;font-size:10px;">${ent.label}</sub></span>`;
     } else {
-      result += word;
+      result +=  " " + word; // Nếu không phải entity, giữ nguyên từ
     }
   });
 
-  // Thêm phần còn lại của text
-  result += text.slice(currentIdx);
   return result;
 }
 
@@ -60,7 +58,7 @@ const NamedEntityTool = () => {
     setEntities([]);
     setEntityCount({});
     try {
-      const res = await axios.post("http://localhost:5000/api/pos-ner/ner", {
+      const res = await axios.post("http://localhost:5000/api/ner/ner", {
         text: textInput,
         model: selectedModel, 
       });

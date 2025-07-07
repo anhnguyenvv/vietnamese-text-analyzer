@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
+import Papa from "papaparse";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -9,13 +10,21 @@ const ClassificationTool = () => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedClassification, setSelectedClassification] = useState("essay_identification");
-  const handleFileSelect = (content) => {
+  
+  const [csvResultUrl, setCsvResultUrl] = useState(null);
+  const [csvResultPreview, setCsvResultPreview] = useState([]);
+  const [csvDownloadName, setCsvDownloadName] = useState("classification_result.csv");
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleFileSelect = (content, file) => {
     setTextInput(content);
+    setSelectedFile(file || null);
   };
 
   const handleAnalyze = async () => {
     setLoading(true);
     setResult(null);
+    setCsvResultUrl(null);
     try {
       const res = await fetch("http://localhost:5000/api/classification/classify", {
         method: "POST",
@@ -35,7 +44,48 @@ const ClassificationTool = () => {
     setLoading(false);
   };
 
- 
+  const handleAnalyzeFile = async () => {
+    if (!selectedFile || !selectedFile.name.endsWith(".csv")) {
+      alert("Vui lòng chọn file CSV hợp lệ!");
+      return;
+    }
+    setLoading(true);
+    setResult(null);
+    setCsvResultUrl(null);
+    setCsvResultPreview([]);
+    setCsvDownloadName("classification_result.csv");
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("model_name", selectedClassification);
+      const res = await fetch("http://localhost:5000/api/classification/analyze-file", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        setCsvResultUrl(url);
+
+        // Đặt tên file kết quả dựa trên file gốc
+        const baseName = selectedFile.name.replace(/\.csv$/i, "");
+        setCsvDownloadName(`${baseName}_result.csv`);
+
+        // Đọc trước file kết quả để xem trước
+        const text = await blob.text();
+        const parsed = Papa.parse(text.trim(), { skipEmptyLines: true });
+        const previewRows = parsed.data; 
+        setCsvResultPreview(previewRows);
+        setResult({ message: "Phân tích file CSV thành công. Bạn có thể xem trước và tải kết quả bên dưới." });
+      } else {
+        const data = await res.json();
+        setResult({ error: data.error || "Có lỗi xảy ra khi xử lý file." });
+      }
+    } catch (err) {
+      setResult({ error: "Có lỗi xảy ra khi gọi API: " + err.message });
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="classification-tool">
@@ -88,7 +138,16 @@ const ClassificationTool = () => {
             <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
               Phân tích
             </button>
-
+            {selectedFile && selectedFile.name.endsWith(".csv") && (
+              <button
+                className="analyze-button"
+                style={{ background: "#00b894" }}
+                onClick={handleAnalyzeFile}
+                disabled={loading}
+              >
+                Phân tích file CSV
+              </button>
+            )}
             {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
@@ -119,6 +178,82 @@ const ClassificationTool = () => {
                 <strong>Nhận định: </strong>
                 <span style={{ color: "#0984e3", fontWeight: 600 }}>
                   {result.label_name}
+                </span>
+              </div>
+            )}
+            {csvResultUrl && (
+                <div style={{ marginTop: 16 }}>
+                  <strong>Xem trước file kết quả:</strong>
+                  <div
+                    style={{
+                      background: "#fafafa",
+                      border: "1px solid #eee",
+                      borderRadius: 4,
+                      padding: 8,
+                      fontFamily: "monospace",
+                      fontSize: 13,
+                      maxHeight: 220,
+                      overflow: "auto",
+                      marginBottom: 8,
+                    }}
+                  >
+                    {/* Hiển thị bảng preview */}
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <tbody>
+                        {csvResultPreview.map((row, idx) => (
+                          <tr key={idx} style={{ background: idx === 0 ? "#e0e0e0" : "inherit" }}>
+                            {row.map((cell, cidx) => (
+                              <td
+                                key={cidx}
+                                style={{
+                                  border: "1px solid #ddd",
+                                  padding: "4px 8px",
+                                  fontWeight: idx === 0 ? "bold" : "normal",
+                                  whiteSpace: "pre-wrap",
+                                }}
+                              >
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                </div>
+              )}
+          </div>
+          <div className="csv-download-area">
+            {/* Hiển thị nút tải file CSV nếu có kết quả */}
+            {csvResultUrl && (
+              <div>
+                <a
+                  href={csvResultUrl}
+                  download={csvDownloadName}
+                  className="analyze-button"
+                  title={`Tải file kết quả: ${csvDownloadName}`}
+                  style={{
+                    background: "#e0e0e0", // màu xám nhạt
+                    color: "#444",
+                    textDecoration: "none",
+                    padding: "6px 10px",
+                    borderRadius: "50%",
+                    fontWeight: 500,
+                    fontSize: 18,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 8px rgba(0,185,148,0.08)",
+                    transition: "background 0.2s",
+                    width: 36,
+                    height: 36,
+                  }}
+                >
+                  <span role="img" aria-label="download">⬇️</span>
+                </a>
+                <span style={{ fontSize: 14, fontWeight: 500 }}>
+                  {csvDownloadName}
                 </span>
               </div>
             )}

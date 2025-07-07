@@ -118,7 +118,7 @@ const PosTaggingTool = () => {
     setLoading(true);
     setResult("");
     try {
-      const res = await fetch("http://localhost:5000/api/pos-ner/tag", {
+      const res = await fetch("http://localhost:5000/api/pos/tag", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

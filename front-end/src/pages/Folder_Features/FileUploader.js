@@ -5,7 +5,29 @@ const FileUploader = ({ onFileSelect }) => {
   const [fileName, setFileName] = React.useState("");
   const [lines, setLines] = React.useState([]);
   const [selectedLine, setSelectedLine] = React.useState("");
-  const [readMode, setReadMode] = React.useState("paragraph"); // "paragraph" hoặc "all"
+  const [readMode, setReadMode] = React.useState("paragraph");
+  const [fileObj, setFileObj] = React.useState(null);
+  const [fileContent, setFileContent] = React.useState("");
+  const [paragraphs, setParagraphs] = React.useState([]);
+  const [allContent, setAllContent] = React.useState("");
+  const [fileType, setFileType] = React.useState("");
+
+  // Khi đổi chế độ đọc, cập nhật lines và selectedLine tương ứng
+  React.useEffect(() => {
+    if (!fileContent) return;
+    if (readMode === "all") {
+      setLines([allContent]);
+      setSelectedLine(allContent);
+      onFileSelect(allContent, fileObj);
+    } else {
+      setLines(paragraphs);
+      setSelectedLine(paragraphs[0] || "");
+      onFileSelect(paragraphs[0] || "", fileObj);
+    }
+    // eslint-disable-next-line
+  }, [readMode]);
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
   React.useEffect(() => {
   if (!fileName || lines.length === 0) return;
@@ -31,56 +53,88 @@ const FileUploader = ({ onFileSelect }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (file.size > MAX_FILE_SIZE) {
+      alert("Vui lòng chọn file nhỏ hơn 5MB.");
+      e.target.value = "";
+      return;
+    }
+
     setFileName(file.name);
+    setFileObj(file);
 
     const extension = file.name.split('.').pop().toLowerCase();
-
-    const handleContent = (content) => {
-      if (readMode === "all") {
-        setLines([content]);
-        setSelectedLine(content);
-        onFileSelect(content);
-      } else {
-        // Chia theo đoạn văn (2 dòng trống trở lên)
-        const splitParagraphs = content.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(p => p !== "");
-        setLines(splitParagraphs);
-        setSelectedLine(splitParagraphs[0] || "");
-        onFileSelect(splitParagraphs[0] || "");
-      }
-    };
+    setFileType(extension);
 
     if (extension === "txt") {
       const reader = new FileReader();
       reader.onload = () => {
-        handleContent(reader.result);
+        setFileContent(reader.result);
+        setAllContent(reader.result);
+        const splitParagraphs = reader.result.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(p => p !== "");
+        setParagraphs(splitParagraphs);
+        if (readMode === "all") {
+          setLines([reader.result]);
+          setSelectedLine(reader.result);
+          onFileSelect(reader.result, file);
+        } else {
+          setLines(splitParagraphs);
+          setSelectedLine(splitParagraphs[0] || "");
+          onFileSelect(splitParagraphs[0] || "", file);
+        }
       };
       reader.readAsText(file);
     } else if (extension === "docx") {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
-      handleContent(result.value);
+      setFileContent(result.value);
+      setAllContent(result.value);
+      const splitParagraphs = result.value.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(p => p !== "");
+      setParagraphs(splitParagraphs);
+      if (readMode === "all") {
+        setLines([result.value]);
+        setSelectedLine(result.value);
+        onFileSelect(result.value, file);
+      } else {
+        setLines(splitParagraphs);
+        setSelectedLine(splitParagraphs[0] || "");
+        onFileSelect(splitParagraphs[0] || "", file);
+      }
     } else if (extension === "csv") {
       const reader = new FileReader();
       reader.onload = () => {
+        setFileContent(reader.result);
+        setAllContent(reader.result);
         const content = reader.result;
         const allLines = content.split(/\r?\n/).filter(line => line.trim() !== "");
         const hasHeader = allLines.length > 1 && allLines[0].toLowerCase().includes("text");
         const splitLines = hasHeader ? allLines.slice(1) : allLines;
-        setLines(splitLines);
-        setSelectedLine(splitLines[0] || "");
-        onFileSelect(splitLines[0] || "");
+        setParagraphs(splitLines);
+        if (readMode === "all") {
+          setLines([content]);
+          setSelectedLine(content);
+          onFileSelect(content, file);
+        } else {
+          setLines(splitLines);
+          setSelectedLine(splitLines[0] || "");
+          onFileSelect(splitLines[0] || "", file);
+        }
       };
       reader.readAsText(file);
     } else {
       setLines([]);
       setSelectedLine("");
+      setFileContent("");
+      setFileObj(null);
+      setParagraphs([]);
+      setAllContent("");
+      setFileType("");
       onFileSelect("Định dạng không hỗ trợ. Hãy dùng .txt, .docx, .csv");
     }
   };
 
   const handleSelectLine = (e) => {
     setSelectedLine(e.target.value);
-    onFileSelect(e.target.value);
+    onFileSelect(e.target.value, fileObj);
   };
 
   return (

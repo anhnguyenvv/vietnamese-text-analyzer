@@ -62,7 +62,6 @@ def analyze_text(text, remove_stopwords=True):
     chars = len(text)
 
     stopwords = set(get_stopwords())
-    print('stopwords:', stopwords)
     filtered_words = [w for w in words if w.lower() not in stopwords] if remove_stopwords else words
     stopword_count =  sum(1 for w in words if w.lower() in stopwords)
     word_freq = collections.Counter([w.replace('_', ' ') for w in filtered_words])
