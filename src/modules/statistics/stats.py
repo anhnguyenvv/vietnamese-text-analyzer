@@ -1,5 +1,4 @@
 import collections
-from underthesea import pos_tag
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')  # Use non-GUI backend for matplotlib
 from modules.preprocessing.preprocess import get_stopwords
@@ -47,11 +46,6 @@ def create_plot(word_freq):
     plt.close()
     return plot_data
 
-def count_pos_tags(words):
-    tagged = pos_tag(' '.join(words))
-    pos_counter = collections.Counter(tag for _, tag in tagged)
-    return pos_counter
-
 def analyze_text(text, remove_stopwords=True):    
     text = normalize_text(text)
     sentences = tokenize_sentences(text) 
@@ -60,12 +54,11 @@ def analyze_text(text, remove_stopwords=True):
     # xóa số và ký tự đặc biệt
     words = [w for w in words if w.isalpha()]
     chars = len(text)
-
+    
     stopwords = set(get_stopwords())
-    filtered_words = [w for w in words if w.lower() not in stopwords] if remove_stopwords else words
-    stopword_count =  sum(1 for w in words if w.lower() in stopwords)
-    word_freq = collections.Counter([w.replace('_', ' ') for w in filtered_words])
-    pos_tags = count_pos_tags(filtered_words)
+    filtered_words = [w for w in words if w.lower() not in stopwords] 
+    stopword_count =  len(words) - len(filtered_words)
+    word_freq = collections.Counter([w.replace('_', ' ') for w in (filtered_words if remove_stopwords else words)])
     result = {
         "num_sentences": len(sentences),
         "num_words": len(filtered_words),
@@ -78,7 +71,6 @@ def analyze_text(text, remove_stopwords=True):
         "num_emojis": sum(1 for c in text if emoji.is_emoji(c)),
         "num_stopwords": stopword_count,
         "word_freq": word_freq,
-        "pos_counts": pos_tags
     }
     return result
 
@@ -122,6 +114,7 @@ ELO 3. 3. 3 Sự cam kết
 ELO 3. 3. 4 Trung thực, uy tín và trung thành'''
     result = analyze_text(text, remove_stopwords=True)
     print(result)
+    print(f'top 10 từ: {result["word_freq"].most_common(10)}')
     plot_url = create_plot(result['word_freq'])
     print(f"Plot URL: {plot_url[:50]}...")  # Print first 50 characters of the plot URL
     wordcloud_url = create_wordcloud(result['word_freq'])

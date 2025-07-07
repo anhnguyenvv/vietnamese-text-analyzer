@@ -58,7 +58,6 @@ const StatisticsTool = () => {
       avg_word_len,
       vocab_size,
       num_stopwords,
-      pos_counts,
       num_digits,
       num_special_chars,
       num_emojis
@@ -77,18 +76,7 @@ const StatisticsTool = () => {
         <div><strong>Kích thước từ vựng:</strong> {vocab_size}</div>
         <div><strong>Số stopword:</strong> {num_stopwords}</div>
         <div><strong>Tỉ lệ stopword:</strong> {((100 * num_stopwords) / num_words).toFixed(2)}%</div>
-        {pos_counts && (
-          <div style={{ marginTop: 8 }}>
-            <strong>Thống kê từ loại:</strong>
-            <ul>
-              {Object.entries(pos_counts).map(([tag, count], idx) => (
-                <li key={idx}>
-                  <strong>{POS_LABELS[tag] || tag}</strong>: {count}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        
       </>
     );
   };

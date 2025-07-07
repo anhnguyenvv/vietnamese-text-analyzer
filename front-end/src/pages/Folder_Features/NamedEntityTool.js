@@ -22,13 +22,13 @@ function highlightEntities(text, entities) {
 
   entities.forEach(ent => {
     // Tìm vị trí từ tiếp theo trong text, bắt đầu từ currentIdx
-    const word = ent.word;
+    const word = ent[0];
     
     // Nếu là entity (label khác O), highlight
-    if (ent.label && ent.label !== "O") {
-      const labelShort = ent.label.replace(/^B-/, "").replace(/^I-/, "");
+    if (ent[1] && ent[1] !== "O") {
+      const labelShort = ent[1].replace(/^B-/, "").replace(/^I-/, "");
       const color = ENTITY_COLORS[labelShort] || "#dfe6e9";
-      result += `<span style="background:${color};border-radius:4px;padding:1px 4px;margin:0 1px;display:inline-block;" title="${ent.label}">${word}<sub style="color:#636e72;font-size:10px;">${ent.label}</sub></span>`;
+      result += `<span style="background:${color};border-radius:4px;padding:1px 4px;margin:0 1px;display:inline-block;" title="${ent[1]}">${word}<sub style="color:#636e72;font-size:10px;">${ent[1]}</sub></span>`;
     } else {
       result +=  " " + word; // Nếu không phải entity, giữ nguyên từ
     }
@@ -62,7 +62,11 @@ const NamedEntityTool = () => {
         text: textInput,
         model: selectedModel, 
       });
-      // Giả sử backend trả về: { result: [{start, end, label, word}, ...] }
+      // Giả sử backend trả về: { result: [(word, label), ...] }
+      if (!res.data || !res.data.result) {
+        setResultHtml("Không có kết quả nhận diện thực thể.");
+        return;
+      }
       const ents = res.data.result || [];
       console.log("Entities:", ents); // In ra data kết quả ở đây
       setEntities(ents);
@@ -70,7 +74,7 @@ const NamedEntityTool = () => {
       // Đếm số lượt xuất hiện từng entity
       const count = {};
       ents.forEach(e => {
-        count[e.label] = (count[e.label] || 0) + 1;
+        count[e[1]] = (count[e[1]] || 0) + 1;
       });
       setEntityCount(count);
 
