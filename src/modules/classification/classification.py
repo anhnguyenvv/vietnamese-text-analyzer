@@ -32,7 +32,13 @@ class PhoBert_Classifier(nn.Module):
         x = self.fc(x)
         return SimpleNamespace(logits=x)
     
-    
+_MODEL_REGISTRY = {}
+
+def get_classifier(model_name):
+    if model_name not in _MODEL_REGISTRY:
+        _MODEL_REGISTRY[model_name] = TextClassifier(model_name)
+    return _MODEL_REGISTRY[model_name]
+
 class TextClassifier:
     def __init__(self, model_name="essay_identification"):
         self.model_name = model_name or Config.MODEL_NAME
@@ -81,7 +87,7 @@ class TextClassifier:
                               return_tensors='pt', truncation=True, return_attention_mask=True)
 
     
-    def classify(self, text, model_name= "essay_identification", num_labels= None, max_length=512):
+    def classify(self, text, model_name= "essay_identification"):
         """
         Classify the input text and return the predicted label.
         """
@@ -96,7 +102,11 @@ class TextClassifier:
         logits = outputs.logits
         predicted_label = logits.argmax(dim=-1).item()
         return predicted_label
-    
+
+
+for model_name in ["essay_identification", "vispam", "topic_classification"]:
+    get_classifier(model_name)
+       
 if __name__ == "__main__":
     classifier = TextClassifier()
     text = "Bộ Công Thương xóa một tổng cục, giảm nhiều đầu mối"

@@ -1,11 +1,10 @@
 from flask import Blueprint, request, jsonify, send_file
-from modules.classification.classification import TextClassifier
+from modules.classification.classification import TextClassifier, get_classifier
 from database.db import save_history
 import pandas as pd
 import io
 
 classification_bp = Blueprint('classification', __name__)
-classifier = TextClassifier()
 
 @classification_bp.route('/analyze-file', methods=['POST'])
 def analyze_file():
@@ -19,11 +18,11 @@ def analyze_file():
     df = pd.read_csv(file)
     if 'text' not in df.columns:
         return jsonify({"error": "File phải có cột 'text'"}), 400
-
+    classification = get_classifier(model_name)
     results = []
     for text in df['text'].astype(str):
-        predicted_label = classifier.classify(text, model_name=model_name)
-        label_name = classifier.id2label.get(predicted_label, str(predicted_label))
+        predicted_label = classification.classify(text, model_name=model_name)
+        label_name = classification.id2label.get(predicted_label, str(predicted_label))
         results.append(label_name)
     df['classification'] = results
 
@@ -52,17 +51,18 @@ def classify():
         return jsonify({"error": "No text provided"}), 400
 
     text = data['text']
-    model_name = data.get('model_name', None)
+    model_name = data.get('model_name', "essay_identification")
+    classification = get_classifier(model_name)
     try:
-        predicted_label = classifier.classify(
+        predicted_label = classification.classify(
             text,
-            model_name=model_name if model_name else classifier.model_name
+            model_name=model_name if model_name else classification.model_name
         )
-        label_name = classifier.id2label.get(predicted_label, str(predicted_label))
+        label_name = classification.id2label.get(predicted_label, str(predicted_label))
         result = {
             "label_id": predicted_label,
             "label_name": label_name,
-            "model_name": classifier.model_name
+            "model_name": classification.model_name
         }
         # Lưu lịch sử vào database
         save_history(
