@@ -17,11 +17,9 @@ const ENTITY_COLORS = {
 function highlightEntities(text, entities) {
   if (!entities || entities.length === 0) return text;
 
-  let currentIdx = 0;
   let result = "";
 
   entities.forEach(ent => {
-    // Tìm vị trí từ tiếp theo trong text, bắt đầu từ currentIdx
     const word = ent[0];
     
     // Nếu là entity (label khác O), highlight
@@ -40,7 +38,6 @@ function highlightEntities(text, entities) {
 const NamedEntityTool = () => {
   const [textInput, setTextInput] = useState("");
   const [resultHtml, setResultHtml] = useState("");
-  const [entities, setEntities] = useState([]);
   const [entityCount, setEntityCount] = useState({});
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState("vncorenlp"); // Mặc định là vncorenlp
@@ -48,14 +45,12 @@ const NamedEntityTool = () => {
   const handleFileSelect = (content) => {
     setTextInput(content);
     setResultHtml("");
-    setEntities([]);
     setEntityCount({});
   };
 
   const handleAnalyze = async () => {
     setLoading(true);
     setResultHtml("");
-    setEntities([]);
     setEntityCount({});
     try {
       const res = await axios.post("http://localhost:5000/api/ner/ner", {
@@ -69,7 +64,6 @@ const NamedEntityTool = () => {
       }
       const ents = res.data.result || [];
       console.log("Entities:", ents); // In ra data kết quả ở đây
-      setEntities(ents);
 
       // Đếm số lượt xuất hiện từng entity
       const count = {};
@@ -90,16 +84,6 @@ const NamedEntityTool = () => {
     <div className="named-entity-tool">
       <strong>Tùy chọn Nhận diện Thực thể:</strong>
       <div className="options">
-        <label>
-          <input
-            type="radio"
-            name="model"
-            value="underthesea"
-            checked={selectedModel === "underthesea"}
-            onChange={() => setSelectedModel("underthesea")}
-          />{" "}
-          Underthesea
-        </label>
         <label style={{ marginLeft: 16 }}>
           <input
             type="radio"
@@ -110,6 +94,17 @@ const NamedEntityTool = () => {
           />{" "}
           VnCoreNLP
         </label>
+        <label>
+          <input
+            type="radio"
+            name="model"
+            value="underthesea"
+            checked={selectedModel === "underthesea"}
+            onChange={() => setSelectedModel("underthesea")}
+          />{" "}
+          Underthesea
+        </label>
+        
       </div>
       <FileUploader onFileSelect={handleFileSelect} />
       <div className="text-area-container">

@@ -8,7 +8,9 @@ const PreprocessingTool = () => {
   const [loading, setLoading] = useState(false);
   const [removeStopwords, setRemoveStopwords] = useState(true);
   const [removeEmojis, setRemoveEmojis] = useState(false);
-  const [removeNumbers, setRemoveNumbers] = useState(true);
+  const [tokens, setTokens] = useState([]);
+  const [showTokens, setShowTokens] = useState(false);
+  const [tokenize, setTokenize] = useState(false);  const [removeNumbers, setRemoveNumbers] = useState(true);
   const [removeDuplicates, setRemoveDuplicates] = useState(false);
   const [lowercase, setLowercase] = useState(true);
   const handleFileSelect = (content) => {
@@ -38,6 +40,25 @@ const PreprocessingTool = () => {
       }
     } catch (err) {
       setResult("Có lỗi xảy ra khi gọi API!");
+    }
+    setShowTokens(tokenize);
+    if (tokenize) {
+      setTokens([]);
+      try {
+        const res = await fetch("http://localhost:5000/api/preprocessing/tokenize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: result}),
+        });
+        const data = await res.json();
+        if (data.tokens) {
+          setTokens(data.tokens);
+        } else {
+          setTokens(["Có lỗi xảy ra!"]);
+        }
+      } catch (err) {
+        setTokens(["Có lỗi xảy ra khi gọi API!"]);
+      }
     }
     setLoading(false);
   };
@@ -86,7 +107,14 @@ const PreprocessingTool = () => {
           />
           Chuyển sang chữ thường
         </label>
-        
+        <label>
+        <input
+          type="checkbox"
+          checked={tokenize}
+          onChange={(e) => setTokenize(e.target.checked)}
+        />
+        Tách từ
+      </label>
       </div>
       <FileUploader onFileSelect={handleFileSelect} />
 
@@ -101,13 +129,13 @@ const PreprocessingTool = () => {
           />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
-              Phân tích
+              Xử lý
             </button>
 
              {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
-                  Đang phân tích...
+                  Đang xử lý...
                 </div>
                 <div className="loading-bar-container">
                   <div className="loading-bar" />
@@ -125,6 +153,47 @@ const PreprocessingTool = () => {
             placeholder="Kết quả sẽ hiển thị ở đây..."
             value={result}
           />
+          {tokenize && showTokens && (
+            <div className="token-list" style={{ marginTop: 12 }}>
+              <strong>Danh sách từ sau khi tách:</strong>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  marginTop: 6,
+                  background: "#fafafa",
+                  border: "1px solid #eee",
+                  borderRadius: 4,
+                  padding: 8,
+                  fontFamily: "monospace",
+                  fontSize: 14,
+                  maxHeight: 120,
+                  overflow: "auto"
+                }}
+              >
+                {tokens.length > 0
+                  ? tokens.map((token, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          background: "#dfe6e9",
+                          borderRadius: 12,
+                          padding: "2px 10px",
+                          margin: "2px 2px",
+                          fontSize: 15,
+                          display: "inline-block",
+                          color: "#222",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
+                        }}
+                      >
+                        {token}
+                      </span>
+                    ))
+                  : "Không có kết quả"}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

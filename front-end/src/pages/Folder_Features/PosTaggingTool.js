@@ -108,7 +108,7 @@ const PosTaggingTool = () => {
   const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("underthesea");
+  const [selectedModel, setSelectedModel] = useState("vncorenlp"); // Mặc định là vncorenlp
 
   const handleFileSelect = (content) => {
     setTextInput(content);
@@ -144,16 +144,6 @@ const PosTaggingTool = () => {
     <div className="pos-tagging-tool">
       <strong>Tùy chọn Gán nhãn từ loại:</strong>
       <div className="options">
-        <label>
-          <input
-            type="radio"
-            name="model"
-            value="underthesea"
-            checked={selectedModel === "underthesea"}
-            onChange={() => setSelectedModel("underthesea")}
-          />{" "}
-          Underthesea
-        </label>
         <label style={{ marginLeft: 16 }}>
           <input
             type="radio"
@@ -163,6 +153,16 @@ const PosTaggingTool = () => {
             onChange={() => setSelectedModel("vncorenlp")}
           />{" "}
           VnCoreNLP
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="model"
+            value="underthesea"
+            checked={selectedModel === "underthesea"}
+            onChange={() => setSelectedModel("underthesea")}
+          />{" "}
+          Underthesea
         </label>
       </div>
       <FileUploader onFileSelect={handleFileSelect} />
