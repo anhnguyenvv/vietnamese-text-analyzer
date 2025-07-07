@@ -11,7 +11,6 @@ const FileUploader = ({ onFileSelect }) => {
   const [paragraphs, setParagraphs] = React.useState([]);
   const [allContent, setAllContent] = React.useState("");
 
-  // Khi đổi chế độ đọc, cập nhật lines và selectedLine tương ứng
   React.useEffect(() => {
     if (!fileContent) return;
     if (readMode === "all") {
