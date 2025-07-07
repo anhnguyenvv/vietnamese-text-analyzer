@@ -54,7 +54,7 @@ input:focus {
 
 textarea {
   resize: vertical;
-  min-height: 200px;
+  min-height: 250px;
   padding: 10px;
   font-size: 14px;
   border-radius: 8px;
@@ -120,8 +120,8 @@ textarea {
 
 .result-box {
   resize: vertical;              /* cho phép kéo chiều cao nếu cần */
-  min-height: 200px;             /* chiều cao tối thiểu */
-  max-height: 200px;             /* chiều cao tối đa (bạn có thể tăng/giảm) */
+  min-height: 250px;             
+  max-height: 250px;             
   overflow-y: auto;              /* nếu vượt max-height thì cuộn */
   padding: 10px;
   font-size: 14px;

@@ -135,19 +135,19 @@ const ClassificationTool = () => {
             onChange={(e) => setTextInput(e.target.value)}
           />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
+            <button
+              className="analyze-button"
+              onClick={() => {
+                if (selectedFile && selectedFile.name.endsWith(".csv")) {
+                  handleAnalyzeFile();
+                } else {
+                  handleAnalyze();
+                }
+              }}
+              disabled={loading}
+            >
               Phân tích
             </button>
-            {selectedFile && selectedFile.name.endsWith(".csv") && (
-              <button
-                className="analyze-button"
-                style={{ background: "#00b894" }}
-                onClick={handleAnalyzeFile}
-                disabled={loading}
-              >
-                Phân tích file CSV
-              </button>
-            )}
             {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
