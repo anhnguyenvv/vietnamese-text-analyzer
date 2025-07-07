@@ -55,7 +55,7 @@ class TextClassifier:
             self.id2label = getattr(config, "id2label", {i: str(i) for i in range(self.num_labels)})
         if model_name == "vispam":
             self.model = PhoBert_Classifier(num_classes=2).to(Config.DEVICE)
-            self.model.load_state_dict(torch.load(Config.MODELS_DIR[model_name], map_location=Config.DEVICE))
+            self.model.load_state_dict(torch.load(Config.MODELS_DIR[model_name], map_location=Config.DEVICE), strict=False)
             self.tokenizer = AutoTokenizer.from_pretrained('vinai/phobert-base')
             self.id2label = {0: "no-spam", 1: "spam"}
         if model_name == "topic_classification":
