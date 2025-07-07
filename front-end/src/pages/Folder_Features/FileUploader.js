@@ -1,6 +1,5 @@
 import React from "react";
 import mammoth from "mammoth";
-
 const FileUploader = ({ onFileSelect }) => {
   const [fileName, setFileName] = React.useState("");
   const [lines, setLines] = React.useState([]);
@@ -10,7 +9,6 @@ const FileUploader = ({ onFileSelect }) => {
   const [fileContent, setFileContent] = React.useState("");
   const [paragraphs, setParagraphs] = React.useState([]);
   const [allContent, setAllContent] = React.useState("");
-
   React.useEffect(() => {
     if (!fileContent) return;
     if (readMode === "all") {
@@ -28,24 +26,18 @@ const FileUploader = ({ onFileSelect }) => {
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
   React.useEffect(() => {
-  if (!fileName || lines.length === 0) return;
+    if (!fileName) return;
 
-  const combined = lines.join("\n\n");
-  if (readMode === "all") {
-    setLines([combined]);
-    setSelectedLine(combined);
-    onFileSelect(combined);
-  } else {
-    const splitParagraphs = combined
-      .split(/\r?\n\s*\r?\n/)
-      .map((p) => p.trim())
-      .filter((p) => p !== "");
-    setLines(splitParagraphs);
-    setSelectedLine(splitParagraphs[0] || "");
-    onFileSelect(splitParagraphs[0] || "");
-  }
-}, [readMode]);
-
+    if (readMode === "all") {
+      setLines([allContent]);
+      setSelectedLine(allContent);
+      onFileSelect(allContent, fileObj);
+    } else {
+      setLines(paragraphs);
+      setSelectedLine(paragraphs[0] || "");
+      onFileSelect(paragraphs[0] || "", fileObj);
+    }
+  }, [readMode]);
 
   const handleChange = async (e) => {
     const file = e.target.files[0];
@@ -69,15 +61,7 @@ const FileUploader = ({ onFileSelect }) => {
         setAllContent(reader.result);
         const splitParagraphs = reader.result.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(p => p !== "");
         setParagraphs(splitParagraphs);
-        if (readMode === "all") {
-          setLines([reader.result]);
-          setSelectedLine(reader.result);
-          onFileSelect(reader.result, file);
-        } else {
-          setLines(splitParagraphs);
-          setSelectedLine(splitParagraphs[0] || "");
-          onFileSelect(splitParagraphs[0] || "", file);
-        }
+        // Giao diện sẽ tự cập nhật theo readMode qua useEffect
       };
       reader.readAsText(file);
     } else if (extension === "docx") {
@@ -87,15 +71,7 @@ const FileUploader = ({ onFileSelect }) => {
       setAllContent(result.value);
       const splitParagraphs = result.value.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(p => p !== "");
       setParagraphs(splitParagraphs);
-      if (readMode === "all") {
-        setLines([result.value]);
-        setSelectedLine(result.value);
-        onFileSelect(result.value, file);
-      } else {
-        setLines(splitParagraphs);
-        setSelectedLine(splitParagraphs[0] || "");
-        onFileSelect(splitParagraphs[0] || "", file);
-      }
+      // Giao diện sẽ tự cập nhật theo readMode qua useEffect
     } else if (extension === "csv") {
       const reader = new FileReader();
       reader.onload = () => {
@@ -106,15 +82,7 @@ const FileUploader = ({ onFileSelect }) => {
         const hasHeader = allLines.length > 1 && allLines[0].toLowerCase().includes("text");
         const splitLines = hasHeader ? allLines.slice(1) : allLines;
         setParagraphs(splitLines);
-        if (readMode === "all") {
-          setLines([content]);
-          setSelectedLine(content);
-          onFileSelect(content, file);
-        } else {
-          setLines(splitLines);
-          setSelectedLine(splitLines[0] || "");
-          onFileSelect(splitLines[0] || "", file);
-        }
+
       };
       reader.readAsText(file);
     } else {
@@ -199,6 +167,7 @@ const FileUploader = ({ onFileSelect }) => {
           </select>
         </div>
       )}
+      
     </div>
   );
 };
