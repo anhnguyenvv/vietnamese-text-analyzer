@@ -8,7 +8,7 @@ const PreprocessingTool = () => {
   const [loading, setLoading] = useState(false);
   const [removeStopwords, setRemoveStopwords] = useState(true);
   const [removeEmojis, setRemoveEmojis] = useState(false);
-  const [removeSpecialChars, setRemoveSpecialChars] = useState(true);
+  const [removeNumbers, setRemoveNumbers] = useState(true);
   const [removeDuplicates, setRemoveDuplicates] = useState(false);
   const [lowercase, setLowercase] = useState(true);
   const handleFileSelect = (content) => {
@@ -25,10 +25,9 @@ const PreprocessingTool = () => {
         body: JSON.stringify({ text: textInput 
           , remove_stopwords: removeStopwords,
           remove_emojis: removeEmojis,
-          remove_special_chars: removeSpecialChars,
           remove_duplicates: removeDuplicates,
           lowercase: lowercase,
-          
+          remove_numbers: removeNumbers
         }),
       });
       const data = await res.json();
@@ -66,10 +65,10 @@ const PreprocessingTool = () => {
         <label>
           <input
             type="checkbox"
-            checked={removeSpecialChars}
-            onChange={(e) => setRemoveSpecialChars(e.target.checked)}
+            checked={removeNumbers}
+            onChange={(e) => setRemoveNumbers(e.target.checked)}
           />
-          Loại bỏ ký tự đặc biệt
+          Loại bỏ số
         </label>
         <label>
           <input

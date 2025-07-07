@@ -35,14 +35,12 @@ def remove_stopwords(tokens: str) -> str:
     return filtered_tokens
 
 
-def preprocess_text(text: str, remove_duplicates: bool = False, remove_icon: bool = True,
-                   remove_numbers: bool = True, remove_special_chars: bool = True, remove_stopword: bool = True) -> str:
+def preprocess_text(text: str, remove_duplicates: bool = False, remove_icon: bool = False,
+                   remove_numbers: bool = True, remove_special_chars: bool = True, remove_stopword: bool = False) -> str:
     text = unicodedata.normalize("NFC", text)
 
     text = normalize_text(text, remove_icon=remove_icon)
-    tokens = tokenize_words(text)
-    if remove_duplicates:
-        tokens = list(dict.fromkeys(tokens))    
+    tokens = tokenize_words(text)  
     if remove_duplicates:
         tokens = list(dict.fromkeys(tokens))
     tokens = [token.replace('_', ' ') for token in tokens]

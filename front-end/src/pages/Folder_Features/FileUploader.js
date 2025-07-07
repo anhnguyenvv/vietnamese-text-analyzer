@@ -10,7 +10,6 @@ const FileUploader = ({ onFileSelect }) => {
   const [fileContent, setFileContent] = React.useState("");
   const [paragraphs, setParagraphs] = React.useState([]);
   const [allContent, setAllContent] = React.useState("");
-  const [fileType, setFileType] = React.useState("");
 
   // Khi đổi chế độ đọc, cập nhật lines và selectedLine tương ứng
   React.useEffect(() => {
@@ -63,7 +62,6 @@ const FileUploader = ({ onFileSelect }) => {
     setFileObj(file);
 
     const extension = file.name.split('.').pop().toLowerCase();
-    setFileType(extension);
 
     if (extension === "txt") {
       const reader = new FileReader();
@@ -127,7 +125,6 @@ const FileUploader = ({ onFileSelect }) => {
       setFileObj(null);
       setParagraphs([]);
       setAllContent("");
-      setFileType("");
       onFileSelect("Định dạng không hỗ trợ. Hãy dùng .txt, .docx, .csv");
     }
   };

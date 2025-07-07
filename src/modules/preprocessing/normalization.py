@@ -227,7 +227,6 @@ def remove_html(text):
     return re.sub(r'<[^>]*>', '', text)
 
 def removeIcon(text):
-    text = text.lower()
     s = ''
     pattern = r"[a-zA-ZaăâbcdđeêghiklmnoôơpqrstuưvxyàằầbcdđèềghìklmnòồờpqrstùừvxỳáắấbcdđéếghíklmnóốớpqrstúứvxýảẳẩbcdđẻểghỉklmnỏổởpqrstủửvxỷạặậbcdđẹệghịklmnọộợpqrstụựvxỵãẵẫbcdđẽễghĩklmnõỗỡpqrstũữvxỹAĂÂBCDĐEÊGHIKLMNOÔƠPQRSTUƯVXYÀẰẦBCDĐÈỀGHÌKLMNÒỒỜPQRSTÙỪVXỲÁẮẤBCDĐÉẾGHÍKLMNÓỐỚPQRSTÚỨVXÝẠẶẬBCDĐẸỆGHỊKLMNỌỘỢPQRSTỤỰVXỴẢẲẨBCDĐẺỂGHỈKLMNỎỔỞPQRSTỦỬVXỶÃẴẪBCDĐẼỄGHĨKLMNÕỖỠPQRSTŨỮVXỸ,._]"
     
@@ -246,11 +245,13 @@ def normalize_text(text, remove_html_tags=True, remove_icon=False):
     if remove_html_tags:
         text = remove_html(text)
     if remove_icon:
-        text = remove_icon(text)
-    text = chuan_hoa_icon(text)
+        text = removeIcon(text)
+    else:
+        text = chuan_hoa_icon(text)
     text = chuan_hoa_dau_cau_tieng_viet(text)
     return text
 
 if __name__ == '__main__':
     print(chuan_hoa_dau_cau_tieng_viet('anh Hoà, đang làm.. gì laf ai biết? HỌC TẬP HOÀ là chính!'))
     print(normalize_text('HOÀ'))
+    print(removeIcon('Hà Nội, Việt Nam!🧐😗☺️'))

@@ -9,7 +9,7 @@ def tokenize_words(text):
     Tokenizes the input text into words.
     """
     # Normalize whitespace and remove special characters
-    text = re.sub(r'[^\w\s]', '', text)    
+    #text = re.sub(r'[^\w\s]', '', text)    
     sentences = annotator.tokenize(text)
     tokens = [word for sent in sentences for word in sent]  
     return tokens

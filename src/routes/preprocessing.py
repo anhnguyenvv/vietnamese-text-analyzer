@@ -31,7 +31,7 @@ def preprocess():
         print("No text provided for preprocessing")
         return jsonify({"error": "No text provided"}), 400
 
-    remove_special = data.get('remove_special_chars', True)
+    remove_numbers = data.get('remove_numbers', True)
     remove_emoji = data.get('remove_emojis', False)
     remove_stopword = data.get('remove_stopwords', False)
     to_lower = data.get('lowercase', False)
@@ -39,7 +39,8 @@ def preprocess():
 
     preprocessed_text = preprocess_text(
         text,
-        remove_special_chars=remove_special,
+        remove_numbers=remove_numbers,
+        remove_special_chars=False,  # Giữ nguyên để loại bỏ ký tự đặc biệt
         remove_icon=remove_emoji,
         remove_stopword=remove_stopword,
         remove_duplicates=deduplicate
