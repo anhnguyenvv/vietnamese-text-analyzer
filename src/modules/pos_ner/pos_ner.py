@@ -19,10 +19,10 @@ def ner_tagging(text, model='vncorenlp'):
     """
     if model == 'vncorenlp':
         ner_tags = vncore_model.ner(text)
-        ner_tags = [{word.replace("_", " "), tag} for item in ner_tags for word, tag in item]
+        ner_tags = [(word.replace("_", " "), tag) for item in ner_tags for word, tag in item]
     elif model == 'underthesea':
         ner_tags = ner(text)
-        ner_tags = [{word, tag} for word, _, _, tag in ner_tags]
+        ner_tags = [(word, tag) for word, _, _, tag in ner_tags]
     return ner_tags
 
 if __name__ == '__main__':
