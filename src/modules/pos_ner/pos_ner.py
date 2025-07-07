@@ -39,6 +39,5 @@ if __name__ == '__main__':
     
     ner_tags = ner_tagging(text)
     print("NER Tags:", ner_tags) 
-    print("---------------------")
     ner_tags = ner_tagging(text, model='underthesea')
     print("NER Tags (Underthesea):", ner_tags) 
