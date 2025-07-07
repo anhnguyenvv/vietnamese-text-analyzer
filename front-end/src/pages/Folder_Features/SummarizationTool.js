@@ -34,7 +34,7 @@ const SummarizationTool = () => {
 
   return (
     <div className="summarization-tool">
-      <strong>Tùy chọn Tóm tắt:</strong>
+      <strong>Tóm tắt văn bản</strong>
       <FileUploader onFileSelect={handleFileSelect} />
 
       <div className="text-area-container">

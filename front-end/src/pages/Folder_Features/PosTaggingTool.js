@@ -142,7 +142,7 @@ const PosTaggingTool = () => {
 
   return (
     <div className="pos-tagging-tool">
-      <strong>Tùy chọn Gán nhãn từ loại:</strong>
+      <strong>Tùy chọn gán nhãn từ loại:</strong>
       <div className="options">
         <label>
           <input
