@@ -43,11 +43,12 @@ def preprocess_text(text: str, remove_duplicates: bool = False, remove_icon: boo
     tokens = tokenize_words(text)  
     if remove_duplicates:
         tokens = list(dict.fromkeys(tokens))
-    tokens = [token.replace('_', ' ') for token in tokens]
     if remove_special_chars:
-        tokens = [token for token in tokens if token.isalnum() or token.isspace()]
+        tokens = [token for token in tokens if all(c.isalnum() or c == '_' or c.isspace() for c in token)]
     if remove_numbers:
         tokens = [token for token in tokens if not token.isdigit()]
+    if remove_stopword:
+        tokens = remove_stopwords(tokens)
     return ' '.join(tokens)
 
 if __name__ == "__main__":

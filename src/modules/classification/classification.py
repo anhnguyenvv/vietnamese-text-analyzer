@@ -5,6 +5,7 @@ import torch
 from torch import nn
 from transformers import AutoModel, BertModel
 from types import SimpleNamespace
+from modules.preprocessing import tokenize_words, normalize_text
 class PhoBert_Classifier(nn.Module):
 
     def __init__(self, freeze_bert=False, num_classes=2, drop=0.3):
@@ -96,7 +97,7 @@ class TextClassifier:
         if model_name and model_name != self.model_name:
             self.model_name = model_name
             self._load_model_and_tokenizer(self.model_name)
-
+        text = tokenize_words(normalize_text(text))
         inputs = self.encode_data(text)
         outputs = self.model(input_ids=inputs['input_ids'], attention_mask=inputs['attention_mask'] if 'attention_mask' in inputs else None)
         logits = outputs.logits
