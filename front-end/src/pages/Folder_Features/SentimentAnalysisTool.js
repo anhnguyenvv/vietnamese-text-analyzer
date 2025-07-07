@@ -105,7 +105,7 @@ const SentimentAnalysisTool = () => {
 
   return (
     <div className="sentiment-analysis-tool">
-      <strong>Tùy chọn Phân tích Cảm xúc:</strong>
+      <strong>Phân tích cảm xúc</strong>
       <div className="options"></div>
       <FileUploader onFileSelect={handleFileSelect} />
 

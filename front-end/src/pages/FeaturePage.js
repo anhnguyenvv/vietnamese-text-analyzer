@@ -19,13 +19,13 @@ import NamedEntityTool from "./Folder_Features/NamedEntityTool";
 import PosTaggingTool from "./Folder_Features/PosTaggingTool";
 
 const options = [
-  { value: "thong-ke", label: "Thống kê văn bản", icon: <MdOutlineInsertChart /> },
+  { value: "thong-ke", label: "Thống kê", icon: <MdOutlineInsertChart /> },
   { value: "tien-xu-ly", label: "Tiền xử lý", icon: <MdCleaningServices /> },
   { value: "gan-nhan", label: "Gán nhãn từ loại", icon: <FaTags /> },
-  { value: "ner", label: "Thực thể có tên", icon: <BiBrain /> },
-  { value: "cam-xuc", label: "Cảm xúc", icon: <BsEmojiSmile /> },
+  { value: "ner", label: "Gán nhãn thực thể có tên", icon: <BiBrain /> },
+  { value: "cam-xuc", label: "Phân tích cảm xúc", icon: <BsEmojiSmile /> },
   { value: "phan-loai", label: "Phân loại", icon: <MdOutlineCategory /> },
-  { value: "tom-tat", label: "Tóm tắt văn bản", icon: <HiOutlineDocumentText /> },
+  { value: "tom-tat", label: "Tóm tắt", icon: <HiOutlineDocumentText /> },
 ];
 
 const FeaturePage = () => {

@@ -44,7 +44,7 @@ const PreprocessingTool = () => {
 
   return (
     <div className="preprocessing-tool">
-      <strong>Tùy chọn Tiền xử lý:</strong>
+      <strong>Tùy chọn tiền xử lý:</strong>
       <div className="options">
         <label>
           <input

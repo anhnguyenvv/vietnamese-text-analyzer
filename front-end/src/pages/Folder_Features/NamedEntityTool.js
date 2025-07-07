@@ -88,7 +88,7 @@ const NamedEntityTool = () => {
 
   return (
     <div className="named-entity-tool">
-      <strong>Tùy chọn Nhận diện Thực thể:</strong>
+      <strong>Tùy chọn nhận diện thực thể:</strong>
       <div className="options">
         <label>
           <input

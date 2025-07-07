@@ -89,7 +89,7 @@ const ClassificationTool = () => {
 
   return (
     <div className="classification-tool">
-      <strong>Tùy chọn Phân loại:</strong>      
+      <strong>Tùy chọn phân loại:</strong>      
         <div className="options">
           <label>
             <input
@@ -173,7 +173,7 @@ const ClassificationTool = () => {
               <div style={{ color: "red" }}>{result.error}</div>
             )}
 
-            {result && !result.error && (
+            {result && !result.error && result.label &&(
               <div style={{ marginTop: 16 }}>
                 <strong>Nhận định: </strong>
                 <span style={{ color: "#0984e3", fontWeight: 600 }}>
