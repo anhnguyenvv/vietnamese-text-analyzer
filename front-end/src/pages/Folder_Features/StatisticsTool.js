@@ -83,7 +83,7 @@ const StatisticsTool = () => {
 
   return (
     <div className="statistics-tool">
-      <strong>Tùy chọn Thống kê:</strong>
+      <strong>Tùy chọn thống kê:</strong>
       <div className="options">
         <label>
           <input

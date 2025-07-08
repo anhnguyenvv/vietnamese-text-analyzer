@@ -89,7 +89,7 @@ const ClassificationTool = () => {
 
   return (
     <div className="classification-tool">
-      <strong>Tùy chọn Phân loại:</strong>      
+      <strong>Tùy chọn phân loại:</strong>      
         <div className="options">
           <label>
             <input
@@ -135,19 +135,19 @@ const ClassificationTool = () => {
             onChange={(e) => setTextInput(e.target.value)}
           />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
+            <button
+              className="analyze-button"
+              onClick={() => {
+                if (selectedFile && selectedFile.name.endsWith(".csv")) {
+                  handleAnalyzeFile();
+                } else {
+                  handleAnalyze();
+                }
+              }}
+              disabled={loading}
+            >
               Phân tích
             </button>
-            {selectedFile && selectedFile.name.endsWith(".csv") && (
-              <button
-                className="analyze-button"
-                style={{ background: "#00b894" }}
-                onClick={handleAnalyzeFile}
-                disabled={loading}
-              >
-                Phân tích file CSV
-              </button>
-            )}
             {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
@@ -173,7 +173,7 @@ const ClassificationTool = () => {
               <div style={{ color: "red" }}>{result.error}</div>
             )}
 
-            {result && !result.error && (
+            {result && !result.error && result.label &&(
               <div style={{ marginTop: 16 }}>
                 <strong>Nhận định: </strong>
                 <span style={{ color: "#0984e3", fontWeight: 600 }}>

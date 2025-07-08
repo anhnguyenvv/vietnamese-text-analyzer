@@ -105,7 +105,7 @@ const SentimentAnalysisTool = () => {
 
   return (
     <div className="sentiment-analysis-tool">
-      <strong>Tùy chọn Phân tích Cảm xúc:</strong>
+      <strong>Phân tích cảm xúc</strong>
       <div className="options"></div>
       <FileUploader onFileSelect={handleFileSelect} />
 
@@ -119,22 +119,19 @@ const SentimentAnalysisTool = () => {
             onChange={(e) => setTextInput(e.target.value)}
           />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button className="analyze-button" 
-              onClick={handleAnalyze} 
-              disabled={loading}>
+            <button
+              className="analyze-button"
+              onClick={() => {
+                if (selectedFile && selectedFile.name.endsWith(".csv")) {
+                  handleAnalyzeFile();
+                } else {
+                  handleAnalyze();
+                }
+              }}
+              disabled={loading}
+            >
               Phân tích
             </button>
-            {/* Nút phân tích file CSV */}
-            {selectedFile && selectedFile.name.endsWith(".csv") && (
-              <button
-                className="analyze-button"
-                style={{ background: "#00b894" }}
-                onClick={handleAnalyzeFile}
-                disabled={loading}
-              >
-                Phân tích file CSV
-              </button>
-            )}
             {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
