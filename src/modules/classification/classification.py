@@ -3,7 +3,7 @@ from config.settings import Config
 from modules.preprocessing import normalize_text
 import torch
 from modules.preprocessing import tokenize_words, normalize_text
-from utils.phoBERT import PhoBert_Classifier
+from utils.BERT import Bert_Classifier
 _MODEL_REGISTRY = {}
 
 def get_classifier(model_name):
@@ -24,13 +24,18 @@ class TextClassifier:
             self.model = AutoModelForSequenceClassification.from_pretrained(Config.MODELS_DIR[model_name], num_labels=5)
             config = AutoConfig.from_pretrained(Config.MODELS_DIR[model_name])
             self.id2label = getattr(config, "id2label", {i: str(i) for i in range(self.num_labels)})
-        if model_name == "vispam":
-            self.model = PhoBert_Classifier(num_classes=2).to(Config.DEVICE)
+        if model_name == "vispam-Phobert":
+            self.model = Bert_Classifier(name_model='vinai/phobert-base', num_classes=2).to(Config.DEVICE)
             self.model.load_state_dict(torch.load(Config.MODELS_DIR[model_name], map_location=Config.DEVICE), strict=False)
             self.tokenizer = AutoTokenizer.from_pretrained('vinai/phobert-base')
             self.id2label = {0: "no-spam", 1: "spam"}
+        if model_name == "vispam-VisoBert":
+            self.model = Bert_Classifier(name_model='uitnlp/visobert', num_classes=2).to(Config.DEVICE)
+            self.model.load_state_dict(torch.load(Config.MODELS_DIR[model_name], map_location=Config.DEVICE), strict=False)
+            self.tokenizer = AutoTokenizer.from_pretrained('uitnlp/visobert')
+            self.id2label = {0: "no-spam", 1: "spam"}
         if model_name == "topic_classification":
-            self.model = PhoBert_Classifier(num_classes=10).to(Config.DEVICE)
+            self.model = Bert_Classifier(name_model='vinai/phobert-base', num_classes=10).to(Config.DEVICE)
             self.model.load_state_dict(torch.load(Config.MODELS_DIR[model_name], map_location=Config.DEVICE), strict=False)
             self.tokenizer = AutoTokenizer.from_pretrained('vinai/phobert-base')
             self.id2label = {0: 'Kinh doanh',
@@ -72,27 +77,24 @@ class TextClassifier:
         inputs = self.encode_data(text)
         outputs = self.model(input_ids=inputs['input_ids'], attention_mask=inputs['attention_mask'] if 'attention_mask' in inputs else None)
         logits = outputs.logits
-        predicted_label = logits.argmax(dim=-1).item()
-        return predicted_label
-
+        #predicted_label = logits.argmax(dim=-1).item()
+        
+        probs = torch.softmax(logits, dim=-1)
+        predicted_label = probs.argmax(dim=-1).item()
+        confidence = probs[0, predicted_label].item()
+        return {
+            "predicted_label": predicted_label,
+            "confidence": confidence
+        }
 
 for model_name in ["essay_identification", "vispam", "topic_classification"]:
     get_classifier(model_name)
        
 if __name__ == "__main__":
-    classifier = TextClassifier()
+    classifier = TextClassifier('vispam-VisoBert')
     text = "Bộ Công Thương xóa một tổng cục, giảm nhiều đầu mối"
-    predicted_label = classifier.classify(text)
+    predicted = classifier.classify(text, model_name="vispam-VisoBert")
+    print("Predicted Label:", predicted['label_name'])
+    print("Confidence:", predicted['confidence'])
+   # print("All Labels:", predicted['all_labels'])
     print("Model Name:", classifier.model_name)
-
-    print("Predicted Label:", classifier.id2label.get(predicted_label, predicted_label))
-    
-    text = "Shop giao hàng khá nhanh. Chất liệu cũng được dày dặn che sáng tốt, gia công hơi ẩu vạt dài vạt ngắn"
-    predicted_label = classifier.classify(text, model_name="vispam")
-    print("Model Name:", classifier.model_name)
-    print("Predicted Label for vispam:", classifier.id2label.get(predicted_label, predicted_label))
-
-    text = "Chủ tịch Quốc hội Vương Đình Huệ làm việc với lãnh đạo tỉnh Bình Định"
-    predicted_label = classifier.classify(text, model_name="topic_classification")
-    print("Model Name:", classifier.model_name)
-    print("Predicted Label for topic_classification:", classifier.id2label.get(predicted_label, predicted_label))

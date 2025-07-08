@@ -29,25 +29,37 @@ const POS_LABELS = {
 };
 
 const POS_COLORS = {
+  // Màu sắc cho các nhãn POS
+  // Danh từ
   Np: "#74b9ff",
   Nc: "#74b9ff",
   Nu: "#74b9ff",
   N: "#74b9ff",
   Ny: "#74b9ff",
   Nb: "#74b9ff",
+  // Động từ
   V: "#fdcb6e",
   Vb: "#fdcb6e",
+  // Tính từ
   A: "#55efc4",
-  ADV: "#a29bfe",
+  Ab: "#55efc4",
+  // Đại từ
   P: "#fab1a0",
-  L: "#636e72",
+  // Số từ
   M: "#00b894",
-  R: "#e17055",
-  E: "#dfe6e9",
-  C: "#fd79a8",
+  // 
+  L: "#636e72",
+  R: "#636e72",
+  E: "#636e72",
+  C: "#636e72",
+  Cc: "#636e72",
   T: "#636e72",
-  I: "#ffeaa7",
-  Y: "#b2bec3",
+  I: "#636e72",
+  Y: "#636e72",
+  Z: "#636e72",
+  // Không xác định
+  X: "#aaa",
+  CH: "#aaa",
 };
 
 function highlightPOS(result) {

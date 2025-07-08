@@ -2,14 +2,14 @@
 from torch import nn
 from transformers import AutoModel
 from types import SimpleNamespace
-class PhoBert_Classifier(nn.Module):
+class Bert_Classifier(nn.Module):
 
-    def __init__(self, freeze_bert=False, num_classes=2, drop=0.3):
-        super(PhoBert_Classifier, self).__init__()
+    def __init__(self, name_model='vinai/phobert-base', freeze_bert=False, num_classes=2, drop=0.3):
+        super(Bert_Classifier, self).__init__()
 
         self.num_classes = num_classes
 
-        self.bert = AutoModel.from_pretrained('vinai/phobert-base')
+        self.bert = AutoModel.from_pretrained(name_model)
         if freeze_bert:
             for param in self.bert.parameters():
                 param.requires_grad = False
