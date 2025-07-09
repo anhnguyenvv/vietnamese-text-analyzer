@@ -3,24 +3,6 @@ import axios from "axios";
 import "./Features.css";
 import FileUploader from "./FileUploader";
 
-// Bảng chuyển đổi nhãn POS sang tiếng Việt
-const POS_LABELS = {
-  N: "Danh từ",
-  V: "Động từ",
-  A: "Tính từ",
-  ADV: "Trạng từ",
-  P: "Đại từ",
-  L: "Định từ",
-  M: "Số từ",
-  R: "Giới từ",
-  E: "Thán từ",
-  C: "Liên từ",
-  T: "Trợ từ",
-  I: "Cảm thán",
-  Y: "Từ viết tắt",
-  // Thêm các nhãn khác nếu cần
-};
-
 const StatisticsTool = () => {
   const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState(null);

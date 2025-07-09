@@ -21,9 +21,8 @@ def analyze_file():
     classification = get_classifier(model_name)
     results = []
     for text in df['text'].astype(str):
-        predicted_label = classification.classify(text, model_name=model_name)
-        label_name = classification.id2label.get(predicted_label, str(predicted_label))
-        results.append(label_name)
+        predicted = classification.classify(text, model_name=model_name)
+        results.append(predicted['label'])
     df['classification'] = results
 
     # Lưu lịch sử (tuỳ chọn)
@@ -54,14 +53,13 @@ def classify():
     model_name = data.get('model_name', "essay_identification")
     classification = get_classifier(model_name)
     try:
-        predicted_label = classification.classify(
+        predicted = classification.classify(
             text,
             model_name=model_name if model_name else classification.model_name
         )
-        label_name = classification.id2label.get(predicted_label, str(predicted_label))
         result = {
-            "label_id": predicted_label,
-            "label_name": label_name,
+            "label_name": predicted['label'],
+            "all_labels": predicted.remove('label', None),  # Remove 'label' key from all_labels
             "model_name": classification.model_name
         }
         # Lưu lịch sử vào database

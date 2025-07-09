@@ -1,10 +1,9 @@
+// ...existing imports...
 import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
 import { Pie } from "react-chartjs-2";
 import Papa from "papaparse";
-
-
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -16,7 +15,9 @@ const SentimentAnalysisTool = () => {
   const [csvResultUrl, setCsvResultUrl] = useState(null);
   const [csvResultPreview, setCsvResultPreview] = useState([]);
   const [csvDownloadName, setCsvDownloadName] = useState("sentiment_result.csv");
+  const [selectedModel, setSelectedModel] = useState("sentiment"); // Thêm state chọn model
 
+  
   const handleFileSelect = (content, file) => {
     setTextInput(content);
     setSelectedFile(file || null);
@@ -32,10 +33,9 @@ const SentimentAnalysisTool = () => {
       const res = await fetch("http://localhost:5000/api/sentiment/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textInput }),
+        body: JSON.stringify({ text: textInput, model_name: selectedModel }), // Gửi model_name
       });
       const data = await res.json();
-
       setResult(data);
     } catch (err) {
       setResult({ error: "Có lỗi xảy ra khi gọi API: " + err.message });
@@ -86,18 +86,28 @@ const SentimentAnalysisTool = () => {
     }
     setLoading(false);
   };
-
   // Chuẩn bị dữ liệu cho Pie Chart
   const pieData = result && !result.error ? {
-    labels: ["Tiêu cực", "Trung tính", "Tích cực"],
+    labels: selectedModel === "vispam"
+      ? ["No-spam", "Spam"]
+      : ["Tiêu cực", "Trung tính", "Tích cực"],
     datasets: [
       {
-        data: [
-          result.NEG ? result.NEG * 100 : 0,
-          result.NEU ? result.NEU * 100 : 0,
-          result.POS ? result.POS * 100 : 0,
-        ],
-        backgroundColor: ["#ff7675", "#fdcb6e", "#00b894"],
+        data:
+          selectedModel === "vispam"
+            ? [
+                result["no-spam"] ? result["no-spam"] * 100 : 0,
+                result["spam"] ? result["spam"] * 100 : 0,
+              ]
+            : [
+                result.NEG ? result.NEG * 100 : 0,
+                result.NEU ? result.NEU * 100 : 0,
+                result.POS ? result.POS * 100 : 0,
+              ],
+        backgroundColor:
+          selectedModel === "vispam"
+            ? ["#00b894", "#d63031"]
+            : ["#ff7675", "#fdcb6e", "#00b894"],
         borderWidth: 1,
       },
     ],
@@ -106,10 +116,54 @@ const SentimentAnalysisTool = () => {
   return (
     <div className="sentiment-analysis-tool">
       <strong>Phân tích cảm xúc</strong>
-      <div className="options"></div>
+      <div className="options" style={{ marginBottom: 12 }}>
+        <label style={{ marginRight: 8 }}>Chọn mô hình:</label>
+        <select
+          value={selectedModel}
+          onChange={e => setSelectedModel(e.target.value)}
+          style={{ padding: "4px 8px", borderRadius: 4 }}
+        >
+          <option value="sentiment">Cảm xúc (POS/NEU/NEG)</option>
+          <option value="vispam">Phát hiện Spam (vispam)</option>
+        </select>
+      </div>
       <FileUploader onFileSelect={handleFileSelect} />
-
       <div className="text-area-container">
+        <div className="input-area">
+          <label>Văn bản</label>
+          <textarea
+            rows={10}
+            placeholder="Nhập văn bản tại đây..."
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+          />
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              className="analyze-button"
+              onClick={() => {
+                if (selectedFile && selectedFile.name.endsWith(".csv")) {
+                  handleAnalyzeFile();
+                } else {
+                  handleAnalyze();
+                }
+              }}
+              disabled={loading}
+            >
+              Phân tích
+            </button>
+            {loading && (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
+                  Đang phân tích...
+                </div>
+                <div className="loading-bar-container">
+                  <div className="loading-bar" />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+<div className="text-area-container">
         <div className="input-area">
           <label>Văn bản</label>
           <textarea
@@ -156,11 +210,17 @@ const SentimentAnalysisTool = () => {
               <div style={{ marginTop: 16 }}>
                 <strong>Nhận định:  </strong>
                 <span style={{ color: "#0984e3", fontWeight: 600 }}>
-                   {result.label} - {result.label === "NEG" ? "Tiêu cực" : result.label === "NEU" ? "Trung tính" : "Tích cực"}
+                  {selectedModel === "vispam"
+                    ? (result.label === "spam" ? "Spam" : "Không phải spam")
+                    : result.label === "NEG"
+                      ? "Tiêu cực"
+                      : result.label === "NEU"
+                        ? "Trung tính"
+                        : "Tích cực"}
                 </span>
               </div>
             )}
-            
+
             {result && result.error && (
               <div style={{ color: "red" }}>{result.error}</div>
             )}
@@ -198,7 +258,6 @@ const SentimentAnalysisTool = () => {
                 style={{ maxWidth: 500, margin: "16px auto" }}
               />
             )}
-
             
             {csvResultUrl && (
                 <div style={{ marginTop: 16 }}>
@@ -279,8 +338,9 @@ const SentimentAnalysisTool = () => {
           </div>
         </div>
       </div>
+      
     </div>
-  );
-};
 
-export default SentimentAnalysisTool;
+  </div>
+  );
+};  

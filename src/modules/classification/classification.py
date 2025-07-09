@@ -13,8 +13,9 @@ def get_classifier(model_name):
 
 class TextClassifier:
     def __init__(self, model_name="essay_identification"):
-        self.model_name = model_name or Config.MODEL_NAME
-        self.num_labels = 2    
+        self.model_name = model_name
+        self.num_labels = 2
+        self.id2label = {}
         self._load_model_and_tokenizer(self.model_name)
 
     def _load_model_and_tokenizer(self, model_name):
@@ -47,7 +48,7 @@ class TextClassifier:
                         6: 'Thể thao',
                         7: 'Vi tính',
                         8: 'Khoa học',
-                        9: 'Văn hóa_giáo dục'}
+                        9: 'Văn hóa'}
         self.num_labels = len(self.id2label)
 
     def encode_data(self, text):
@@ -55,7 +56,7 @@ class TextClassifier:
             # For essay identification, we assume the input is a dictionary with 'text' key
             return self.tokenizer(text, return_tensors='pt', max_length=512, truncation=True, padding=True)
         
-        if self.model_name == "vispam":
+        if self.model_name == "vispam-Phobert" or self.model_name == "vispam-VisoBert": 
             # For vispam, we assume the input is a single string
             return self.tokenizer(text, padding="max_length", max_length=100,
                                   return_tensors='pt', truncation=True, add_special_tokens=True)
@@ -73,28 +74,45 @@ class TextClassifier:
         if model_name and model_name != self.model_name:
             self.model_name = model_name
             self._load_model_and_tokenizer(self.model_name)
-        text = tokenize_words(normalize_text(text))
+        text = ' '.join(tokenize_words(normalize_text(text)))
         inputs = self.encode_data(text)
         outputs = self.model(input_ids=inputs['input_ids'], attention_mask=inputs['attention_mask'] if 'attention_mask' in inputs else None)
         logits = outputs.logits
         #predicted_label = logits.argmax(dim=-1).item()
+        result = {}
         
         probs = torch.softmax(logits, dim=-1)
         predicted_label = probs.argmax(dim=-1).item()
-        confidence = probs[0, predicted_label].item()
+        result['label']  = self.id2label.get(predicted_label, str(predicted_label))
+        #If you want to return all labels and their probabilities
+        for i in range(self.num_labels):
+            result[self.id2label[i]] = probs[0, i].item() 
+        return result
+    '''
         return {
             "predicted_label": predicted_label,
             "confidence": confidence
         }
+        '''
 
-for model_name in ["essay_identification", "vispam", "topic_classification"]:
+for model_name in ["essay_identification", "vispam-VisoBert",  "topic_classification"]:
     get_classifier(model_name)
        
 if __name__ == "__main__":
-    classifier = TextClassifier('vispam-VisoBert')
+    classifier = TextClassifier()
     text = "Bộ Công Thương xóa một tổng cục, giảm nhiều đầu mối"
+    print("Input Text:", text)
     predicted = classifier.classify(text, model_name="vispam-VisoBert")
-    print("Predicted Label:", predicted['label_name'])
-    print("Confidence:", predicted['confidence'])
-   # print("All Labels:", predicted['all_labels'])
+    print("All Labels:", predicted['all_labels'])
+    print("Model Name:", classifier.model_name)
+
+# E
+    predicted = classifier.classify(text, model_name="vispam-Phobert")
+    print("Predicted Label:", predicted['predicted_label'])
+    print("All Labels:", predicted['all_labels'])
+    print("Model Name:", classifier.model_name)
+
+    predicted = classifier.classify(text, model_name="topic_classification")
+    print("Predicted Label:", predicted['predicted_label'])
+    print("All Labels:", predicted['all_labels'])
     print("Model Name:", classifier.model_name)

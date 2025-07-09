@@ -3,6 +3,7 @@ from database.db import save_history
 from flask import Blueprint, request, jsonify, send_file
 import pandas as pd
 import io
+from modules.classification.classification import get_classifier
 
 
 sentiment_bp = Blueprint('sentiment', __name__)
@@ -14,8 +15,13 @@ def analyze():
         return jsonify({"error": "No text provided"}), 400
 
     text = data['text']
-    result = analyze_sentiment(text)
-    # Lưu lịch sử vào database
+    model_name = data.get('model_name', "sentiment")
+    result = None
+    if model_name == 'sentiment':
+        result = analyze_sentiment(text)
+    elif model_name == 'vispam':
+        model = get_classifier(model_name='vispam-VisoBert')
+        result = model.classify(text)
     save_history(
         feature="sentiment",
         input_text=text,

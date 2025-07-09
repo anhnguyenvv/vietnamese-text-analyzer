@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
 import Papa from "papaparse";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-ChartJS.register(ArcElement, Tooltip, Legend);
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
+import { Bar } from "react-chartjs-2";
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+
 
 const ClassificationTool = () => {
   const [textInput, setTextInput] = useState("");
@@ -87,6 +89,22 @@ const ClassificationTool = () => {
     setLoading(false);
   };
 
+  const getBarChartData = (result) => {
+    if (!result || !result.all_labels) return null;
+    const labels = Object.keys(result.all_labels);
+    const data = Object.values(result.all_labels).map((v) => Math.round(v * 1000) / 10); // phần trăm
+    return {
+      labels,
+      datasets: [
+        {
+          label: "Xác suất (%)",
+          data,
+          backgroundColor: "#0984e3",
+        },
+      ],
+    };
+  };
+
   return (
     <div className="classification-tool">
       <strong>Tùy chọn phân loại:</strong>      
@@ -99,18 +117,9 @@ const ClassificationTool = () => {
               checked={selectedClassification === "essay_identification"}
               onChange={() => setSelectedClassification("essay_identification")}
             />{" "}
-            Phân loại kiểu văn bản (nghị luận, biểu cảm,...)
+            Phân loại kiểu văn bản
           </label>
-          <label style={{ marginLeft: 16 }}>
-            <input
-              type="radio"
-              name="classification"
-              value="vispam"
-              checked={selectedClassification === "vispam"}
-              onChange={() => setSelectedClassification("vispam")}
-            />{" "}
-            Phân loại review spam
-          </label>
+
           <label style={{ marginLeft: 16 }}>
             <input
               type="radio"
@@ -180,6 +189,33 @@ const ClassificationTool = () => {
                   {result.label_name}
                 </span>
               </div>
+            )}
+            {result && !result.error && result.all_labels && (
+            <div style={{ maxWidth: 420, margin: "24px auto 0" }}>
+              <Bar
+                data={getBarChartData(result)}
+                options={{
+                  responsive: true,
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => `${ctx.parsed.y}%` } }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      max: 100,
+                      title: { display: true, text: "Xác suất (%)" }
+                    },
+                    x: {
+                      title: { display: true, text: "Nhãn" }
+                    }
+                  }
+                }}
+              />
+              <div style={{ textAlign: "center", marginTop: 8, fontSize: 13, color: "#636e72" }}>
+                Biểu đồ xác suất các nhãn dự đoán
+              </div>
+            </div>
             )}
             {csvResultUrl && (
                 <div style={{ marginTop: 16 }}>
