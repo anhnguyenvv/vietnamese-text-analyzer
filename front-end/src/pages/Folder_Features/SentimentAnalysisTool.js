@@ -1,4 +1,3 @@
-// ...existing imports...
 import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
@@ -16,14 +15,11 @@ const SentimentAnalysisTool = () => {
   const [csvResultPreview, setCsvResultPreview] = useState([]);
   const [csvDownloadName, setCsvDownloadName] = useState("sentiment_result.csv");
   const [selectedModel, setSelectedModel] = useState("sentiment"); // Thêm state chọn model
-
   
   const handleFileSelect = (content, file) => {
     setTextInput(content);
     setSelectedFile(file || null);
-
   };
-
 
   const handleAnalyze = async () => {
     setLoading(true);
@@ -118,14 +114,26 @@ const SentimentAnalysisTool = () => {
       <strong>Phân tích cảm xúc</strong>
       <div className="options" style={{ marginBottom: 12 }}>
         <label style={{ marginRight: 8 }}>Chọn mô hình:</label>
-        <select
-          value={selectedModel}
-          onChange={e => setSelectedModel(e.target.value)}
-          style={{ padding: "4px 8px", borderRadius: 4 }}
-        >
-          <option value="sentiment">Cảm xúc (POS/NEU/NEG)</option>
-          <option value="vispam">Phát hiện Spam (vispam)</option>
-        </select>
+        <div style={{ display: "inline-flex", gap: 16, alignItems: "center" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <input
+              type="radio"
+              value="sentiment"
+              checked={selectedModel === "sentiment"}
+              onChange={e => setSelectedModel(e.target.value)}
+            />
+            Cảm xúc (POS/NEU/NEG)
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <input
+              type="radio"
+              value="vispam"
+              checked={selectedModel === "vispam"}
+              onChange={e => setSelectedModel(e.target.value)}
+            />
+            Phát hiện Spam (vispam)
+          </label>
+        </div>
       </div>
       <FileUploader onFileSelect={handleFileSelect} />
       <div className="text-area-container">
@@ -163,42 +171,7 @@ const SentimentAnalysisTool = () => {
             )}
           </div>
         </div>
-<div className="text-area-container">
-        <div className="input-area">
-          <label>Văn bản</label>
-          <textarea
-            rows={10}
-            placeholder="Nhập văn bản tại đây..."
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
-          />
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button
-              className="analyze-button"
-              onClick={() => {
-                if (selectedFile && selectedFile.name.endsWith(".csv")) {
-                  handleAnalyzeFile();
-                } else {
-                  handleAnalyze();
-                }
-              }}
-              disabled={loading}
-            >
-              Phân tích
-            </button>
-            {loading && (
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
-                  Đang phân tích...
-                </div>
-                <div className="loading-bar-container">
-                  <div className="loading-bar" />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
+      
         <div className="result-area">
           <label>Kết quả</label>
           <div className="result-box">
@@ -340,7 +313,7 @@ const SentimentAnalysisTool = () => {
       </div>
       
     </div>
-
-  </div>
   );
 };  
+
+export default SentimentAnalysisTool;
