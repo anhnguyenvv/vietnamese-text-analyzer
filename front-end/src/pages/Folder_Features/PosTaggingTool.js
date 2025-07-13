@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
-
+import axios from "axios";
 // Bảng chuyển đổi nhãn POS sang tiếng Việt
 const POS_LABELS = {
   Np: "Danh từ riêng (Proper noun)",
@@ -130,19 +130,15 @@ const PosTaggingTool = () => {
     setLoading(true);
     setResult("");
     try {
-      const res = await fetch("http://localhost:5000/api/pos/tag", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: textInput,
-          model: selectedModel,
-        }),
+      const res = await axios.post("http://localhost:5000/api/pos/tag", {
+        text: textInput,
+        model: selectedModel,
       });
-      const data = await res.json();
+      const data = res.data;
       if (Array.isArray(data.result)) {
         setResult(highlightPOS(data.result));
       } else if (typeof data.result === "string") {
-        setResult(`<span>${data.result}</span>`);
+        setResult(`<span>${data.result}</span>`);     
       } else {
         setResult(`<span style="color:red">${data.error || "Có lỗi xảy ra!"}</span>`);
       }

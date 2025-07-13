@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
+import axios from "axios";
 
 const PreprocessingTool = () => {
   const [textInput, setTextInput] = useState("");
@@ -21,18 +22,15 @@ const PreprocessingTool = () => {
     setLoading(true);
     setResult("");
     try {
-      const res = await fetch("http://localhost:5000/api/preprocessing/preprocess", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textInput 
-          , remove_stopwords: removeStopwords,
-          remove_emojis: removeEmojis,
-          remove_duplicates: removeDuplicates,
-          lowercase: lowercase,
-          remove_numbers: removeNumbers
-        }),
+      const res = await axios.post("http://localhost:5000/api/preprocessing/preprocess", {
+        text: textInput,
+        remove_stopwords: removeStopwords,
+        remove_emojis: removeEmojis,
+        remove_duplicates: removeDuplicates,
+        lowercase: lowercase,
+        remove_numbers: removeNumbers
       });
-      const data = await res.json();
+      const data = res.data;
       if (data.preprocessed_text) {
         setResult(data.preprocessed_text);
       } else {
@@ -45,12 +43,10 @@ const PreprocessingTool = () => {
     if (tokenize) {
       setTokens([]);
       try {
-        const res = await fetch("http://localhost:5000/api/preprocessing/tokenize", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: result}),
+        const res = await axios.post("http://localhost:5000/api/preprocessing/tokenize", {
+          text: result
         });
-        const data = await res.json();
+        const data = res.data;
         if (data.tokens) {
           setTokens(data.tokens);
         } else {

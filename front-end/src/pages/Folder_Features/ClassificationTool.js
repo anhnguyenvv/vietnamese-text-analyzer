@@ -4,6 +4,7 @@ import FileUploader from "./FileUploader";
 import Papa from "papaparse";
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import axios from "axios";
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 
@@ -28,18 +29,11 @@ const ClassificationTool = () => {
     setResult(null);
     setCsvResultUrl(null);
     try {
-      const res = await fetch("http://localhost:5000/api/classification/classify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-           text: textInput,
-           model_name: selectedClassification,
-           num_labels: 2  // Số lượng nhãn phân loại, có thể thay đổi tùy theo mô hình
-        }),
+      const res = await axios.post("http://localhost:5000/api/classification/classify", {
+        text: textInput,
+        model_name: selectedClassification,
       });
-      const data = await res.json();
-
-      setResult(data);
+      setResult(res.data);
     } catch (err) {
       setResult({ error: "Có lỗi xảy ra khi gọi API: " + err.message });
     }
@@ -60,9 +54,10 @@ const ClassificationTool = () => {
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("model_name", selectedClassification);
-      const res = await fetch("http://localhost:5000/api/classification/analyze-file", {
-        method: "POST",
-        body: formData,
+      const res = await axios.post("http://localhost:5000/api/classification/analyze-file", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
       if (res.ok) {
         const blob = await res.blob();

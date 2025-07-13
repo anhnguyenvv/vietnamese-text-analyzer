@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
+import axios from "axios";
 
 const SummarizationTool = () => {
   const [textInput, setTextInput] = useState("");
@@ -15,12 +16,10 @@ const SummarizationTool = () => {
     setLoading(true);
     setResult("");
     try {
-      const res = await fetch("http://localhost:5000/api/summarization/summarize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textInput }),
+      const res = await axios.post("http://localhost:5000/api/summarization/summarize", {
+        text: textInput,
       });
-      const data = await res.json();
+      const data = res.data;
       if (data.summary) {
         setResult(data.summary);
       } else {
