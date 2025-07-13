@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
-from modules.classification.classification import TextClassifier, get_classifier
+from modules.classification.classification import get_classifier
 from database.db import save_history
 import pandas as pd
 import io

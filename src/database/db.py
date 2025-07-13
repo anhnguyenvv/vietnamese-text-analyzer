@@ -72,5 +72,33 @@ def load_feedback(limit=50):
     conn.close()
     return [dict(row) for row in rows]
 
+def save_system_log(level, message, module="system"):
+    conn = get_connection()
+    c = conn.cursor()
+    # Tạo bảng nếu chưa có
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS system_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            level TEXT,
+            message TEXT,
+            module TEXT,
+            created_at TEXT
+        )
+    """)
+    c.execute(
+        "INSERT INTO system_log (level, message, module, created_at) VALUES (?, ?, ?, ?)",
+        (level, message, module, datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
+def load_system_log(limit=100):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT id, level, message, module, created_at FROM system_log ORDER BY id DESC LIMIT ?", (limit,))
+    rows = c.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
 # Khởi tạo database khi import module
 init_db()
