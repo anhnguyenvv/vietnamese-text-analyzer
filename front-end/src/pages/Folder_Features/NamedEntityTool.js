@@ -54,7 +54,7 @@ const NamedEntityTool = () => {
     setResultHtml("");
     setEntityCount({});
     try {
-      const res = await axios.post("http://localhost:5000/api/ner/ner", {
+      const res = await axios.post(`${API_BASE}/api/ner/ner`, {
         text: textInput,
         model: selectedModel, 
       });
