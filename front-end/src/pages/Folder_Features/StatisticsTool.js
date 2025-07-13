@@ -122,9 +122,12 @@ const StatisticsTool = () => {
             )}
           </div>
 
-          {/* PHẦN BIỂU ĐỒ và WORD CLOUD BÊN NGOÀI KHUNG */}
+         
+        </div>
+      </div>
+       {/* PHẦN BIỂU ĐỒ và WORD CLOUD BÊN NGOÀI KHUNG */}
           {result && !result.error && (
-            <>
+            <div className="result-visualizations">
               {result.plot && (
                 <div style={{ margin: "16px auto", maxWidth: 500 }}>
                   <strong>Biểu đồ tần suất từ:</strong>
@@ -148,10 +151,9 @@ const StatisticsTool = () => {
                   />
                 </div>
               )}
-            </>
-          )}
-        </div>
-      </div>
+            </div>
+        )}
+
     </div>
   );
 };

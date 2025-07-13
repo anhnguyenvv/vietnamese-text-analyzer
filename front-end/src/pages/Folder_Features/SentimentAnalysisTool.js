@@ -32,13 +32,20 @@ const SentimentAnalysisTool = () => {
         body: JSON.stringify({ text: textInput, model_name: selectedModel }), // Gửi model_name
       });
       const data = await res.json();
+      
       setResult(data);
     } catch (err) {
       setResult({ error: "Có lỗi xảy ra khi gọi API: " + err.message });
     }
     setLoading(false);
   };
-
+    // Thay đổi model sẽ xóa kết quả và dữ liệu liên quan
+  const handleModelChange = (e) => {
+    setSelectedModel(e.target.value);
+    setResult(null);
+    setCsvResultUrl(null);
+    setCsvResultPreview([]);
+  };
   // Xử lý file CSV
   const handleAnalyzeFile = async () => {
     if (!selectedFile || !selectedFile.name.endsWith(".csv")) {
@@ -52,7 +59,10 @@ const SentimentAnalysisTool = () => {
     setCsvDownloadName("sentiment_result.csv");
     try {
       const formData = new FormData();
+
       formData.append("file", selectedFile);
+      formData.append("model_name", selectedModel); // Gửi model_name
+      
       const res = await fetch("http://localhost:5000/api/sentiment/analyze-file", {
         method: "POST",
         body: formData,
@@ -64,7 +74,7 @@ const SentimentAnalysisTool = () => {
 
         // Đặt tên file kết quả dựa trên file gốc
         const baseName = selectedFile.name.replace(/\.csv$/i, "");
-        setCsvDownloadName(`${baseName}_result.csv`);
+        setCsvDownloadName(`${baseName}_${selectedModel}_result.csv`);
 
         // Đọc trướce kết quả để xem trước
         const text = await blob.text();
@@ -120,7 +130,7 @@ const SentimentAnalysisTool = () => {
               type="radio"
               value="sentiment"
               checked={selectedModel === "sentiment"}
-              onChange={e => setSelectedModel(e.target.value)}
+              onChange={handleModelChange}
             />
             Cảm xúc (POS/NEU/NEG)
           </label>
@@ -129,7 +139,7 @@ const SentimentAnalysisTool = () => {
               type="radio"
               value="vispam"
               checked={selectedModel === "vispam"}
-              onChange={e => setSelectedModel(e.target.value)}
+              onChange={handleModelChange}
             />
             Phát hiện Spam (vispam)
           </label>
@@ -193,7 +203,7 @@ const SentimentAnalysisTool = () => {
                 </span>
               </div>
             )}
-
+            
             {result && result.error && (
               <div style={{ color: "red" }}>{result.error}</div>
             )}

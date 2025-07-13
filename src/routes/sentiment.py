@@ -20,7 +20,7 @@ def analyze():
     if model_name == 'sentiment':
         result = analyze_sentiment(text)
     elif model_name == 'vispam':
-        model = get_classifier(model_name='vispam-VisoBert')
+        model = get_classifier(model_name="vispam-VisoBert")
         result = model.classify(text)
     save_history(
         feature="sentiment",
@@ -37,14 +37,20 @@ def analyze_file():
     file = request.files['file']
     if not file.filename.endswith('.csv'):
         return jsonify({"error": "Chỉ hỗ trợ file .csv"}), 400
+    model_name = request.form.get('model_name', 'sentiment')
 
     df = pd.read_csv(file)
     if 'text' not in df.columns:
         return jsonify({"error": "File phải có cột 'text'"}), 400
-
     results = []
+
     for text in df['text'].astype(str):
-        res = analyze_sentiment(text)
+        res = None
+        if model_name == "sentiment":
+            res = analyze_sentiment(text)
+        elif model_name == "vispam":
+            model = get_classifier(model_name="vispam-VisoBert")
+            res = model.classify(text, model_name="vispam-VisoBert")
         results.append(res['label'])
     df['sentiment'] = results
 

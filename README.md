@@ -70,7 +70,3 @@ The application will start on `http://127.0.0.1:5000/`.
 ## API Endpoints
 
 The API provides various endpoints for different functionalities. Refer to the documentation for detailed information on each endpoint.
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for more details.

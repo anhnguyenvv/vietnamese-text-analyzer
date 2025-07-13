@@ -6,7 +6,7 @@ summarizer = pipeline(
     model=Config.MODELS_DIR['summarization'],
     tokenizer=Config.MODELS_DIR['summarization']
 )
-def summarize_text(text: str, max_length=256) -> str:
+def summarize_text(text: str, max_length=1024) -> str:
     """
     Tóm tắt văn bản tiếng Việt.
     """

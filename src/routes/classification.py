@@ -59,7 +59,7 @@ def classify():
         )
         result = {
             "label_name": predicted['label'],
-            "all_labels": predicted.remove('label', None),  # Remove 'label' key from all_labels
+            "all_labels": {k: v for k, v in predicted.items() if k != 'label'},  # Remove 'label' key from all_labels
             "model_name": classification.model_name
         }
         # Lưu lịch sử vào database

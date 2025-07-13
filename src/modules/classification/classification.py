@@ -65,7 +65,7 @@ class TextClassifier:
                               return_tensors='pt', truncation=True, return_attention_mask=True)
 
     
-    def classify(self, text, model_name= "essay_identification"):
+    def classify(self, text, model_name= None):
         """
         Classify the input text and return the predicted label.
         """

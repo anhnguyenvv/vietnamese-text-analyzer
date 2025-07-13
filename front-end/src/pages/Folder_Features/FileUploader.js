@@ -99,10 +99,36 @@ const FileUploader = ({ onFileSelect }) => {
         >
           Chọn file
         </button>
-        {fileName && (
-          <span className="file-name">
-            <strong>{fileName}</strong>
-          </span>
+           {fileName && (
+          <>
+            <button
+              type="button"
+              className="file-button"
+              style={{
+                marginLeft: 0,
+                background: "#aaa",
+                color: "#fff",
+                border: "none",
+                borderRadius: 4,
+                padding: "2px 10px",
+                cursor: "pointer"
+              }}
+              onClick={() => {
+                setFileName("");
+                setLines([]);
+                setSelectedLine("");
+                setReadMode("paragraph");
+                setFileObj(null);
+                setFileContent("");
+                setParagraphs([]);
+                setAllContent("");
+                document.getElementById("fileInput").value = "";
+                if (onFileSelect) onFileSelect("", null);
+              }}
+            >
+             {fileName} X
+            </button>
+          </>
         )}
       </div>
 

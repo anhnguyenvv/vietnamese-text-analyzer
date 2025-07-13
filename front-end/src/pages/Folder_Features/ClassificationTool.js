@@ -182,7 +182,7 @@ const ClassificationTool = () => {
               <div style={{ color: "red" }}>{result.error}</div>
             )}
 
-            {result && !result.error && result.label &&(
+            {result && !result.error && result.label_name &&(
               <div style={{ marginTop: 16 }}>
                 <strong>Nhận định: </strong>
                 <span style={{ color: "#0984e3", fontWeight: 600 }}>
