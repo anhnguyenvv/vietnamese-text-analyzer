@@ -1,6 +1,6 @@
-# Vietnamese NLP Backend
+# Vietnamese NLP 
 
-This project is a backend system for processing Vietnamese natural language using various NLP techniques. It provides functionalities such as text preprocessing, part-of-speech tagging, named entity recognition, sentiment analysis, text classification, summarization, statistics
+This project is a web application for processing Vietnamese natural language using various NLP techniques. It provides functionalities such as text preprocessing, part-of-speech tagging, named entity recognition, sentiment analysis, text classification, summarization, statistics
 
 ## Features
 
@@ -70,3 +70,41 @@ The application will start on `http://127.0.0.1:5000/`.
 ## API Endpoints
 
 The API provides various endpoints for different functionalities. Refer to the documentation for detailed information on each endpoint.
+## Frontend Installation
+
+The frontend is built with React (Create React App).
+
+1. Go to the `front-end` directory:
+   ```
+   cd front-end
+   ```
+
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+3. Set up environment variables (optional):
+   - Create a `.env` file in `front-end` and add:
+     ```
+     REACT_APP_API_BASE=http://127.0.0.1:5000
+     ```
+     *(Replace with your backend address if needed)*
+
+4. Run the frontend in development mode:
+   ```
+   npm start
+   ```
+   The app will be available at [http://localhost:3000](http://localhost:3000).
+
+5. Build for production:
+   ```
+   npm run build
+   ```
+   The production build will be in the `build` folder, ready for deployment.
+
+---
+
+**Note:**  
+- Make sure the backend is running and accessible at the address specified in `REACT_APP_API_BASE`.
+- For deployment instructions, see the frontend's own README in `front-end/README.md`.
