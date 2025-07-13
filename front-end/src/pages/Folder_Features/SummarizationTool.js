@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
 import axios from "axios";
+import API_BASE from "../../config"; // Địa chỉ API backend
 
 const SummarizationTool = () => {
   const [textInput, setTextInput] = useState("");
@@ -16,7 +17,7 @@ const SummarizationTool = () => {
     setLoading(true);
     setResult("");
     try {
-      const res = await axios.post("http://localhost:5000/api/summarization/summarize", {
+      const res = await axios.post(`${API_BASE}/api/summarization/summarize`, {
         text: textInput,
       });
       const data = res.data;

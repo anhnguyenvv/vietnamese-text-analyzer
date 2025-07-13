@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import API_BASE from "../../config"; 
 import "./Features.css";
 import FileUploader from "./FileUploader";
 import axios from "axios";
@@ -22,7 +23,7 @@ const PreprocessingTool = () => {
     setLoading(true);
     setResult("");
     try {
-      const res = await axios.post("http://localhost:5000/api/preprocessing/preprocess", {
+      const res = await axios.post(`${API_BASE}/api/preprocessing/preprocess`, {
         text: textInput,
         remove_stopwords: removeStopwords,
         remove_emojis: removeEmojis,
@@ -43,7 +44,7 @@ const PreprocessingTool = () => {
     if (tokenize) {
       setTokens([]);
       try {
-        const res = await axios.post("http://localhost:5000/api/preprocessing/tokenize", {
+        const res = await axios.post(`${API_BASE}/api/preprocessing/tokenize`, {
           text: result
         });
         const data = res.data;

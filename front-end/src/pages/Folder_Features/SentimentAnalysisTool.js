@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import "./Features.css";
+import API_BASE from "../../config"; // Địa chỉ API backend
 import FileUploader from "./FileUploader";
 import { Pie } from "react-chartjs-2";
+import axios from "axios";
 import Papa from "papaparse";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -26,12 +28,11 @@ const SentimentAnalysisTool = () => {
     setResult(null);
     setCsvResultUrl(null);
     try {
-      const res = await fetch("http://localhost:5000/api/sentiment/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textInput, model_name: selectedModel }), // Gửi model_name
+      const res = await axios.post(`${API_BASE}/api/sentiment/analyze`, {
+        text: textInput,
+        model_name: selectedModel,
       });
-      const data = await res.json();
+      const data = res.data;
       
       setResult(data);
     } catch (err) {
@@ -62,8 +63,8 @@ const SentimentAnalysisTool = () => {
 
       formData.append("file", selectedFile);
       formData.append("model_name", selectedModel); // Gửi model_name
-      
-      const res = await fetch("http://localhost:5000/api/sentiment/analyze-file", {
+
+      const res = await fetch(`${API_BASE}/api/sentiment/analyze-file`, {
         method: "POST",
         body: formData,
       });

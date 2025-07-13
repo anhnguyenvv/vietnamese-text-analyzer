@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./FeedbackPage.css";
-
+import API_BASE from "../config"; // Địa chỉ API backend
+import axios from "axios";
 const FeedbackPage = () => {
   const [message, setMessage] = useState("");
   const [email, setEmail] = useState("");
@@ -8,12 +9,11 @@ const FeedbackPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/feedback/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, message }),
+      const res = await axios.post(`${API_BASE}/api/feedback/submit`, {
+        email,
+        message,
       });
-      const data = await res.json();
+      const data = res.data;
       if (data.success) {
         alert("Cảm ơn bạn đã gửi phản hồi!");
       } else {
