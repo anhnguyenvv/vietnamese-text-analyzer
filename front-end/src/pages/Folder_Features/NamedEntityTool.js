@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./Features.css";
 import FileUploader from "./FileUploader";
+import API_BASE from "../../config"; // Địa chỉ API backend
 
 // Định nghĩa màu cho từng loại entity
 const ENTITY_COLORS = {

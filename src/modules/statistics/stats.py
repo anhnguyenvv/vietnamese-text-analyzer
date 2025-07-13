@@ -58,7 +58,7 @@ def analyze_text(text, remove_stopwords=True):
     stopwords = set(get_stopwords())
     filtered_words = [w for w in words if w.lower() not in stopwords] 
     stopword_count =  len(words) - len(filtered_words)
-    word_freq = collections.Counter([w.replace('_', ' ') for w in (filtered_words if remove_stopwords else words)])
+    word_freq = collections.Counter([w for w in (filtered_words if remove_stopwords else words)])
     result = {
         "num_sentences": len(sentences),
         "num_words": len(filtered_words),

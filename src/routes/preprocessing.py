@@ -45,7 +45,7 @@ def preprocess():
         remove_stopword=remove_stopword,
         remove_duplicates=deduplicate
         # Thêm các tham số khác nếu cần
-    ).replace("_", " ")
+    )
 
     if to_lower:
         preprocessed_text = preprocessed_text.lower()

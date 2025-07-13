@@ -11,7 +11,7 @@ def tokenize_words(text):
     # Normalize whitespace and remove special characters
     #text = re.sub(r'[^\w\s]', '', text)    
     sentences = annotator.tokenize(text)
-    tokens = [word for sent in sentences for word in sent]  
+    tokens = [word.replace("_", " ") for sent in sentences for word in sent]  
     return tokens
 
 def tokenize_sentences(text):

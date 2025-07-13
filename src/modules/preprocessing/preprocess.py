@@ -49,6 +49,7 @@ def preprocess_text(text: str, remove_duplicates: bool = False, remove_icon: boo
         tokens = [token for token in tokens if not token.isdigit()]
     if remove_stopword:
         tokens = remove_stopwords(tokens)
+        
     return ' '.join(tokens)
 
 if __name__ == "__main__":

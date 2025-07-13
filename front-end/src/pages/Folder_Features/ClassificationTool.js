@@ -5,6 +5,7 @@ import Papa from "papaparse";
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import axios from "axios";
+import API_BASE from "../../config"; // Địa chỉ API backend
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 
@@ -29,7 +30,7 @@ const ClassificationTool = () => {
     setResult(null);
     setCsvResultUrl(null);
     try {
-      const res = await axios.post("http://localhost:5000/api/classification/classify", {
+      const res = await axios.post(`${API_BASE}/api/classification/classify`, {
         text: textInput,
         model_name: selectedClassification,
       });
@@ -54,7 +55,7 @@ const ClassificationTool = () => {
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("model_name", selectedClassification);
-      const res = await axios.post("http://localhost:5000/api/classification/analyze-file", formData, {
+      const res = await axios.post(`${API_BASE}/api/classification/analyze-file`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

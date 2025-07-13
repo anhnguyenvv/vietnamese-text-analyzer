@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
 import axios from "axios";
+import API_BASE from "../../config"; // Địa chỉ API backend
+
+
 // Bảng chuyển đổi nhãn POS sang tiếng Việt
 const POS_LABELS = {
   Np: "Danh từ riêng (Proper noun)",
@@ -130,7 +133,7 @@ const PosTaggingTool = () => {
     setLoading(true);
     setResult("");
     try {
-      const res = await axios.post("http://localhost:5000/api/pos/tag", {
+      const res = await axios.post(`${API_BASE}/api/pos/tag`, {
         text: textInput,
         model: selectedModel,
       });

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./Features.css";
 import FileUploader from "./FileUploader";
+import API_BASE from "../../config"; // Địa chỉ API backend
 
 const StatisticsTool = () => {
   const [textInput, setTextInput] = useState("");
@@ -18,7 +19,7 @@ const StatisticsTool = () => {
     setLoading(true);
     setResult(null);
     try {
-      const res = await axios.post("http://localhost:5000/api/statistics/statistics", {
+      const res = await axios.post(`${API_BASE}/api/statistics/statistics`, {
         text: textInput,
         remove_stopwords: removeStopwords
       });
