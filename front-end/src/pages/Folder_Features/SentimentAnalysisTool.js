@@ -17,10 +17,30 @@ const SentimentAnalysisTool = () => {
   const [csvResultPreview, setCsvResultPreview] = useState([]);
   const [csvDownloadName, setCsvDownloadName] = useState("sentiment_result.csv");
   const [selectedModel, setSelectedModel] = useState("sentiment"); // Thêm state chọn model
-  
+  const [csvPreviewTable, setCsvPreviewTable] = useState([]);
   const handleFileSelect = (content, file) => {
     setTextInput(content);
     setSelectedFile(file || null);
+    setCsvPreviewTable([]); 
+    setResult(null);
+    setCsvResultUrl(null);
+    if (file && file.name.endsWith(".csv")) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const fileContent = e.target.result;
+        setTextInput(fileContent);
+
+        const parsed = Papa.parse(fileContent.trim(), { skipEmptyLines: true });
+        setCsvPreviewTable(parsed.data.slice(0, 6)); // header + 5 dòng
+      };
+      reader.readAsText(file);
+      if (csvPreviewTable === 0) {
+        alert("File CSV rỗng");
+      } 
+    } else {
+      setCsvPreviewTable([]);
+      setCsvResultPreview([]);
+    }
   };
 
   const handleAnalyze = async () => {
@@ -149,13 +169,57 @@ const SentimentAnalysisTool = () => {
       <FileUploader onFileSelect={handleFileSelect} />
       <div className="text-area-container">
         <div className="input-area">
-          <label>Văn bản</label>
-          <textarea
-            rows={10}
-            placeholder="Nhập văn bản tại đây..."
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
-          />
+          {csvPreviewTable.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <strong>Xem trước file CSV:</strong>
+              <div
+                style={{
+                  background: "#fafafa",
+                  border: "1px solid #eee",
+                  borderRadius: 4,
+                  padding: 8,
+                  fontFamily: "monospace",
+                  fontSize: 13,
+                  maxHeight: 220,
+                  overflow: "auto",
+                  marginBottom: 8,
+                }}
+              >
+                {/* Hiển thị bảng preview */}
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <tbody>
+                    {csvPreviewTable.map((row, idx) => (
+                      <tr key={idx} style={{ background: idx === 0 ? "#e0e0e0" : "inherit" }}>
+                        {row.map((cell, cidx) => (
+                          <td
+                            key={cidx}
+                            style={{
+                              border: "1px solid #eee",
+                              padding: 4,
+                              textAlign: "left",
+                            }}
+                          >
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          {!csvPreviewTable.length > 0 &&  (
+            <>
+              <label>Văn bản</label>
+              <textarea
+                rows={10}
+                placeholder="Nhập văn bản tại đây..."
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+              />
+            </>
+          )}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button
               className="analyze-button"
@@ -181,8 +245,9 @@ const SentimentAnalysisTool = () => {
               </div>
             )}
           </div>
+
         </div>
-      
+          
         <div className="result-area">
           <label>Kết quả</label>
           <div className="result-box">
