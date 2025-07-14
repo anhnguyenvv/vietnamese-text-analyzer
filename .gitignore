@@ -31,6 +31,6 @@ hs_err_pid*.log
 .env
 Procfile
 runtime.txt
-src/model/clf/PhoBERT_topic_classification.pth
-src/model/vispam/PhoBERT_vispamReview.pth
-src/model/vispam/visoBert_vispamReview.pth
+# src/model/clf/PhoBERT_topic_classification.pth
+# src/model/vispam/PhoBERT_vispamReview.pth
+# src/model/vispam/visoBert_vispamReview.pth
