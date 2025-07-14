@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import mammoth from "mammoth";
-import API_BASE from "../../config"; // Địa chỉ API backend
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
