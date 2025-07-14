@@ -74,11 +74,11 @@ const ClassificationTool = () => {
     try {
       const formData = new FormData();
       formData.append("file", selectedFile);
-      formData.append("model_name", selectedClassification);
-      const res = await axios.post(`${API_BASE}/api/classification/analyze-file`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      formData.append("model_name", selectedClassification); // Gửi model_name
+
+      const res = await fetch(`${API_BASE}/api/classification/analyze-file`, {
+        method: "POST",
+        body: formData,
       });
       if (res.ok) {
         const blob = await res.blob();
