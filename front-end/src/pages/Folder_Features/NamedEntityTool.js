@@ -65,13 +65,37 @@ const NamedEntityTool = () => {
       }
       const ents = res.data.result || [];
       console.log("Entities:", ents); // In ra data kết quả ở đây
+      const mergedEntities = [];
+      let currentEntity = null;
+      for (let i = 0; i < ents.length; i++) {
+        const [word, label] = ents[i];
+        if (label && label !== "O") {
+          const type = label.replace(/^B-/, "").replace(/^I-/, "");
+          if (label.startsWith("B-")) {
+            // Nếu đang có entity trước đó, push vào mảng
+            if (currentEntity) mergedEntities.push(currentEntity);
+            currentEntity = { words: [word], label: type };
+          } else if (label.startsWith("I-") && currentEntity && currentEntity.label === type) {
+            currentEntity.words.push(word);
+          } else {
+            // Nếu I- nhưng không khớp, hoặc không có B- trước, bắt đầu mới
+            if (currentEntity) mergedEntities.push(currentEntity);
+            currentEntity = { words: [word], label: type };
+          }
+        } else {
+          if (currentEntity) mergedEntities.push(currentEntity);
+          currentEntity = null;
+        }
+      }
+      if (currentEntity) mergedEntities.push(currentEntity);
 
-      // Đếm số lượt xuất hiện từng entity
-      const count = {};
-      ents.forEach(e => {
-        count[e[1]] = (count[e[1]] || 0) + 1;
+      const entityWordCount = {};
+      mergedEntities.forEach(ent => {
+        const entityText = ent.words.join(" ");
+        const key = `${entityText} (${ent.label})`;
+        entityWordCount[key] = (entityWordCount[key] || 0) + 1;
       });
-      setEntityCount(count);
+      setEntityCount(entityWordCount);
 
       // Hiển thị highlight
       setResultHtml(highlightEntities(textInput, ents));
