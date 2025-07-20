@@ -189,11 +189,6 @@ def chuan_hoa_icon(sentence):
         "🤢": "Kinh tởm", "🤮": "Kinh tởm", "💩": "Kinh tởm", "😒": "Kinh tởm",
         "😑": "Kinh tởm", "😣": "Kinh tởm", "😠": "Kinh tởm", "👎": "Kinh tởm",
 
-        # KHÁC
-        "🤔": "Khác", "😐": "Khác", "🤨": "Khác", "😶": "Khác",
-        "🙃": "Khác", "😏": "Khác", "🧐": "Khác", "😌": "Khác",
-        "💀": "Khác", "🔥": "Khác", "?": "Khác", "…": "Khác",
-
 
         #Chuẩn hóa 1 số sentiment words/English words
         ':))': '  positive ', ':)': ' positive ', 'ô kêi': ' ok ', 'okie': ' ok ', ' o kê ': ' ok ',
@@ -248,8 +243,7 @@ def normalize_text(text, remove_html_tags=True, remove_icon=False, chuan_hoa_ico
     if remove_icon:
         text = removeIcon(text)
     else:
-        #text = chuan_hoa_icon(text)
-        text = text
+        text = chuan_hoa_icon(text)
     text = chuan_hoa_dau_cau_tieng_viet(text)
     return text
 
