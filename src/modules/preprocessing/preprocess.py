@@ -39,8 +39,8 @@ def preprocess_text(text: str, remove_duplicates: bool = False, remove_icon: boo
                    remove_numbers: bool = True, remove_special_chars: bool = True, remove_stopword: bool = False, lowercase: bool = True) -> str:
     text = unicodedata.normalize("NFC", text)
 
-    text = normalize_text(text, remove_icon=remove_icon)
-    tokens = tokenize_words(text, lowercase=lowercase)
+    text = normalize_text(text, remove_icon=remove_icon, lowercase=lowercase)
+    tokens = tokenize_words(text)
     if remove_duplicates:
         tokens = list(dict.fromkeys(tokens))
     if remove_special_chars:
