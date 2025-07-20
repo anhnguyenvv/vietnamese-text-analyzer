@@ -27,12 +27,12 @@ className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
 >
 Tính Năng
 </NavLink>
-<NavLink
+{/* <NavLink
 to="/tac-gia"
 className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
 >
 Tác giả
-</NavLink>
+</NavLink> */}
 <NavLink
 to="/phan-hoi"
 className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}

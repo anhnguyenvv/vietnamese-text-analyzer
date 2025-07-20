@@ -241,13 +241,15 @@ def removeIcon(text):
     s = re.sub('\\s+',' ',s)
     return s.strip()
 
-def normalize_text(text, remove_html_tags=True, remove_icon=False):
+def normalize_text(text, remove_html_tags=True, remove_icon=False, chuan_hoa_icon=True):
+
     if remove_html_tags:
         text = remove_html(text)
     if remove_icon:
         text = removeIcon(text)
     else:
-        text = chuan_hoa_icon(text)
+        #text = chuan_hoa_icon(text)
+        text = text
     text = chuan_hoa_dau_cau_tieng_viet(text)
     return text
 

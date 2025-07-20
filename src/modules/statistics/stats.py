@@ -47,10 +47,10 @@ def create_plot(word_freq):
     return plot_data
 
 def analyze_text(text, remove_stopwords=True):    
-    text = normalize_text(text)
-    sentences = tokenize_sentences(text) 
-    words = tokenize_words(text)
-    num_digits = sum(c.isdigit() for c in text) 
+    clean_text = normalize_text(text, remove_icon=True)
+    sentences = tokenize_sentences(clean_text) 
+    words = tokenize_words(clean_text)
+    num_digits = sum(c.isdigit() for c in clean_text) 
     # xóa số và ký tự đặc biệt
     words = [w for w in words if w.isalpha()]
     chars = len(text)
@@ -111,7 +111,7 @@ ELO 3. 3. Đạo đức, trách nhiệm và các giá trị cá nhân cốt lõi
 ELO 3. 3. 1 Các chuẩn mực và nguyên tắc đạo đức 
 ELO 3. 3. 2 Trách nhiệm và cách hành xử chuyên nghiệp 
 ELO 3. 3. 3 Sự cam kết 
-ELO 3. 3. 4 Trung thực, uy tín và trung thành'''
+ELO 3. 3. 4 Trung thực, uy tín và trung thành 🧐😗☺️'''
     result = analyze_text(text, remove_stopwords=True)
     print(result)
     print(f'top 10 từ: {result["word_freq"].most_common(10)}')
