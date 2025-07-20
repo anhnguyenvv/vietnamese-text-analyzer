@@ -43,11 +43,7 @@ def preprocess():
         remove_special_chars=False,  # Giữ nguyên để loại bỏ ký tự đặc biệt
         remove_icon=remove_emoji,
         remove_stopword=remove_stopword,
-        remove_duplicates=deduplicate
-        # Thêm các tham số khác nếu cần
+        remove_duplicates=deduplicate,
+        lowercase=to_lower
     )
-
-    if to_lower:
-        preprocessed_text = preprocessed_text.lower()
-
     return jsonify({"preprocessed_text": preprocessed_text})

@@ -134,21 +134,38 @@ def is_valid_vietnam_word(word):
                 nguyen_am_index = index
     return True
 
-
-def chuan_hoa_dau_cau_tieng_viet(sentence):
+def is_special_abbreviation(word):
+    return (
+        sum(1 for c in word if c.isupper()) > 1
+        or any(c.isdigit() for c in word)
+        or '.' in word
+        or '-' in word
+    )
+def chuan_hoa_dau_cau_tieng_viet(sentence, lowercase=True):
     """
         Chuyển câu tiếng việt về chuẩn gõ dấu kiểu cũ.
         :param sentence:
         :return:
         """
-    sentence = sentence.lower()
-    words = sentence.split()
+    sent = sentence.lower()
+    words = sent.split()
     for index, word in enumerate(words):
         cw = re.sub(r'(^\p{P}*)([p{L}.]*\p{L}+)(\p{P}*$)', r'\1/\2/\3', word).split('/')
         # print(cw)
         if len(cw) == 3:
             cw[1] = chuan_hoa_dau_tu_tieng_viet(cw[1])
         words[index] = ''.join(cw)
+    if not lowercase:
+        original_words = sentence.split()
+        for i, word in enumerate(original_words):
+            if word.isupper():
+                words[i] = words[i].upper()
+            elif is_special_abbreviation(word):
+                words[i] = word
+            elif word and word[0].isupper():
+                words[i] = words[i].capitalize()
+            else:
+                continue
     return ' '.join(words)
 
 def chuan_hoa_icon(sentence):
@@ -212,10 +229,13 @@ def chuan_hoa_icon(sentence):
         'iu': u' yêu ','fake': u' giả mạo ', 'trl': 'trả lời', '><': u' positive ',
         ' por ': u' tệ ',' poor ': u' tệ ', 'ib':u' nhắn tin ', 'rep':u' trả lời ',u'fback':' feedback ','fedback':' feedback ',
         }
-    sent = sentence.lower()
+    #sent = sentence.lower()
     for k, v in replace_list.items():
-        sent = sent.replace(k, v)
-    return sent
+        if k in sentence.lower():
+            #nếu từ khóa trong câu có chữ hoa thì thay thế cả chữ hoa và chữ thường
+            sentence = re.sub(re.escape(k), v, sentence, flags=re.IGNORECASE)
+    
+    return sentence
 
 
 def remove_html(text):
@@ -236,7 +256,7 @@ def removeIcon(text):
     s = re.sub('\\s+',' ',s)
     return s.strip()
 
-def normalize_text(text, remove_html_tags=True, remove_icon=False):
+def normalize_text(text, remove_html_tags=True, remove_icon=False, lowercase=True):
 
     if remove_html_tags:
         text = remove_html(text)
@@ -244,10 +264,12 @@ def normalize_text(text, remove_html_tags=True, remove_icon=False):
         text = removeIcon(text)
     else:
         text = chuan_hoa_icon(text)
-    text = chuan_hoa_dau_cau_tieng_viet(text)
-    return text
+    txt = chuan_hoa_dau_cau_tieng_viet(text, lowercase)
+    
+    return txt
 
 if __name__ == '__main__':
     print(chuan_hoa_dau_cau_tieng_viet('anh Hoà, đang làm.. gì laf ai biết? HỌC TẬP HOÀ là chính!'))
-    print(normalize_text('HOÀ'))
-    print(removeIcon('Hà Nội, Việt Nam!🧐😗☺️'))
+    print(normalize_text('HOÀ.', lowercase=False))
+    print('Hà Nội, Việt Nam, COVID-19!'.split())
+    print(normalize_text('Hà Nội, Việt Nam, COVID-19!🧐😗☺️'))
