@@ -70,9 +70,11 @@ The application will start on `http://127.0.0.1:5000/`.
 ## API Endpoints
 
 The API provides various endpoints for different functionalities. Refer to the documentation for detailed information on each endpoint.
-## Frontend Installation
+## Frontend Installation & Usage
 
 The frontend is built with React (Create React App).
+
+### 1. Development mode
 
 1. Go to the `front-end` directory:
    ```
@@ -96,15 +98,22 @@ The frontend is built with React (Create React App).
    npm start
    ```
    The app will be available at [http://localhost:3000](http://localhost:3000).
+### 2. Production build & deployment with Flask
 
-5. Build for production:
+1. Build the frontend:
    ```
    npm run build
    ```
-   The production build will be in the `build` folder, ready for deployment.
+The production build will be in the [build](http://_vscodecontentref_/7) folder.
 
+
+3. Just run the backend as usual:
 ---
+python src/app.py
+```
 
+Then access the app at [http://localhost:5000](http://localhost:5000).
 **Note:**  
-- Make sure the backend is running and accessible at the address specified in `REACT_APP_API_BASE`.
-- For deployment instructions, see the frontend's own README in `front-end/README.md`.
+- Make sure the backend is running and accessible at the address specified in `REACT_APP_API_BASE` if you use development mode.
+- When deploying, only `npm run build` is needed for the frontend; Flask will serve the static files automatically.
+- For further deployment instructions, see the frontend's own README in `front-end/README.md`.
