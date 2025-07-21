@@ -46,34 +46,51 @@ def create_plot(word_freq):
     plt.close()
     return plot_data
 
-def analyze_text(text, remove_stopwords=True):    
-    clean_text = normalize_text(text, remove_icon=True)
-    num_digits = sum(c.isdigit() for c in text) 
-    sentences = tokenize_sentences(clean_text) 
+def analyze_text(text, remove_stopwords=True, keep_case=False):
+    """
+    Phân tích văn bản: trả về thống kê số câu, từ, ký tự, số, ký tự đặc biệt, emoji, stopwords, tần suất từ, v.v.
+    - remove_stopwords: loại bỏ stopwords khỏi thống kê từ
+    - keep_case: nếu True giữ nguyên chữ hoa/thường, nếu False chuyển về chữ thường khi đếm từ
+    """
+    clean_text = normalize_text(text)
+    sentences = tokenize_sentences(clean_text)
     words = tokenize_words(clean_text)
-    # xóa số và ký tự đặc biệt
+    len_sentences = len(sentences)
+    num_chars = len(text)
+    num_special_chars = 0
+    num_digits = 0
+    num_emojis = 0
+    for c in text:
+        num_special_chars += 1 if not c.isalnum() and not c.isspace() else 0
+        num_digits += c.isdigit()
+        num_emojis += emoji.is_emoji(c)
+
     words = [w for w in words if w.isalpha()]
-    chars = len(text)
-    
     stopwords = set(get_stopwords())
-    filtered_words = [w for w in words if w.lower() not in stopwords] 
-    stopword_count =  len(words) - len(filtered_words)
-    word_freq = collections.Counter([w for w in (filtered_words if remove_stopwords else words)])
+    if keep_case:
+        filtered_words = [w for w in words if w.lower() not in stopwords]
+    else:
+        words = [w.lower() for w in words]
+        filtered_words = [w for w in words if w not in stopwords]
+    stopword_count = len(words) - len(filtered_words)
+    if remove_stopwords:
+        words = filtered_words
+    word_freq = collections.Counter(words)
+    num_words = len(words)
     result = {
-        "num_sentences": len(sentences),
-        "num_words": len(filtered_words),
-        "num_chars": chars,
-        "avg_sentence_len": round(sum(len(tokenize_words(s)) for s in sentences) / len(sentences), 2) if sentences else 0,
-        "avg_word_len": round(sum(len(w) for w in filtered_words) / len(filtered_words), 2) if filtered_words else 0,
-        "vocab_size": len(set(filtered_words)),
+        "num_sentences": len_sentences,
+        "num_words": num_words,
+        "num_chars": num_chars,
+        "avg_sentence_len": round(sum(len(tokenize_words(s)) for s in sentences) / len_sentences, 2) if len_sentences else 0,
+        "avg_word_len": round(sum(len(w) for w in words) / num_words, 2) if words else 0,
+        "vocab_size": len(set(words)),
         "num_digits": num_digits,
-        "num_special_chars": sum(1 for c in text if not c.isalnum() and not c.isspace()),
-        "num_emojis": sum(1 for c in text if emoji.is_emoji(c)),
+        "num_special_chars": num_special_chars,
+        "num_emojis": num_emojis,
         "num_stopwords": stopword_count,
         "word_freq": word_freq,
     }
     return result
-
 def analyze_file(file_path, remove_stopwords=False):
     if not allowed_file(file_path):
         raise ValueError("Chỉ hỗ trợ file .txt")
