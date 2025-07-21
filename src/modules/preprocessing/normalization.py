@@ -243,7 +243,7 @@ def remove_html(text):
 
 def removeIcon(text):
     s = ''
-    pattern = r"[a-zA-ZaăâbcdđeêghiklmnoôơpqrstuưvxyàằầbcdđèềghìklmnòồờpqrstùừvxỳáắấbcdđéếghíklmnóốớpqrstúứvxýảẳẩbcdđẻểghỉklmnỏổởpqrstủửvxỷạặậbcdđẹệghịklmnọộợpqrstụựvxỵãẵẫbcdđẽễghĩklmnõỗỡpqrstũữvxỹAĂÂBCDĐEÊGHIKLMNOÔƠPQRSTUƯVXYÀẰẦBCDĐÈỀGHÌKLMNÒỒỜPQRSTÙỪVXỲÁẮẤBCDĐÉẾGHÍKLMNÓỐỚPQRSTÚỨVXÝẠẶẬBCDĐẸỆGHỊKLMNỌỘỢPQRSTỤỰVXỴẢẲẨBCDĐẺỂGHỈKLMNỎỔỞPQRSTỦỬVXỶÃẴẪBCDĐẼỄGHĨKLMNÕỖỠPQRSTŨỮVXỸ,._]"
+    pattern = r"[a-zA-^\p{L}\p{N}\s\.,!?;:_-/]"
     
     for char in text:
         if char !=' ':
@@ -257,7 +257,7 @@ def removeIcon(text):
     return s.strip()
 
 def normalize_text(text, remove_html_tags=True, remove_icon=False, lowercase=False):
-
+    text = ' '.join(text.split())
     if remove_html_tags:
         text = remove_html(text)
     if remove_icon:
