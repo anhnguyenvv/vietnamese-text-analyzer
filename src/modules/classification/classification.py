@@ -36,7 +36,6 @@ class BaseClassifier:
         if model_name and model_name != self.model_name:
             self.model_name = model_name
             self._load_model_and_tokenizer(self.model_name)
-        text = ' '.join(tokenize_words(normalize_text(text)))
         inputs = self.encode_data(text)
         outputs = self.model(
             input_ids=inputs['input_ids'],
@@ -64,6 +63,8 @@ class EssayIdentificationClassifier(BaseClassifier):
         self.num_labels = len(self.id2label)
 
     def encode_data(self, text):
+        text = preprocess_text(text, remove_stopwords=True, remove_special_chars=True)
+
         return self.tokenizer(text, return_tensors='pt', max_length=512, truncation=True, padding=True)
 
 class VispamClassifier(BaseClassifier):
@@ -83,7 +84,9 @@ class VispamClassifier(BaseClassifier):
         self.num_labels = 2
 
     def encode_data(self, text):
-        return self.tokenizer(text, padding="max_length", max_length=100,
+        text = preprocess_text(text)
+
+        return self.tokenizer(text,padding="max_length", max_length=100,
                               return_tensors='pt', truncation=True, add_special_tokens=True)
 
 class TopicClassificationClassifier(BaseClassifier):
@@ -109,7 +112,7 @@ class TopicClassificationClassifier(BaseClassifier):
         self.num_labels = len(self.id2label)
 
     def encode_data(self, text):
-        text = preprocess_text(text, remove_stopwords=True, remove_punctuation=True, remove_numbers=True)
+        text = preprocess_text(text, remove_stopwords=True, remove_punctuation=True)
         return self.tokenizer(text, padding="max_length", max_length=256,
                               return_tensors='pt', truncation=True, return_attention_mask=True)
 # tải sẳn trc các model

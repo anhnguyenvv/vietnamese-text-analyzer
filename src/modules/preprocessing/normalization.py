@@ -256,7 +256,7 @@ def removeIcon(text):
     s = re.sub('\\s+',' ',s)
     return s.strip()
 
-def normalize_text(text, remove_html_tags=True, remove_icon=False, lowercase=True):
+def normalize_text(text, remove_html_tags=True, remove_icon=False, lowercase=False):
 
     if remove_html_tags:
         text = remove_html(text)
