@@ -242,34 +242,22 @@ def remove_html(text):
     return re.sub(r'<[^>]*>', '', text)
 
 def removeIcon(text):
-    s = ''
-    pattern = r"[a-zA-^\p{L}\p{N}\s\.,!?;:_-/]"
-    
-    for char in text:
-        if char !=' ':
-            if len(re.findall(pattern, char)) != 0:
-                s+=char
-            elif char == '_':
-                s+=char
-        else:
-            s+=char
-    s = re.sub('\\s+',' ',s)
-    return s.strip()
+    pattern = r"[^a-zA-^\p{L}\p{N}\s\.,!?;:_/\\-]"  
+    return re.sub(pattern, '', text).strip()
 
 def normalize_text(text, remove_html_tags=True, remove_icon=False, lowercase=False):
-    text = ' '.join(text.split())
+
     if remove_html_tags:
         text = remove_html(text)
     if remove_icon:
         text = removeIcon(text)
     else:
         text = chuan_hoa_icon(text)
-    txt = chuan_hoa_dau_cau_tieng_viet(text, lowercase)
-    
+    txt = chuan_hoa_dau_cau_tieng_viet(text, lowercase) 
     return txt
 
 if __name__ == '__main__':
     print(chuan_hoa_dau_cau_tieng_viet('anh Hoà, đang làm.. gì laf ai biết? HỌC TẬP HOÀ là chính!'))
     print(normalize_text('HOÀ.', lowercase=False))
-    print('Hà Nội, Việt Nam, COVID-19!'.split())
-    print(normalize_text('Hà Nội, Việt Nam, COVID-19!🧐😗☺️'))
+    txt = 'Hà Nội, Việt Nam,    COVID-19!🧐😗☺️\n tôi là 587'
+    print(normalize_text(txt, remove_icon=True))
