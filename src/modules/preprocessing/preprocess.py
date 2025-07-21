@@ -38,7 +38,6 @@ def remove_stopwords(tokens: str) -> str:
 def preprocess_text(text: str, remove_duplicates: bool = False, remove_icon: bool = False,
                    remove_numbers: bool = False, remove_special_chars: bool = False, remove_stopword: bool = False, lowercase: bool = False) -> str:
     text = unicodedata.normalize("NFC", text)
-
     text = normalize_text(text, remove_icon=remove_icon, lowercase=lowercase)
     tokens = tokenize_words(text)
     if remove_duplicates:

@@ -48,9 +48,9 @@ def create_plot(word_freq):
 
 def analyze_text(text, remove_stopwords=True):    
     clean_text = normalize_text(text, remove_icon=True)
+    num_digits = sum(c.isdigit() for c in text) 
     sentences = tokenize_sentences(clean_text) 
     words = tokenize_words(clean_text)
-    num_digits = sum(c.isdigit() for c in clean_text) 
     # xóa số và ký tự đặc biệt
     words = [w for w in words if w.isalpha()]
     chars = len(text)
