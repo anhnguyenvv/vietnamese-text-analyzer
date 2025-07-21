@@ -33,7 +33,7 @@ vietnamese-nlp
 
 1. Clone the repository:
    ```
-   git clone <repository-url>
+   git clone https://github.com/anhnguyenvv/vietnamese-text-analyzer.git
    cd vietnamese-nlp-backend
    ```
 
