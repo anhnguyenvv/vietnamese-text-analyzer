@@ -24,7 +24,6 @@ def log_to_db(level, message, module="system"):
 def create_app():
     app = Flask(__name__, static_folder="../front-end/build", static_url_path="/")
     CORS(app)
-
     app.config['JSON_AS_ASCII'] = False  # To handle Vietnamese characters correctly
     # Register blueprints
     app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
@@ -41,7 +40,7 @@ def create_app():
         build_dir = app.static_folder
         index_path = os.path.join(build_dir, "index.html")
         if not os.path.exists(index_path):
-            return jsonify({"error": "Frontend chưa được build. Vui lòng chạy 'npm run build' trong thư mục front-end."}), 501
+            return jsonify({"error": "Frontend is not built yet. Please run 'npm run build' in the front-end directory."}), 501
         if path != "" and os.path.exists(os.path.join(build_dir, path)):
             return send_from_directory(build_dir, path)
         return send_from_directory(build_dir, "index.html")
