@@ -1,9 +1,8 @@
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, AutoConfig
 from config.settings import Config
-from modules.preprocessing import normalize_text, tokenize_words
+from modules.preprocessing import normalize_text, tokenize_words, preprocess_text
 import torch
 from utils.BERT import Bert_Classifier
-
 _MODEL_REGISTRY = {}
 
 def get_classifier(model_name):
@@ -110,6 +109,7 @@ class TopicClassificationClassifier(BaseClassifier):
         self.num_labels = len(self.id2label)
 
     def encode_data(self, text):
+        text = preprocess_text(text, remove_stopwords=True, remove_punctuation=True, remove_numbers=True)
         return self.tokenizer(text, padding="max_length", max_length=256,
                               return_tensors='pt', truncation=True, return_attention_mask=True)
 # tải sẳn trc các model
