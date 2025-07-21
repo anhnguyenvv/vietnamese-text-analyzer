@@ -104,7 +104,7 @@ The production build will be in the [build](http://_vscodecontentref_/7) folder.
 
 
 3. Just run the backend as usual:
----
+```
 python src/app.py
 ```
 
