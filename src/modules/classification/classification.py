@@ -1,6 +1,6 @@
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, AutoConfig
 from config.settings import Config
-from modules.preprocessing import normalize_text, tokenize_words, preprocess_text
+from modules.preprocessing import preprocess_text
 import torch
 from utils.BERT import Bert_Classifier
 _MODEL_REGISTRY = {}
@@ -63,7 +63,7 @@ class EssayIdentificationClassifier(BaseClassifier):
         self.num_labels = len(self.id2label)
 
     def encode_data(self, text):
-        text = preprocess_text(text, remove_stopwords=True, remove_special_chars=True)
+        text = preprocess_text(text, remove_stopword=True, remove_icon=True)
 
         return self.tokenizer(text, return_tensors='pt', max_length=512, truncation=True, padding=True)
 
@@ -112,7 +112,7 @@ class TopicClassificationClassifier(BaseClassifier):
         self.num_labels = len(self.id2label)
 
     def encode_data(self, text):
-        text = preprocess_text(text, remove_stopwords=True, remove_punctuation=True)
+        text = preprocess_text(text, remove_stopword=True, remove_icon=True)
         return self.tokenizer(text, padding="max_length", max_length=256,
                               return_tensors='pt', truncation=True, return_attention_mask=True)
 # tải sẳn trc các model
@@ -131,13 +131,17 @@ if __name__ == "__main__":
     print("All Labels:", {k: v for k, v in predicted.items() if k != 'label'})
     print("Model Name:", classifier.model_name)
 
-    classifier = get_classifier("vispam-Phobert")
+    classifier = get_classifier("essay_identification")
+    text = "Bài luận này sẽ phân tích các yếu tố ảnh hưởng đến sự phát triển kinh tế Việt Nam trong những năm gần đây."
+    print("Classifying text:", text)
     predicted = classifier.classify(text)
     print("Predicted Label:", predicted['label'])
     print("All Labels:", {k: v for k, v in predicted.items() if k != 'label'})
     print("Model Name:", classifier.model_name)
 
     classifier = get_classifier("topic_classification")
+    text = "Việt Nam đã đạt được nhiều thành tựu trong lĩnh vực khoa học và công nghệ."
+    print("Classifying text:", text)
     predicted = classifier.classify(text)
     print("Predicted Label:", predicted['label'])
     print("All Labels:", {k: v for k, v in predicted.items() if k != 'label'})
