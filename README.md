@@ -58,18 +58,13 @@ vietnamese-nlp
    gdown --id 17uObntzxDg3UwaA98F9GMNwmAzdpGw_Z -O src\model\clf\PhoBERT_topic_classification.pth
 
    ```
-## Usage
+6. **Run the backend server:**
+   ```
+   python src/app.py
+   ```
 
-To run the application, execute the following command:
-```
-python src/app.py
-```
+   The backend will be available at `http://127.0.0.1:5000/`.
 
-The application will start on `http://127.0.0.1:5000/`.
-
-## API Endpoints
-
-The API provides various endpoints for different functionalities. Refer to the documentation for detailed information on each endpoint.
 ## Frontend Installation & Usage
 
 The frontend is built with React (Create React App).
@@ -98,6 +93,7 @@ The frontend is built with React (Create React App).
    npm start
    ```
    The app will be available at [http://localhost:3000](http://localhost:3000).
+
 ### 2. Production build & deployment with Flask
 
 1. Build the frontend:
@@ -113,6 +109,15 @@ python src/app.py
 ```
 
 Then access the app at [http://localhost:5000](http://localhost:5000).
+
+## Usage
+
+To run the application, execute the following command:
+```
+python src/app.py
+```
+
+The application will start on `http://127.0.0.1:5000/`.
 **Note:**  
 - Make sure the backend is running and accessible at the address specified in `REACT_APP_API_BASE` if you use development mode.
 - When deploying, only `npm run build` is needed for the frontend; Flask will serve the static files automatically.
