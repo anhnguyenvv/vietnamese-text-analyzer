@@ -100,7 +100,7 @@ The frontend is built with React (Create React App).
    ```
    npm run build
    ```
-The production build will be in the [build](http://_vscodecontentref_/7) folder.
+The production build will be in the [build](front-end/build) folder.
 
 
 3. Just run the backend as usual:
@@ -121,4 +121,4 @@ The application will start on `http://127.0.0.1:5000/`.
 **Note:**  
 - Make sure the backend is running and accessible at the address specified in `REACT_APP_API_BASE` if you use development mode.
 - When deploying, only `npm run build` is needed for the frontend; Flask will serve the static files automatically.
-- For further deployment instructions, see the frontend's own README in `front-end/README.md`.
+- For further deployment instructions, see the frontend's [README](/front-end/README.md).
