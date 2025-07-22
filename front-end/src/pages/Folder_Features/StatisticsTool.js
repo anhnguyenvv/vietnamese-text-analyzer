@@ -3,7 +3,9 @@ import axios from "axios";
 import "./Features.css";
 import FileUploader from "./FileUploader";
 import API_BASE from "../../config"; // Địa chỉ API backend
-
+import { Bar } from "react-chartjs-2";
+import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
+Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 const StatisticsTool = () => {
   const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState(null);
@@ -129,14 +131,32 @@ const StatisticsTool = () => {
        {/* PHẦN BIỂU ĐỒ và WORD CLOUD BÊN NGOÀI KHUNG */}
           {result && !result.error && (
             <div className="result-visualizations">
-              {result.plot && (
+              {result.stats.word_freq && (
                 <div style={{ margin: "16px auto", maxWidth: 500 }}>
-                  <strong>Biểu đồ tần suất từ:</strong>
-                  <br />
-                  <img
-                    src={`data:image/png;base64,${result.plot}`}
-                    alt="Plot"
-                    style={{ maxWidth: "100%", margin: "10px 0", borderRadius: 8 }}
+                  <strong>Biểu đồ tần suất 10 từ phổ biến:</strong>
+                  <Bar
+                    data={{
+                      labels: Object.keys(result.stats.word_freq).slice(0, 10),
+                      datasets: [
+                        {
+                          label: "Số lần xuất hiện",
+                          data: Object.values(result.stats.word_freq).slice(0, 10),
+                          backgroundColor: "#1976d2",
+                        },
+                      ],
+                    }}
+                    options={{
+                      indexAxis: "y",
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: true },
+                      },
+                      scales: {
+                        x: { beginAtZero: true, ticks: { precision: 0 } },
+                      },
+                    backgroundColor: "#fff",
+                  }}
+                  style={{ background: "#fff", borderRadius: 8 }}
                   />
                 </div>
               )}
