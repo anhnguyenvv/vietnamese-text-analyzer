@@ -52,14 +52,12 @@ def analyze_file():
             model = get_classifier(model_name="vispam-VisoBert")
             res = model.classify(text, model_name="vispam-VisoBert")
         results.append(res['label'])
+        save_history(
+            feature="sentiment",
+            input_text=text,
+            result=str(res)
+        )
     df['sentiment'] = results
-
-    # Lưu lịch sử (tuỳ chọn)
-    save_history(
-        feature="sentiment_batch",
-        input_text=f"File: {file.filename}",
-        result=f"{len(df)} rows"
-    )
 
     # Trả về file kết quả
     output = io.StringIO()

@@ -23,14 +23,12 @@ def analyze_file():
     for text in df['text'].astype(str):
         predicted = classification.classify(text, model_name=model_name)
         results.append(predicted['label'])
-    df['classification'] = results
-
-    # Lưu lịch sử (tuỳ chọn)
-    save_history(
-        feature="classification_batch",
-        input_text=f"File: {file.filename}",
-        result=f"{len(df)} rows"
-    )
+        save_history(
+            feature="classification",
+            input_text=text,
+            result=str(predicted)
+        )
+    df['classification'] = results    
 
     # Trả về file kết quả
     output = io.StringIO()
