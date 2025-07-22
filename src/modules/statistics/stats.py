@@ -55,7 +55,7 @@ def create_plot(word_freq, n=10):
     plt.close()
     return plot_data
 
-def analyze_text(text, remove_stopwords=True, keep_case=True):
+def analyze_text(text, remove_stopwords=True, keep_case=False):
     """
     Phân tích văn bản: trả về thống kê số câu, từ, ký tự, số, ký tự đặc biệt, emoji, stopwords, tần suất từ, v.v.
     - remove_stopwords: loại bỏ stopwords khỏi thống kê từ
@@ -71,21 +71,7 @@ def analyze_text(text, remove_stopwords=True, keep_case=True):
         num_emojis += emoji.is_emoji(c)
     
     clean_text = normalize_text(text, lowercase= not keep_case, remove_icon= True)
-    print("Cleaned text:", clean_text)
-    if not clean_text:
-        return {
-            "num_sentences": 0,
-            "num_words": 0,
-            "num_chars": num_chars,
-            "avg_sentence_len": 0,
-            "avg_word_len": 0,
-            "vocab_size": 0,
-            "num_digits": num_digits,
-            "num_special_chars": num_special_chars,
-            "num_emojis": num_emojis,
-            "num_stopwords": 0,
-            "word_freq": collections.Counter(),
-        }
+
     sentences = tokenize_sentences(clean_text)
     words = tokenize_words(clean_text)
     len_sentences = len(sentences)    
