@@ -233,8 +233,7 @@ def chuan_hoa_icon(sentence):
     for k, v in replace_list.items():
         if k in sentence.lower():
             #nếu từ khóa trong câu có chữ hoa thì thay thế cả chữ hoa và chữ thường
-            sentence = re.sub(re.escape(k), v, sentence, flags=re.IGNORECASE)
-    
+            sentence = re.sub(re.escape(k), v, sentence, flags=re.IGNORECASE)    
     return sentence
 
 

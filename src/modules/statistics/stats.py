@@ -12,6 +12,10 @@ def create_wordcloud(word_freq):
     Tạo biểu đồ WordCloud từ tần suất từ.
     Trả về chuỗi base64 của ảnh wordcloud.
     """
+    if not word_freq:
+        return None
+    if len(word_freq) > 100:
+        word_freq = dict(collections.Counter(word_freq).most_common(100))
     import io, base64
     wordcloud = WordCloud(width=800, height=400, background_color='white', font_path='arial.ttf').generate_from_frequencies(word_freq)
     plt.figure(figsize=(10, 5))
@@ -29,8 +33,13 @@ def create_wordcloud(word_freq):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'txt'
 
-def create_plot(word_freq):
-    top = word_freq.most_common(10)
+def create_plot(word_freq, n=10):
+    if not word_freq:
+        return None
+    if len(word_freq) < n:
+        n = len(word_freq)
+    # Lấy n từ phổ biến nhất
+    top = word_freq.most_common(n)
     words, freqs = zip(*top)
     plt.figure(figsize=(8, 4))
     plt.bar(words, freqs, color='teal')
@@ -46,16 +55,12 @@ def create_plot(word_freq):
     plt.close()
     return plot_data
 
-def analyze_text(text, remove_stopwords=True, keep_case=False):
+def analyze_text(text, remove_stopwords=True, keep_case=True):
     """
     Phân tích văn bản: trả về thống kê số câu, từ, ký tự, số, ký tự đặc biệt, emoji, stopwords, tần suất từ, v.v.
     - remove_stopwords: loại bỏ stopwords khỏi thống kê từ
     - keep_case: nếu True giữ nguyên chữ hoa/thường, nếu False chuyển về chữ thường khi đếm từ
     """
-    clean_text = normalize_text(text)
-    sentences = tokenize_sentences(clean_text)
-    words = tokenize_words(clean_text)
-    len_sentences = len(sentences)
     num_chars = len(text)
     num_special_chars = 0
     num_digits = 0
@@ -64,8 +69,27 @@ def analyze_text(text, remove_stopwords=True, keep_case=False):
         num_special_chars += 1 if not c.isalnum() and not c.isspace() else 0
         num_digits += c.isdigit()
         num_emojis += emoji.is_emoji(c)
-
-    words = [w for w in words if w.isalpha()]
+    
+    clean_text = normalize_text(text, lowercase= not keep_case, remove_icon= True)
+    print("Cleaned text:", clean_text)
+    if not clean_text:
+        return {
+            "num_sentences": 0,
+            "num_words": 0,
+            "num_chars": num_chars,
+            "avg_sentence_len": 0,
+            "avg_word_len": 0,
+            "vocab_size": 0,
+            "num_digits": num_digits,
+            "num_special_chars": num_special_chars,
+            "num_emojis": num_emojis,
+            "num_stopwords": 0,
+            "word_freq": collections.Counter(),
+        }
+    sentences = tokenize_sentences(clean_text)
+    words = tokenize_words(clean_text)
+    len_sentences = len(sentences)    
+    words = [w for w in words if w.replace(" ", "").isalpha() ]
     stopwords = set(get_stopwords())
     if keep_case:
         filtered_words = [w for w in words if w.lower() not in stopwords]
@@ -114,7 +138,7 @@ def analyze_file(file_path, remove_stopwords=False):
     #     return results
 if __name__ == '__main__':
     # Example usage
-    text = '''ELO 3. Ngữ cảnh, trách nhiệm và đạo đức 
+    text = '''ELO 3. Hà Nội Ngữ cảnh, trách nhiệm và đạo đức 
 ELO 3. 1. Ngữ cảnh bên ngoài, xã hội, kinh tế và môi trường 
 ELO 3. 1. 1 Các vấn đề và giá trị của xã hội, kinh tế và môi trường đương đại 
 ELO 3. 1. 2 Vai trò và trách nhiệm 
