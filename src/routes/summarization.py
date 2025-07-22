@@ -11,7 +11,7 @@ def summarize():
 
     if not text:
         return jsonify({"error": "No text provided"}), 400
-    text = preprocess_text(text, remove_stopwords=True, remove_special_chars=True)
+    text = preprocess_text(text, remove_stopwords=True, remove_icon=True)
     summary = summarize_text(text)
     if not summary:
         return jsonify({"error": "Failed to summarize text"}), 500
