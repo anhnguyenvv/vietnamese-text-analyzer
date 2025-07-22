@@ -47,7 +47,7 @@ const StatisticsTool = () => {
       num_special_chars,
       num_emojis
     } = stats;
-
+  
     return (
       <>
         <div><strong>Số câu:</strong> {num_sentences}</div>
@@ -65,7 +65,16 @@ const StatisticsTool = () => {
       </>
     );
   };
-
+  const getTopWords = (word_freq, n = 10) => {
+    if (!word_freq) return { labels: [], data: [] };
+    const sorted = Object.entries(word_freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, n);
+    return {
+      labels: sorted.map(([word]) => word),
+      data: sorted.map(([, count]) => count)
+    };
+  };
   return (
     <div className="statistics-tool">
       <strong>Tùy chọn thống kê:</strong>
@@ -131,35 +140,38 @@ const StatisticsTool = () => {
        {/* PHẦN BIỂU ĐỒ và WORD CLOUD BÊN NGOÀI KHUNG */}
           {result && !result.error && (
             <div className="result-visualizations">
-              {result.stats.word_freq && (
-                <div style={{ margin: "16px auto", maxWidth: 500 }}>
-                  <strong>Biểu đồ tần suất 10 từ phổ biến:</strong>
-                  <Bar
-                    data={{
-                      labels: Object.keys(result.stats.word_freq).slice(0, 10),
-                      datasets: [
-                        {
-                          label: "Số lần xuất hiện",
-                          data: Object.values(result.stats.word_freq).slice(0, 10),
-                          backgroundColor: "#1976d2",
+              {result.stats.word_freq && (() => {
+                const { labels, data } = getTopWords(result.stats.word_freq, 10);
+                return (
+                  <div style={{ margin: "16px auto", maxWidth: 500 }}>
+                    <strong>Biểu đồ các từ xuất hiện nhiều nhất:</strong>
+                    <Bar
+                      data={{
+                        labels,
+                        datasets: [
+                          {
+                            label: "Số lần xuất hiện",
+                            data,
+                            backgroundColor: "#1976d2",
+                          },
+                        ],
+                      }}
+                      options={{
+                        indexAxis: "y",
+                        plugins: {
+                          legend: { display: false },
+                          tooltip: { enabled: true },
                         },
-                      ],
-                    }}
-                    options={{
-                      indexAxis: "y",
-                      plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: true },
-                      },
-                      scales: {
-                        x: { beginAtZero: true, ticks: { precision: 0 } },
-                      },
-                    backgroundColor: "#fff",
-                  }}
-                  style={{ background: "#fff", borderRadius: 8 }}
-                  />
-                </div>
-              )}
+                        scales: {
+                          x: { beginAtZero: true, ticks: { precision: 0 } },
+                        },
+                        backgroundColor: "#fff",
+                      }}
+                      style={{ background: "#fff", borderRadius: 8 }}
+                    />
+                  </div>
+                );
+              })()}
 
               {result.wordcloud && (
                 <div style={{ margin: "16px auto", maxWidth: 500 }}>

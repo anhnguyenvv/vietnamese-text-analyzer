@@ -80,7 +80,6 @@ def analyze_text(text, remove_stopwords=True, keep_case=False):
     if keep_case:
         filtered_words = [w for w in words if w.lower() not in stopwords]
     else:
-        words = [w.lower() for w in words]
         filtered_words = [w for w in words if w not in stopwords]
     stopword_count = len(words) - len(filtered_words)
     if remove_stopwords:
