@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { API_BASE, TEST_SAMPLE_PATHS}  from "../../config"; // Địa chỉ API backend
+import { API_BASE, TEST_SAMPLE_PATHS}  from "../../config"; 
 import "./Features.css";
 import FileUploader from "./FileUploader";
 import axios from "axios";
 import Papa from "papaparse";
+import { useNavigate } from "react-router-dom"; 
+
 
 const PreprocessingTool = () => {
   const [textInput, setTextInput] = useState("");
@@ -14,7 +16,7 @@ const PreprocessingTool = () => {
   const [removeDuplicates, setRemoveDuplicates] = useState(false);
   const [lowercase, setLowercase] = useState(true);
   const [removeNumbers, setRemoveNumbers] = useState(true);
-
+  const navigate = useNavigate();
   const [csvResultUrl, setCsvResultUrl] = useState(null);
   const [csvResultPreview, setCsvResultPreview] = useState([]);
   const [csvDownloadName, setCsvDownloadName] = useState("text_cleaned.csv");
@@ -113,6 +115,8 @@ const PreprocessingTool = () => {
     setCsvResultPreview(previewRows);
     setLoading(false);
   };
+
+
 
   return (
     <div className="preprocessing-tool">
@@ -255,7 +259,8 @@ const PreprocessingTool = () => {
             )}
           </div>
           {result && !result.error && (
-            <button
+            <>
+              <button
                 onClick={() => navigator.clipboard.writeText(result.cleaned_text)}
                 style={{
                   marginTop: 8,
@@ -264,12 +269,27 @@ const PreprocessingTool = () => {
                   color: "#fff",
                   border: "none",
                   borderRadius: 4,
-                    padding: "6px 10px",
                   cursor: "pointer",
                 }}
               >
-                Sao chép                
+                Sao chép
               </button>
+                {/* Thêm các nút khác nếu cần */}
+              <div
+                style={{
+                  marginTop: 12,
+                  background: "#f1f2f6",
+                  borderRadius: 4,
+                  padding: "10px 14px",
+                  color: "#444",
+                  fontSize: 15,
+                  fontStyle: "italic",
+                  borderLeft: "4px solid #0984e3",
+                }}
+              >
+                Gợi ý: Bạn có thể sử dụng văn bản đã làm sạch này để tiếp tục phân tích cảm xúc, phân loại, gán nhãn, tóm tắt hoặc các xử lý khác trong hệ thống!
+              </div>
+            </>
           )}
           <div className="csv-download-area">
             {csvResultUrl && (
