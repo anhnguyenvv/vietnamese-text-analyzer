@@ -46,6 +46,7 @@ class BaseClassifier:
         result = {
             'label': self.id2label.get(predicted_label, str(predicted_label))
         }
+        result['label_id'] = predicted_label
         for i in range(self.num_labels):
             result[self.id2label[i]] = probs[0, i].item()
         return result

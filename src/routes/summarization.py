@@ -7,10 +7,10 @@ summarization_bp = Blueprint('summarization', __name__)
 def summarize():
     data = request.get_json()
     text = data.get('text', '')
-
+    max_length = data.get('max_length', 100)
     if not text:
         return jsonify({"error": "No text provided"}), 400
-    summary = summarize_text(text)
+    summary = summarize_text(text, max_length=max_length)
     if not summary:
         return jsonify({"error": "Failed to summarize text"}), 500
     save_history(
@@ -18,6 +18,5 @@ def summarize():
         input_text=text,
         result=str(summary)
     )
-    print("Summarization result:", summary)
     
     return jsonify({"summary": summary})

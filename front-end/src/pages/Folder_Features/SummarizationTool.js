@@ -3,12 +3,13 @@ import "./Features.css";
 import FileUploader from "./FileUploader";
 import axios from "axios";
 import { API_BASE, TEST_SAMPLE_PATHS }  from "../../config"; // Địa chỉ API backend
-
 const SummarizationTool = () => {
   const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
+  const [maxLength, setMaxLength] = useState(256); // Thêm state cho độ dài tóm tắt
   const [sampleUrls] = useState(TEST_SAMPLE_PATHS.summary);
+
   const handleFileSelect = (content) => {
     setTextInput(content);
   };
@@ -16,9 +17,15 @@ const SummarizationTool = () => {
   const handleAnalyze = async () => {
     setLoading(true);
     setResult("");
+    if (!textInput.trim()) {
+      setResult("Vui lòng nhập văn bản hoặc tải tệp lên!");
+      setLoading(false);
+      return;
+    }
     try {
       const res = await axios.post(`${API_BASE}/api/summarization/summarize`, {
         text: textInput,
+        max_length: maxLength, // Truyền độ dài vào API
       });
       const data = res.data;
       if (data.summary) {
@@ -49,12 +56,24 @@ const SummarizationTool = () => {
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
           />
+          <div style={{ margin: "8px 0" }}>
+            <label>
+              Độ dài tối đa của tóm tắt:&nbsp;
+              <input
+                type="number"
+                min={50}
+                max={1000}
+                value={maxLength}
+                onChange={e => setMaxLength(Number(e.target.value))}
+                style={{ width: 80 }}
+              />&nbsp;token
+            </label>
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
               Phân tích
             </button>
-
-             {loading && (
+            {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
                   Đang phân tích...
@@ -75,6 +94,22 @@ const SummarizationTool = () => {
             placeholder="Kết quả sẽ hiển thị ở đây..."
             value={result}
           />
+          {result && !result.error && (
+            <button
+              onClick={() => navigator.clipboard.writeText(result)}
+              style={{
+                marginTop: 8,
+                padding: "6px 12px",
+                background: "#0984e3",
+                color: "#fff",
+                border: "none",
+                borderRadius: 4,
+                cursor: "pointer",
+              }}
+            >
+              Sao chép
+            </button>
+          )}
         </div>
       </div>
     </div>

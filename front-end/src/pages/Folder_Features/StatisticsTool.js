@@ -22,6 +22,11 @@ const StatisticsTool = () => {
   const handleAnalyze = async () => {
     setLoading(true);
     setResult(null);
+    if (!textInput.trim()) {
+      setResult({ error: "Vui lòng nhập văn bản hoặc tải tệp lên!" });
+      setLoading(false);
+      return;
+    }
     try {
       const res = await axios.post(`${API_BASE}/api/statistics/statistics`, {
         text: textInput,

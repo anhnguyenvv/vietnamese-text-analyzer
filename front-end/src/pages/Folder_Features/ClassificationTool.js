@@ -65,7 +65,8 @@ const ClassificationTool = () => {
         if (res.data && res.data.label_name) {
             results.push({
             text: line,
-            label: res.data.label_name
+            label: res.data.label_name,
+            label_id: res.data.label_id
         });
         setResult(res.data);
 
@@ -118,8 +119,12 @@ const ClassificationTool = () => {
 
   const getBarChartData = (result) => {
     if (!result || !result.all_labels) return null;
-    const labels = Object.keys(result.all_labels);
-    const data = Object.values(result.all_labels).map((v) => Math.round(v * 1000) / 10);
+    // Lấy 3 nhãn có xác suất cao nhất
+    const sorted = Object.entries(result.all_labels)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+    const labels = sorted.map(([label]) => label);
+    const data = sorted.map(([_, v]) => Math.round(v * 1000) / 10);
     return {
       labels,
       datasets: [
@@ -246,7 +251,7 @@ const ClassificationTool = () => {
                   }}
                 />
                 <div style={{ textAlign: "center", marginTop: 8, fontSize: 13, color: "#636e72" }}>
-                  Biểu đồ xác suất các nhãn dự đoán
+                  Biểu đồ xác suất 3 nhãn dự đoán cao nhất
                 </div>
               </div>
             )}

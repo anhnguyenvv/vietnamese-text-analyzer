@@ -34,6 +34,8 @@ def analyze_sentiment(text, max_length=256):
         result[l] = round(float(s), 4)
     max_idx = int(ranking[0])
     result['label'] = LABEL_MAP[max_idx]
+    result["label_id"] = max_idx
+
     return result   
 
 def analyze_sentiment_file(uploaded_file, text_column='text'):
@@ -56,7 +58,8 @@ def analyze_sentiment_file(uploaded_file, text_column='text'):
         results.append({
             "text": text,
             "label": res["label"],
-            "score": res["score"]
+            "score": res["score"],
+            "label_id": res["label_id"]
         })
     return pd.DataFrame(results)
   

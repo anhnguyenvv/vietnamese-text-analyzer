@@ -4,16 +4,16 @@ from config.settings import Config
 tokenizer = AutoTokenizer.from_pretrained(Config.MODELS_DIR['summarization'])
 model = AutoModelForSeq2SeqLM.from_pretrained(Config.MODELS_DIR['summarization'])
 
-def summarize_text(text: str, max_length=256) -> str:
+def summarize_text(text: str, max_length=256, min_length=30) -> str:
     """
     Tóm tắt văn bản tiếng Việt.
     """
-    text = "văn bản: " + text + " </s>"
+    text = "summarization " + ": " + text + " </s>"
     enc = tokenizer(text, return_tensors="pt", max_length=1024, truncation=True)
     outputs = model.generate(
         **enc,
-        max_length=max_length,      # token đầu ra tối đa
-        min_length=50,
+        max_length=max_length,
+        min_length=min_length,
         num_beams=4
     )
     res = ""
@@ -31,6 +31,7 @@ if __name__ == "__main__":
         if text.lower() == 'exit' or text.lower() == 'quit' or not text:
             print("Thoát chương trình.")
             break
-        sum = summarize_text(text, max_length=500)
+        max_length = int(input("Nhập độ dài tối đa của tóm tắt (mặc định 500): ") or 500)
+        sum = summarize_text(text, max_length=max_length)
         print("Tóm tắt: ", sum)
         print("Độ dài: ", len(sum))
