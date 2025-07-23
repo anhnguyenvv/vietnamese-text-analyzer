@@ -1,6 +1,5 @@
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, AutoConfig
 from config.settings import Config
-from modules.preprocessing import preprocess_text
 import torch
 from utils.BERT import Bert_Classifier
 _MODEL_REGISTRY = {}
@@ -63,7 +62,6 @@ class EssayIdentificationClassifier(BaseClassifier):
         self.num_labels = len(self.id2label)
 
     def encode_data(self, text):
-        text = preprocess_text(text, remove_stopword=True, remove_icon=True)
 
         return self.tokenizer(text, return_tensors='pt', max_length=512, truncation=True, padding=True)
 
@@ -84,7 +82,6 @@ class VispamClassifier(BaseClassifier):
         self.num_labels = 2
 
     def encode_data(self, text):
-        text = preprocess_text(text)
 
         return self.tokenizer(text,padding="max_length", max_length=100,
                               return_tensors='pt', truncation=True, add_special_tokens=True)
@@ -112,7 +109,6 @@ class TopicClassificationClassifier(BaseClassifier):
         self.num_labels = len(self.id2label)
 
     def encode_data(self, text):
-        text = preprocess_text(text, remove_stopword=True, remove_icon=True)
         return self.tokenizer(text, padding="max_length", max_length=256,
                               return_tensors='pt', truncation=True, return_attention_mask=True)
 # tải sẳn trc các model

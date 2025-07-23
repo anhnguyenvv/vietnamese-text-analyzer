@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./Features.css";
+import { API_BASE, TEST_SAMPLE_PATHS }  from "../../config"; // Địa chỉ API backend
 import FileUploader from "./FileUploader";
-import API_BASE from "../../config"; // Địa chỉ API backend
 import { Bar } from "react-chartjs-2";
 import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);

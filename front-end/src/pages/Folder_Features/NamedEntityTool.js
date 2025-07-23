@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./Features.css";
 import FileUploader from "./FileUploader";
-import API_BASE from "../../config"; // Địa chỉ API backend
+import {API_BASE, TEST_SAMPLE_PATHS}from "../../config"; // Địa chỉ API backend
 
 // Định nghĩa màu cho từng loại entity
 const ENTITY_COLORS = {
@@ -17,22 +17,17 @@ const ENTITY_COLORS = {
 
 function highlightEntities(text, entities) {
   if (!entities || entities.length === 0) return text;
-
   let result = "";
-
   entities.forEach(ent => {
     const word = ent[0];
-    
-    // Nếu là entity (label khác O), highlight
     if (ent[1] && ent[1] !== "O") {
       const labelShort = ent[1].replace(/^B-/, "").replace(/^I-/, "");
       const color = ENTITY_COLORS[labelShort] || "#dfe6e9";
       result += `<span style="background:${color};border-radius:4px;padding:1px 4px;margin:0 1px;display:inline-block;" title="${ent[1]}">${word}<sub style="color:#636e72;font-size:10px;">${ent[1]}</sub></span>`;
     } else {
-      result +=  " " + word; // Nếu không phải entity, giữ nguyên từ
+      result += " " + word;
     }
   });
-
   return result;
 }
 
@@ -41,44 +36,79 @@ const NamedEntityTool = () => {
   const [resultHtml, setResultHtml] = useState("");
   const [entityCount, setEntityCount] = useState({});
   const [loading, setLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("vncorenlp"); // Mặc định là vncorenlp
-
-  const handleFileSelect = (content) => {
+  const [selectedModel, setSelectedModel] = useState("vncorenlp");
+  const [allResults, setAllResults] = useState([]);
+  const [selectedLineIdx, setSelectedLineIdx] = useState(0);
+  const [jsonResultUrl, setJsonResultUrl] = useState(null);
+  const [jsonDownloadName, setJsonDownloadName] = useState("ner_result.json");
+  const [fileName, setFileName] = useState("");
+  const handleFileSelect = (content, file) => {
     setTextInput(content);
     setResultHtml("");
     setEntityCount({});
+    setAllResults([]);
+    setFileName(file.name);
+    setSelectedLineIdx(0);
+    setJsonResultUrl(null);
   };
 
   const handleAnalyze = async () => {
     setLoading(true);
     setResultHtml("");
     setEntityCount({});
-    try {
-      const res = await axios.post(`${API_BASE}/api/ner/ner`, {
-        text: textInput,
-        model: selectedModel, 
-      });
-      // Giả sử backend trả về: { result: [(word, label), ...] }
-      if (!res.data || !res.data.result) {
-        setResultHtml("Không có kết quả nhận diện thực thể.");
-        return;
+    setAllResults([]);
+    setSelectedLineIdx(0);
+    setJsonResultUrl(null);
+
+    // Tách từng dòng (bỏ dòng trống)
+    const lines = textInput
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line);
+
+    if (lines.length === 0) {
+      setResultHtml("Vui lòng nhập văn bản hoặc chọn file để phân tích.");
+      setLoading(false);
+      return;
+    }
+
+    const results = [];
+    for (const line of lines) {
+      try {
+        const res = await axios.post(`${API_BASE}/api/ner/ner`, {
+          text: line,
+          model: selectedModel,
+        });
+        results.push({
+          input: line,
+          result: res.data.result,
+        });
+      } catch (err) {
+        results.push({
+          input: line,
+          error: err.message,
+        });
       }
-      const ents = res.data.result || [];
-      console.log("Entities:", ents); // In ra data kết quả ở đây
+    }
+    setAllResults(results);
+
+    // Hiển thị kết quả đầu tiên
+    if (Array.isArray(results[0]?.result)) {
+      setResultHtml(highlightEntities(results[0].input, results[0].result));
+      // Thống kê entity cho dòng đầu
       const mergedEntities = [];
       let currentEntity = null;
+      const ents = results[0].result;
       for (let i = 0; i < ents.length; i++) {
         const [word, label] = ents[i];
         if (label && label !== "O") {
           const type = label.replace(/^B-/, "").replace(/^I-/, "");
           if (label.startsWith("B-")) {
-            // Nếu đang có entity trước đó, push vào mảng
             if (currentEntity) mergedEntities.push(currentEntity);
             currentEntity = { words: [word], label: type };
           } else if (label.startsWith("I-") && currentEntity && currentEntity.label === type) {
             currentEntity.words.push(word);
           } else {
-            // Nếu I- nhưng không khớp, hoặc không có B- trước, bắt đầu mới
             if (currentEntity) mergedEntities.push(currentEntity);
             currentEntity = { words: [word], label: type };
           }
@@ -96,13 +126,66 @@ const NamedEntityTool = () => {
         entityWordCount[key] = (entityWordCount[key] || 0) + 1;
       });
       setEntityCount(entityWordCount);
-
-      // Hiển thị highlight
-      setResultHtml(highlightEntities(textInput, ents));
-    } catch (err) {
-      setResultHtml("Có lỗi xảy ra: " + (err.response?.data?.error || err.message));
+    } else if (results[0]?.error) {
+      setResultHtml("Có lỗi xảy ra: " + results[0].error);
+    } else {
+      setResultHtml("Không có kết quả nhận diện thực thể.");
     }
+
+    // Lưu file JSON
+    const jsonStr = JSON.stringify(results, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    setJsonResultUrl(url);
+    setJsonDownloadName(fileName ? `${fileName}_ner_result.json` : "ner_result.json");
+
     setLoading(false);
+  };
+
+  // Khi chọn dòng khác
+  const handleSelectLine = idx => {
+    setSelectedLineIdx(idx);
+    const item = allResults[idx];
+    if (Array.isArray(item?.result)) {
+      setResultHtml(highlightEntities(item.input, item.result));
+      // Thống kê entity cho dòng này
+      const mergedEntities = [];
+      let currentEntity = null;
+      const ents = item.result;
+      for (let i = 0; i < ents.length; i++) {
+        const [word, label] = ents[i];
+        if (label && label !== "O") {
+          const type = label.replace(/^B-/, "").replace(/^I-/, "");
+          if (label.startsWith("B-")) {
+            if (currentEntity) mergedEntities.push(currentEntity);
+            currentEntity = { words: [word], label: type };
+          } else if (label.startsWith("I-") && currentEntity && currentEntity.label === type) {
+            currentEntity.words.push(word);
+          } else {
+            if (currentEntity) mergedEntities.push(currentEntity);
+            currentEntity = { words: [word], label: type };
+          }
+        } else {
+          if (currentEntity) mergedEntities.push(currentEntity);
+          currentEntity = null;
+        }
+      }
+      if (currentEntity) mergedEntities.push(currentEntity);
+
+      const entityWordCount = {};
+      mergedEntities.forEach(ent => {
+        const entityText = ent.words.join(" ");
+        const key = `${entityText} (${ent.label})`;
+        entityWordCount[key] = (entityWordCount[key] || 0) + 1;
+      });
+      setEntityCount(entityWordCount);
+    } else if (item?.error) {
+      setResultHtml("Có lỗi xảy ra: " + item.error);
+      setEntityCount({});
+    } else {
+      setResultHtml("Không có kết quả nhận diện thực thể.");
+      setEntityCount({});
+    }
   };
 
   return (
@@ -129,7 +212,6 @@ const NamedEntityTool = () => {
           />{" "}
           Underthesea
         </label>
-        
       </div>
       <FileUploader onFileSelect={handleFileSelect} />
       <div className="text-area-container">
@@ -145,8 +227,7 @@ const NamedEntityTool = () => {
             <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
               Phân tích
             </button>
-
-             {loading && (
+            {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
                   Đang phân tích...
@@ -160,6 +241,22 @@ const NamedEntityTool = () => {
         </div>
 
         <div className="result-area">
+          {allResults.length > 1 && (
+            <div style={{ margin: "12px 0" }}>
+              <b>Chọn dòng để xem kết quả:</b>
+              <select
+                value={selectedLineIdx}
+                onChange={(e) => handleSelectLine(Number(e.target.value))}
+                style={{ marginLeft: 8, padding: "4px 8px", borderRadius: 4, border: "1px solid #ccc" }}
+              >
+                {allResults.map((item, idx) => (
+                  <option key={idx} value={idx}>
+                    {item.input.length > 60 ? item.input.slice(0, 60) + "..." : item.input}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <label>Kết quả (NER)</label>
           <div className="result-box">
             <div dangerouslySetInnerHTML={{ __html: resultHtml }} />
@@ -204,6 +301,19 @@ const NamedEntityTool = () => {
               </div>
             )}
           </div>
+          {jsonResultUrl && (
+            <div style={{ marginTop: 12 }}>
+              <a
+                href={jsonResultUrl}
+                download={jsonDownloadName}
+                className="analyze-button"
+                style={{ background: "#f0f0f0", color: "#444", textDecoration: "none", padding: "6px 10px", borderRadius: 6 }}
+              >
+                <span role="img" aria-label="download">⬇️</span>
+                Tải file kết quả JSON
+              </a>
+            </div>
+          )}
         </div>
       </div>
       <div style={{

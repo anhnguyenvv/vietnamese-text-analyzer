@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
 import axios from "axios";
-import API_BASE from "../../config"; // Địa chỉ API backend
+import { API_BASE, TEST_SAMPLE_PATHS }  from "../../config"; // Địa chỉ API backend
 
 const SummarizationTool = () => {
   const [textInput, setTextInput] = useState("");

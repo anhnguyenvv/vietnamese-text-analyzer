@@ -1,7 +1,7 @@
 import "./Features.css";
 import FileUploader from "./FileUploader";
+import { API_BASE, TEST_SAMPLE_PATHS }  from "../../config"; // Địa chỉ API backend
 import axios from "axios";
-import API_BASE from "../../config"; // Địa chỉ API backend
 import React, { useState, useRef, useEffect } from "react";
 
 
@@ -128,13 +128,25 @@ const PosTaggingTool = () => {
   const [rawResult, setRawResult] = useState([]);
   const [popupInfo, setPopupInfo] = useState(null);
   const resultBoxRef = useRef();
-  const handleFileSelect = (content) => {
+  const [fileName, setFileName] = useState("");
+  const [allResults, setAllResults] = useState([]);
+  const [selectedLineIdx, setSelectedLineIdx] = useState(0);
+
+  const handleFileSelect = (content, file) => {
     setTextInput(content);
+    setFileName(file.name);
+    setResult("");
+    setRawResult([]); 
+    setPopupInfo(null);
+    setAllResults([]);
+    setSelectedLineIdx(0);
+    setJsonResultUrl(null);
   };
-  const handleAnalyze = async () => {
+  /*const handleAnalyze = async () => {
     setLoading(true);
     setResult("");
     setPopupInfo(null);
+
     try {
       const res = await axios.post(`${API_BASE}/api/pos/tag`, {
         text: textInput,
@@ -154,7 +166,79 @@ const PosTaggingTool = () => {
     }
     setLoading(false);
   };
+*/
+  const [jsonResultUrl, setJsonResultUrl] = useState(null);
+  const [jsonDownloadName, setJsonDownloadName] = useState("pos_result.json");
 
+  const handleAnalyze = async () => {
+    setLoading(true);
+    setResult("");
+    setPopupInfo(null);
+    setJsonResultUrl(null);
+
+    // Tách từng dòng (bỏ dòng trống)
+    const lines = textInput
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line);
+
+    if (lines.length === 0) {
+      setResult(`<span style="color:red">Vui lòng nhập văn bản hoặc chọn file để phân tích.</span>`);
+      setLoading(false);
+      return;
+    }
+
+    const results = [];
+    for (const line of lines) {
+      try {
+        const res = await axios.post(`${API_BASE}/api/pos/tag`, {
+          text: line,
+          model: selectedModel,
+        });
+        results.push({
+          input: line,
+          result: res.data.result,
+        });
+      } catch (err) {
+        results.push({
+          input: line,
+          error: err.message,
+        });
+      }
+    }
+    setAllResults(results);
+    // Hiển thị kết quả đầu tiên
+    if (Array.isArray(results[0]?.result)) {
+      setRawResult(results[0].result);
+      setResult(highlightPOS(results[0].result, null));
+    } else if (results[0]?.error) {
+      setResult(`<span style="color:red">${results[0].error}</span>`);
+    } else {
+      setResult(`<span>${JSON.stringify(results[0])}</span>`);
+    }
+
+    // Lưu file JSON
+    const jsonStr = JSON.stringify(results, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    setJsonResultUrl(url);
+    setJsonDownloadName(fileName ? `${fileName}_pos_result.json` : "pos_result.json");
+
+    setLoading(false);
+  };
+
+  const handleSelectLine = idx => {
+    setSelectedLineIdx(idx);
+    const item = allResults[idx];
+    if (Array.isArray(item?.result)) {
+      setRawResult(item.result);
+      setResult(highlightPOS(item.result, null));
+    } else if (item?.error) {
+      setResult(`<span style="color:red">${item.error}</span>`);
+    } else {
+      setResult(`<span>${JSON.stringify(item)}</span>`);
+    }
+  };
   // Bắt sự kiện click vào từ đã highlight
   useEffect(() => {
     const handler = (e) => {
@@ -224,6 +308,7 @@ const PosTaggingTool = () => {
       <FileUploader onFileSelect={handleFileSelect} />
 
       <div className="text-area-container">
+      
         <div className="input-area">
           <label>Văn bản</label>
           <textarea
@@ -250,20 +335,40 @@ const PosTaggingTool = () => {
         </div>
 
         <div className="result-area">
+              {allResults.length > 1 && (
+            <div style={{ margin: "12px 0" }}>
+              <b>Chọn dòng để xem kết quả:</b>
+              <select
+                value={selectedLineIdx}
+                onChange={(e) => handleSelectLine(Number(e.target.value))}
+                style={{ marginLeft: 8, padding: "4px 8px", borderRadius: 4, border: "1px solid #ccc" }}
+              >
+                {allResults.map((item, idx) => (
+                  <option key={idx} value={idx}>
+                    {item.input.length > 60 ? item.input.slice(0, 60) + "..." : item.input}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <label>Kết quả</label>
+           
           <div className="result-box" ref={resultBoxRef} style={{ position: "relative" }}>
             {result ? (
               <div dangerouslySetInnerHTML={{ __html: result }} />
             ) : (
               <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
             )}
-            {popupInfo && (
+            
+            
+          </div>
+          {popupInfo && (
               <div
                 className="pos-popup"
                 style={{
                   position: "absolute",
-                  left: popupInfo.left - resultBoxRef.current.getBoundingClientRect().left,
-                  top: popupInfo.top - resultBoxRef.current.getBoundingClientRect().top-80,
+                  left: popupInfo.left,// - resultBoxRef.current.getBoundingClientRect().left,
+                  top: popupInfo.top,// - resultBoxRef.current.getBoundingClientRect().top,
                   background: "#fff",
                   border: "1px solid #636e72",
                   borderRadius: 8,
@@ -281,171 +386,25 @@ const PosTaggingTool = () => {
                 <b>Loại từ:</b> {popupInfo.label}
               </div>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default PosTaggingTool;
-
-/* 
-function highlightPOS(result) {
-  if (!Array.isArray(result)) return "";
-  // result: [{word: "Nhật", tag: "N"}, ...]
-  return result
-    .map(([word, tag]) => {
-      const color = POS_COLORS[tag] || "#dfe6e9";
-      const label = POS_LABELS[tag] || tag;
-      return `
-        <span style="display:inline-block; text-align:center; margin:0 2px; position:relative;">
-          <span style="
-            display:inline-block;
-            background:${color};
-            color:#222;
-            border:1.2px solid #636e72;
-            border-radius:6px 6px 0 0;
-            padding:0 4px;
-            font-size:10px;
-            font-weight:600;
-            position:relative;
-            top:0;
-            z-index:2;
-            box-shadow:0 1px 2px #dfe6e9;
-          " title="${label}">
-            ${tag}
-          </span>
-          <span style="
-            display:block;
-            border-top:1.2px solid #636e72;
-            width:14px;
-            height:0;
-            margin:0 auto -1px auto;
-            position:relative;
-            top:-1px;
-            z-index:1;
-          "></span>
-          <span style="
-            display:inline-block;
-            background:${color};
-            color:#222;
-            border-radius:0 0 6px 6px;
-            padding:1px 4px;
-            font-size:13px;
-            min-width:14px;
-            border:1.2px solid #636e72;
-            border-top:none;
-            box-shadow:0 1px 2px #dfe6e9;
-          ">
-            ${word}
-          </span>
-        </span>
-      `;
-    })
-    .join(" ");
-}
-const PosTaggingTool = () => {
-  const [textInput, setTextInput] = useState("");
-  const [result, setResult] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("vncorenlp"); // Mặc định là vncorenlp
-
-  const handleFileSelect = (content) => {
-    setTextInput(content);
-  };
-
-  const handleAnalyze = async () => {
-    setLoading(true);
-    setResult("");
-    try {
-      const res = await axios.post(`${API_BASE}/api/pos/tag`, {
-        text: textInput,
-        model: selectedModel,
-      });
-      const data = res.data;
-      if (Array.isArray(data.result)) {
-        setResult(highlightPOS(data.result));
-      } else if (typeof data.result === "string") {
-        setResult(`<span>${data.result}</span>`);     
-      } else {
-        setResult(`<span style="color:red">${data.error || "Có lỗi xảy ra!"}</span>`);
-      }
-    } catch (err) {
-      setResult(`<span style="color:red">Có lỗi xảy ra khi gọi API: ${err.message}</span>`);
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="pos-tagging-tool">
-      <strong>Tùy chọn gán nhãn từ loại:</strong>
-      <div className="options">
-        <label style={{ marginLeft: 16 }}>
-          <input
-            type="radio"
-            name="model"
-            value="vncorenlp"
-            checked={selectedModel === "vncorenlp"}
-            onChange={() => setSelectedModel("vncorenlp")}
-          />{" "}
-          VnCoreNLP
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="model"
-            value="underthesea"
-            checked={selectedModel === "underthesea"}
-            onChange={() => setSelectedModel("underthesea")}
-          />{" "}
-          Underthesea
-        </label>
-      </div>
-      <FileUploader onFileSelect={handleFileSelect} />
-
-      <div className="text-area-container">
-        <div className="input-area">
-          <label>Văn bản</label>
-          <textarea
-            rows={10}
-            placeholder="Nhập văn bản tại đây..."
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
-          />
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
-              Phân tích
-            </button>
-
-             {loading && (
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
-                  Đang phân tích...
-                </div>
-                <div className="loading-bar-container">
-                  <div className="loading-bar" />
-                </div>
+          {jsonResultUrl && (
+              <div style={{ marginTop: 12 }}>
+                <a
+                  href={jsonResultUrl}
+                  download={jsonDownloadName}
+                  className="analyze-button"
+                  style={{ background: "#f0f0f0", color: "#444", textDecoration: "none", padding: "6px 10px", borderRadius: 6 }}
+                >
+                  <span role="img" aria-label="download">⬇️</span>
+                 
+                  Tải file kết quả JSON
+                </a>
               </div>
             )}
-          </div>
-        </div>
-
-        <div className="result-area">
-          <label>Kết quả</label>
-
-          <div className="result-box">
-            {result ? (
-              <div dangerouslySetInnerHTML={{ __html: result }} />
-            ) : (
-              <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
-            )}
-          </div>
         </div>
       </div>
     </div>
+
   );
 };
 
 export default PosTaggingTool;
- */

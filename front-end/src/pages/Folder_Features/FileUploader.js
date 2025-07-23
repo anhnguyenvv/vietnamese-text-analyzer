@@ -1,31 +1,64 @@
 import React, { useState, useEffect } from "react";
 import mammoth from "mammoth";
+import Papa from "papaparse";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
 
-const FileUploader = ({ onFileSelect }) => {
+const FileUploader = ({ onFileSelect, externalContent, onTextColumnChange, }) => {
   const [fileName, setFileName] = useState("");
   const [lines, setLines] = useState([]);
   const [selectedLine, setSelectedLine] = useState("");
   const [readMode, setReadMode] = useState("paragraph");
   const [fileObj, setFileObj] = useState(null);
   const [fileContent, setFileContent] = useState("");
-  const [paragraphs, setParagraphs] = useState([]);
   const [allContent, setAllContent] = useState("");
-
+  // Thêm state cho bảng CSV
+  const [csvColumns, setCsvColumns] = useState([]);
+  const [csvColumn, setCsvColumn] = useState(null);
+  const [csvPreviewTable, setCsvPreviewTable] = useState([]);
+  useEffect(() => {
+    if (externalContent && typeof externalContent === "string") {
+      setFileName("");
+      setFileObj(null);
+      setFileContent(externalContent);
+      setAllContent(externalContent);
+      const paras = externalContent.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(p => p);
+      setLines(paras);
+      setSelectedLine(paras[0] || "");
+      setCsvColumns([]);
+      setCsvColumn("");
+      setCsvPreviewTable([]);
+      if (onFileSelect) onFileSelect(paras[0] || "", null);
+    }
+  }, [externalContent, onFileSelect]);
+  useEffect(() => {
+    if (onTextColumnChange) onTextColumnChange(csvColumn);
+  }, [csvColumn, onTextColumnChange]);
   useEffect(() => {
     if (!fileContent) return;
     if (readMode === "all") {
-      setLines([allContent]);
-      setSelectedLine(allContent);
-      onFileSelect(allContent, fileObj);
-    } else {
-      setLines(paragraphs);
-      setSelectedLine(paragraphs[0] || "");
-      onFileSelect(paragraphs[0] || "", fileObj);
+      if (fileObj && fileObj.name && fileObj.name.endsWith(".csv") && csvColumn) {
+        const parsed = Papa.parse(fileContent.trim(), { header: true, skipEmptyLines: true });
+        const textLines = parsed.data.map(row =>{
+                          const val = row[csvColumn];
+                          return typeof val === "string" ? val.replace(/\r?\n\s*\r?\n/g, " ") : (val ? String(val) : "");
+                        }).filter(Boolean);
+        const allText = textLines.join("\n\n");
+        onFileSelect(allText, fileObj, readMode);
+      } else {
+        onFileSelect(allContent, fileObj, readMode);
+      }
+    } else {      
+      if (fileObj && fileObj.name && fileObj.name.endsWith(".csv") && csvColumn) {
+        const parsed = Papa.parse(fileContent.trim(), { header: true, skipEmptyLines: true });
+        const textLines = parsed.data.map(row => row[csvColumn]).filter(Boolean);
+        setLines(textLines);
+      }
+      setSelectedLine(lines[0] || "");
+      onFileSelect(lines[0] || "", fileObj, readMode);
     }
     // eslint-disable-next-line
-  }, [readMode, fileContent]);
+  }, [readMode, fileContent, csvColumn]);
 
   const handleChange = async (e) => {
     const file = e.target.files[0];
@@ -45,7 +78,10 @@ const FileUploader = ({ onFileSelect }) => {
         setFileContent(reader.result);
         setAllContent(reader.result);
         const paras = reader.result.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(p => p);
-        setParagraphs(paras);
+        setLines(paras);
+        setCsvColumns([]);
+        setCsvColumn("");
+        setCsvPreviewTable([]);
       };
       reader.readAsText(file);
     } else if (ext === "docx") {
@@ -54,16 +90,24 @@ const FileUploader = ({ onFileSelect }) => {
       setFileContent(result.value);
       setAllContent(result.value);
       const paras = result.value.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(p => p);
-      setParagraphs(paras);
+      setLines(paras);
+      setCsvColumns([]);
+      setCsvColumn("");
+      setCsvPreviewTable([]);
     } else if (ext === "csv") {
       const reader = new FileReader();
       reader.onload = () => {
         setFileContent(reader.result);
         setAllContent(reader.result);
-        const allLines = reader.result.split(/\r?\n/).filter(line => line.trim());
-        const hasHeader = allLines.length > 1 && allLines[0].toLowerCase().includes("text");
-        const paras = hasHeader ? allLines.slice(1) : allLines;
-        setParagraphs(paras);
+        // Parse CSV lấy header và preview
+        const parsed = Papa.parse(reader.result.trim(), { skipEmptyLines: true });
+        setCsvPreviewTable(parsed.data.slice(0, 6)); // header + 5 dòng
+        if (parsed.data.length > 0) {
+          // Nếu tên là cột là trống thì lấy header là chỉ số của cột
+          const headers = parsed.data[0].map((col, idx) => col || idx);
+          setCsvColumns(headers);
+          setCsvColumn(headers[0]); // mặc định chọn cột đầu
+        }
       };
       reader.readAsText(file);
     } else {
@@ -71,15 +115,21 @@ const FileUploader = ({ onFileSelect }) => {
       setSelectedLine("");
       setFileContent("");
       setFileObj(null);
-      setParagraphs([]);
       setAllContent("");
+      setCsvColumns([]);
+      setCsvColumn("");
+      setCsvPreviewTable([]);
       onFileSelect("Định dạng không hỗ trợ. Hãy dùng .txt, .docx, .csv");
     }
   };
 
   const handleSelectLine = (e) => {
     setSelectedLine(e.target.value);
-    onFileSelect(e.target.value, fileObj);
+    onFileSelect(e.target.value, fileObj, readMode);
+  };
+
+  const handleSelectCsvColumn = (e) => {
+    setCsvColumn(e.target.value);
   };
 
   return (
@@ -99,7 +149,7 @@ const FileUploader = ({ onFileSelect }) => {
         >
           Chọn file
         </button>
-           {fileName && (
+        {fileName && (
           <>
             <button
               type="button"
@@ -120,17 +170,66 @@ const FileUploader = ({ onFileSelect }) => {
                 setReadMode("paragraph");
                 setFileObj(null);
                 setFileContent("");
-                setParagraphs([]);
                 setAllContent("");
+                setCsvColumns([]);
+                setCsvColumn("");
+                setCsvPreviewTable([]);
                 document.getElementById("fileInput").value = "";
                 if (onFileSelect) onFileSelect("", null);
               }}
             >
-             {fileName} X
+              {fileName} X
             </button>
           </>
         )}
       </div>
+      {fileName && fileObj && fileObj.name.endsWith(".csv") && csvColumns.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <label>Chọn cột chứa văn bản cần xử lý:&nbsp;</label>
+          <select value={csvColumn} onChange={handleSelectCsvColumn}>
+            {csvColumns.map((col, idx) => (
+              <option key={col + idx} value={col}>{col}</option>
+            ))}
+          </select>
+          <div style={{ marginTop: 10 }}>
+            <strong>Xem trước file CSV:</strong>
+            <div
+              style={{
+                background: "#fafafa",
+                border: "1px solid #eee",
+                borderRadius: 4,
+                padding: 8,
+                fontFamily: "monospace",
+                fontSize: 13,
+                maxHeight: 220,
+                overflow: "auto",
+                marginBottom: 8,
+              }}
+            >
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <tbody>
+                  {csvPreviewTable.map((row, idx) => (
+                    <tr key={idx} style={{ background: idx === 0 ? "#e0e0e0" : "inherit" }}>
+                      {row.map((cell, cidx) => (
+                        <td
+                          key={cidx}
+                          style={{
+                            border: "1px solid #eee",
+                            padding: 4,
+                            textAlign: "left",
+                          }}
+                        >
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {fileName && (
         <div style={{ marginTop: 10 }}>
@@ -157,7 +256,7 @@ const FileUploader = ({ onFileSelect }) => {
         </div>
       )}
 
-      {fileName && readMode === "paragraph" && lines.length > 0 && (
+      {fileName && readMode === "paragraph" && lines.length > 1 && (
         <div style={{ marginTop: 10 }}>
           <label>Chọn đoạn để xử lý:&nbsp;</label>
           <select

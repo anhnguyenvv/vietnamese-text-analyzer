@@ -1,30 +1,36 @@
-from transformers import pipeline
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from config.settings import Config
 
-summarizer = pipeline(
-    "summarization",
-    model=Config.MODELS_DIR['summarization'],
-    tokenizer=Config.MODELS_DIR['summarization']
-)
-def summarize_text(text: str, max_length=1024) -> str:
+tokenizer = AutoTokenizer.from_pretrained(Config.MODELS_DIR['summarization'])
+model = AutoModelForSeq2SeqLM.from_pretrained(Config.MODELS_DIR['summarization'])
+
+def summarize_text(text: str, max_length=256) -> str:
     """
     Tóm tắt văn bản tiếng Việt.
     """
-    text = "vietnews: " + text + " </s>"
-    res = summarizer(
-        text,
-        max_length=max_length,
-        early_stopping=True,
-    )[0]['summary_text']
+    text = "văn bản: " + text + " </s>"
+    enc = tokenizer(text, return_tensors="pt", max_length=1024, truncation=True)
+    outputs = model.generate(
+        **enc,
+        max_length=max_length,      # token đầu ra tối đa
+        min_length=50,
+        num_beams=4
+    )
+    res = ""
+    for output in outputs:
+        line = tokenizer.decode(output, skip_special_tokens=True, clean_up_tokenization_spaces=True)
+        if line:
+            res += line + " "
     return res
-
 # Ví dụ sử dụng
 if __name__ == "__main__":
     text = "Summary có nghĩa là bản tóm tắt. Hiểu một cách đơn giản summary paragraph là ghi lại những ý chính của một đoạn văn, bài báo, hay thậm chí là những gì bạn nghe được bằng ngôn ngữ của chính bạn"
-    print(summarize_text(text))
+    print(summarize_text(text, max_length=500))
     while True:
         text = input("Nhập văn bản cần tóm tắt (hoặc 'exit' để thoát): ")
         if text.lower() == 'exit' or text.lower() == 'quit' or not text:
             print("Thoát chương trình.")
             break
-        print(summarize_text(text))
+        sum = summarize_text(text, max_length=500)
+        print("Tóm tắt: ", sum)
+        print("Độ dài: ", len(sum))
