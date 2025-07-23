@@ -6,6 +6,10 @@ const API_BASE =
     : window.location.origin);
 
 const TEST_SAMPLE_PATHS = {
+  preprocess: [
+    "/test_samples/preprocess/preprocess_sample.txt",
+    "/test_samples/preprocess/preprocess_sample.csv"
+  ],
   sentiment: [
     "/test_samples/sentiment/sentiment_sample.txt",
     "/test_samples/sentiment/sentiment_sample.csv"
