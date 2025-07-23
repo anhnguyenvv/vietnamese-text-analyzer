@@ -57,66 +57,67 @@ const SentimentAnalysisTool = () => {
       setLoading(false);
       return;
     }    
-    const results = [];
-    for (const line of lines) {
-      try {
-        const res = await axios.post(`${API_BASE}/api/sentiment/analyze`, {
-          text: line,
-          model_name: selectedModel,
-          //label_type: labelType, // Gửi loại nhãn
-        });
+    const promises = lines.map(line => 
+       axios.post(`${API_BASE}/api/sentiment/analyze`, {
+        text: line,
+        model_name: selectedModel,
+        //label_type: labelType, // Gửi loại nhãn
+      }).then(res => {
         if (res.data && res.data.label) {
-            results.push({
+          return {
             text: line,
-            ...res.data});
+            ...res.data
+          };
         }
         else {
-          setResult({ error: "Có lỗi xảy ra: " + (res.data.error || "Không rõ") });
-          setLoading(false);
-          return;
+           throw new Error(res.data.error || "Không rõ");
         }
+      })
+    );
+    try {
+      const results = await Promise.all(promises);
+     
+      if (results.length === 1) {
+        setResult(results[0]);
+        setLoading(false);
+        return;
+      } 
+      let csvResult = Papa.unparse(results);
+      if (selectedFile)
+      {
+        setCsvDownloadName(`${selectedFile.name.replace(/\.[^/.]+$/, "")}_clean.csv`);
+          if (selectedFile.name.endsWith(".csv")) {
+          const csvWithResults = csvData.map((row, index) => {
+            if (index === 0) {
+              const resultKeys = results[0] ? Object.keys(results[0]).filter(key => key !== "text") : [];
+              return [...row, ...resultKeys];
+            }
+            if (index - 1 >= results.length) {
+              return row; 
+            }
+            const result = results[index - 1] ? results[index - 1] : {};
+            delete result.text; 
+            return [
+                ...row,
+                ...Object.values(result)
+            ];
+          });
+          csvResult = Papa.unparse(csvWithResults);
+        }
+      }
+      const blob = new Blob([csvResult], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      setCsvResultUrl(url);
+      const text = await blob.text();
+      const parsed = Papa.parse(text.trim(), { skipEmptyLines: true });
+      const previewRows = parsed.data; 
+      setCsvResultPreview(previewRows);
+      setLoading(false);
       } catch (err) {
         setResult({ error: "Có lỗi xảy ra khi gọi API: " + err.message });
         setLoading(false);
         return;
-      }
-    }
-    if (results.length === 1) {
-      setResult(results[0]);
-      setLoading(false);
-      return;
-    } 
-    let csvResult = Papa.unparse(results);
-    if (selectedFile && selectedFile.name.endsWith(".csv")) {
-      //   handleAnalyzeFile();
-      //   setLoading(false);
-      //   return;
-      setCsvDownloadName(`${selectedFile.name.replace(/\.csv$/i, "")}_${selectedModel}_result.csv`);
-      const csvWithResults = csvData.map((row, index) => {        
-        if (index === 0) {
-          const resultKeys = results[0] ? Object.keys(results[0]).filter(key => key !== "text") : [];
-          return [...row, ...resultKeys];
-        }
-        if (index - 1 >= results.length) {
-          return row; 
-        }
-        const result = results[index - 1] ? results[index - 1] : {};
-        delete result.text; 
-        return [
-            ...row,
-            ...Object.values(result)
-        ];
-      });
-      csvResult = Papa.unparse(csvWithResults);
-    }
-    const blob = new Blob([csvResult], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    setCsvResultUrl(url);
-    const text = await blob.text();
-    const parsed = Papa.parse(text.trim(), { skipEmptyLines: true });
-    const previewRows = parsed.data; 
-    setCsvResultPreview(previewRows);
-    setLoading(false);   
+      }   
   };
     // Thay đổi model sẽ xóa kết quả và dữ liệu liên quan
   const handleModelChange = (e) => {
@@ -129,6 +130,7 @@ const SentimentAnalysisTool = () => {
     setResult(null);
     setCsvResultUrl(null);
     setCsvResultPreview([]);
+     
   };
   // Xử lý file CSV
   // const handleAnalyzeFile = async () => {

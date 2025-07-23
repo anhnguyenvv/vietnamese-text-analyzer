@@ -55,57 +55,53 @@ const ClassificationTool = () => {
       setLoading(false);
       return;
     }
-    const results = [];
-    for (const line of lines) {
-      try {
-        const res = await axios.post(`${API_BASE}/api/classification/classify`, {
+    const promises = lines.map(line =>
+    axios.post(`${API_BASE}/api/classification/classify`, {
+      text: line,
+      model_name: selectedClassification,
+    })
+    .then(res => {
+      if (res.data && res.data.label_name) {
+        return {
           text: line,
-          model_name: selectedClassification,
-        });
-        if (res.data && res.data.label_name) {
-            results.push({
-            text: line,
-            label: res.data.label_name,
-            label_id: res.data.label_id
-        });
-        setResult(res.data);
-
-        }
-        else {
-          setResult({ error: "Có lỗi xảy ra: " + (res.data.error || "Không rõ") });
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        setResult({ error: "Có lỗi xảy ra khi gọi API: " + err.message });
-        setLoading(false);
-        return;
+          label: res.data.label_name,
+          label_id: res.data.label_id
+        };
+      } else {
+        throw new Error(res.data.error || "Không rõ");
       }
-    }
+    })
+  );
+  try {
+    const results = await Promise.all(promises);
     if (results.length === 1) {
-      setLoading(false);      
+      setResult(results[0]);
+      setLoading(false);
       return;
     } 
     setResult(null);
     let csvResult = Papa.unparse(results);
-    if (selectedFile && selectedFile.name.endsWith(".csv")) {
-      setCsvDownloadName(`${selectedFile.name.replace(/\.csv$/i, "")}_${selectedClassification}_result.csv`);
-      const csvWithResults = csvData.map((row, index) => {
-        if (index === 0) {
-          const resultKeys = results[0] ? Object.keys(results[0]).filter(key => key !== "text") : [];
-          return [...row, ...resultKeys];
-        }
-        if (index - 1 >= results.length) {
-          return row; 
-        }
-        const result = results[index - 1] ? results[index - 1] : {};
-        delete result.text; 
-        return [
-            ...row,
-            ...Object.values(result)
-        ];
-      });
-      csvResult = Papa.unparse(csvWithResults);
+    if (selectedFile)
+    {
+      setCsvDownloadName(`${selectedFile.name.replace(/\.[^/.]+$/, "")}_clean.csv`);
+        if (selectedFile.name.endsWith(".csv")) {
+        const csvWithResults = csvData.map((row, index) => {
+          if (index === 0) {
+            const resultKeys = results[0] ? Object.keys(results[0]).filter(key => key !== "text") : [];
+            return [...row, ...resultKeys];
+          }
+          if (index - 1 >= results.length) {
+            return row; 
+          }
+          const result = results[index - 1] ? results[index - 1] : {};
+          delete result.text; 
+          return [
+              ...row,
+              ...Object.values(result)
+          ];
+        });
+        csvResult = Papa.unparse(csvWithResults);
+      }
     }
     const blob = new Blob([csvResult], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -114,7 +110,11 @@ const ClassificationTool = () => {
     const parsed = Papa.parse(text.trim(), { skipEmptyLines: true });
     const previewRows = parsed.data; 
     setCsvResultPreview(previewRows);
-    setLoading(false);   
+    setLoading(false);
+  } catch (err) {
+    setResult({ error: err.message || "Có lỗi xảy ra!" });
+    setLoading(false);
+  }
   };
 
   const getBarChartData = (result) => {

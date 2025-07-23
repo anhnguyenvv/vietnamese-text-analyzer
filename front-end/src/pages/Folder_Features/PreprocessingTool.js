@@ -4,8 +4,6 @@ import "./Features.css";
 import FileUploader from "./FileUploader";
 import axios from "axios";
 import Papa from "papaparse";
-import { useNavigate } from "react-router-dom"; 
-
 
 const PreprocessingTool = () => {
   const [textInput, setTextInput] = useState("");
@@ -16,7 +14,6 @@ const PreprocessingTool = () => {
   const [removeDuplicates, setRemoveDuplicates] = useState(false);
   const [lowercase, setLowercase] = useState(true);
   const [removeNumbers, setRemoveNumbers] = useState(true);
-  const navigate = useNavigate();
   const [csvResultUrl, setCsvResultUrl] = useState(null);
   const [csvResultPreview, setCsvResultPreview] = useState([]);
   const [csvDownloadName, setCsvDownloadName] = useState("text_cleaned.csv");
@@ -31,7 +28,7 @@ const PreprocessingTool = () => {
     setResult(null);
     setCsvResultUrl(null);
     setCsvResultPreview([]);
-    setCsvDownloadName("classification_result.csv");
+    setCsvDownloadName("preprocess_result.csv");
     if (file && file.name.endsWith(".csv")) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -51,60 +48,85 @@ const PreprocessingTool = () => {
     setResult("");
     setCsvResultUrl(null);
     setCsvResultPreview([]);
-    setCsvDownloadName("sentiment_result.csv");
+    setCsvDownloadName("preprocess_result.csv");
     const lines = textInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
     if (lines.length === 0) {
       setResult({ error: "Vui lòng nhập văn bản hoặc chọn file để phân tích." });
       setLoading(false);
       return;
     } 
-    const results = [];
-    for (const line of lines) {
-      try {
-        const res = await axios.post(`${API_BASE}/api/preprocessing/preprocess`, {
+    const promises = lines.map(line =>
+    axios.post(`${API_BASE}/api/preprocessing/preprocess`, {
           text: line,
           remove_stopwords: removeStopwords,
           remove_emojis: removeEmojis,
           remove_duplicates: removeDuplicates,
           lowercase: lowercase,
           remove_numbers: removeNumbers
-        });
-        const data = res.data;
-        if (data.preprocessed_text) {
-          results.push({
-              text: line,
-              cleaned_text: data.preprocessed_text});
-        } else {
-          setResult(data.error || "Có lỗi xảy ra!");
-        }
-      } catch (err) {
-        setResult("Có lỗi xảy ra khi gọi API!");
+        })
+    .then(res => {
+      if (res.data && res.data.preprocessed_text) {
+        return {
+          text: line,
+          cleaned_text: res.data.preprocessed_text || "",
+        };
+      } else {
+        throw new Error(res.data.error || "Không rõ");
       }
-    }
+    })
+  );
+    // for (const line of lines) {
+    //   try {
+    //     const res = await axios.post(`${API_BASE}/api/preprocessing/preprocess`, {
+    //       text: line,
+    //       remove_stopwords: removeStopwords,
+    //       remove_emojis: removeEmojis,
+    //       remove_duplicates: removeDuplicates,
+    //       lowercase: lowercase,
+    //       remove_numbers: removeNumbers
+    //     });
+    //     const data = res.data;
+    //     if (data.preprocessed_text) {
+    //       results.push({
+    //           text: line,
+    //           cleaned_text: data.preprocessed_text
+    //       });
+    //     } else {
+    //       setResult(data.error || "Có lỗi xảy ra!");
+    //     }
+    //   } catch (err) {
+    //     setResult("Có lỗi xảy ra khi gọi API!");
+    //   }
+    // }
+  try {
+    const results = await Promise.all(promises); 
     if (results.length === 1) {
       setResult(results[0]);
       setLoading(false);
       return;
     } 
     let csvResult = Papa.unparse(results);
-    if (selectedFile && selectedFile.name.endsWith(".csv")) {
-      setCsvDownloadName(`${selectedFile.name.replace(/\.csv$/i, "")}_clean.csv`);
-      const csvWithResults = csvData.map((row, index) => {
-        if (index === 0) {
-          const resultKeys = results[0] ? Object.keys(results[0]).filter(key => key !== "text") : [];
-          return [...row, ...resultKeys];
-        }
-        if (index - 1 >= results.length) {
-          return row; 
-        }
-        const result = results[index - 1] ? results[index - 1] : {};
-        delete result.text; 
-        return [
-            ...row,
-            ...Object.values(result)
-        ];
-      });
-      csvResult = Papa.unparse(csvWithResults);
+    if (selectedFile)
+    {
+      setCsvDownloadName(`${selectedFile.name.replace(/\.[^/.]+$/, "")}_clean.csv`);
+        if (selectedFile.name.endsWith(".csv")) {
+        const csvWithResults = csvData.map((row, index) => {
+          if (index === 0) {
+            const resultKeys = results[0] ? Object.keys(results[0]).filter(key => key !== "text") : [];
+            return [...row, ...resultKeys];
+          }
+          if (index - 1 >= results.length) {
+            return row; 
+          }
+          const result = results[index - 1] ? results[index - 1] : {};
+          delete result.text; 
+          return [
+              ...row,
+              ...Object.values(result)
+          ];
+        });
+        csvResult = Papa.unparse(csvWithResults);
+      }
     }
     const blob = new Blob([csvResult], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -114,6 +136,10 @@ const PreprocessingTool = () => {
     const previewRows = parsed.data; 
     setCsvResultPreview(previewRows);
     setLoading(false);
+  } catch (err) {
+    setResult({ error: "Có lỗi xảy ra khi gọi API: " + err.message });
+    setLoading(false);
+  }
   };
 
 
@@ -200,7 +226,7 @@ const PreprocessingTool = () => {
         <div className="result-area">
           <label>Kết quả</label>
           <div className="result-box">
-            {!result && (
+            {!result && !csvResultPreview && (
               <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
             )}
             {result && result.error && (

@@ -188,26 +188,37 @@ const PosTaggingTool = () => {
       setLoading(false);
       return;
     }
-
-    const results = [];
-    for (const line of lines) {
-      try {
-        const res = await axios.post(`${API_BASE}/api/pos/tag`, {
-          text: line,
-          model: selectedModel,
-        });
-        results.push({
-          input: line,
-          result: res.data.result,
-        });
-      } catch (err) {
-        results.push({
-          input: line,
-          error: err.message,
-        });
-      }
-    }
-    setAllResults(results);
+    const promises = lines.map(line =>
+      axios.post(`${API_BASE}/api/pos/tag`, {
+        text: line,
+        model: selectedModel,
+      }).then(res => {
+        if (Array.isArray(res.data.result)) {
+          return {
+            input: line,
+            result: res.data.result,
+          };
+        } else {
+          throw new Error(res.data.error || "Không rõ");
+        }
+      })
+    );
+    //       model: selectedModel,
+    //     });
+    //     results.push({
+    //       input: line,
+    //       result: res.data.result,
+    //     });
+    //   } catch (err) {
+    //     results.push({
+    //       input: line,
+    //       error: err.message,
+    //     });
+    //   }
+    // }
+    try {
+      const results = await Promise.all(promises);
+      setAllResults(results);
     // Hiển thị kết quả đầu tiên
     if (Array.isArray(results[0]?.result)) {
       setRawResult(results[0].result);
@@ -226,6 +237,11 @@ const PosTaggingTool = () => {
     setJsonDownloadName(fileName ? `${fileName}_pos_result.json` : "pos_result.json");
 
     setLoading(false);
+    } catch (err) {
+      setResult(`<span style="color:red">Có lỗi xảy ra khi gọi API: ${err.message}</span>`);
+      setLoading(false);
+    }
+    setSelectedLineIdx(0); // Reset selected line index
   };
 
   const handleSelectLine = idx => {

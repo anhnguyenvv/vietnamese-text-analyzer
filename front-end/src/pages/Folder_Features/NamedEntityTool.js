@@ -72,25 +72,48 @@ const NamedEntityTool = () => {
       setLoading(false);
       return;
     }
-
-    const results = [];
-    for (const line of lines) {
-      try {
-        const res = await axios.post(`${API_BASE}/api/ner/ner`, {
-          text: line,
-          model: selectedModel,
-        });
-        results.push({
+    const promises = lines.map(line => 
+       axios.post(`${API_BASE}/api/ner/ner`, {
+        text: line,
+        model: selectedModel,
+      }).then(res => {
+        if (res.data.result) {
+          return {
+            input: line,
+            result: res.data.result,
+          };
+        } else if (res.data.error) {
+          return {
+            input: line,
+            error: res.data.error || "Không rõ",
+          };
+        }
+        return {
           input: line,
-          result: res.data.result,
-        });
-      } catch (err) {
-        results.push({
-          input: line,
-          error: err.message,
-        });
-      }
-    }
+          error: "Không có kết quả nhận diện thực thể.",
+        };
+      })
+    );
+    try {
+      const results = await Promise.all(promises);
+    // const results = [];
+    // for (const line of lines) {
+    //   try {
+    //     const res = await axios.post(`${API_BASE}/api/ner/ner`, {
+    //       text: line,
+    //       model: selectedModel,
+    //     });
+    //     results.push({
+    //       input: line,
+    //       result: res.data.result,
+    //     });
+    //   } catch (err) {
+    //     results.push({
+    //       input: line,
+    //       error: err.message,
+    //     });
+    //   }
+    // }
     setAllResults(results);
 
     // Hiển thị kết quả đầu tiên
@@ -141,6 +164,12 @@ const NamedEntityTool = () => {
     setJsonDownloadName(fileName ? `${fileName}_ner_result.json` : "ner_result.json");
 
     setLoading(false);
+    setSelectedLineIdx(0); // Reset selected line index
+    } catch (err) {
+      setResultHtml(`<span style="color:red">Có lỗi xảy ra khi gọi API: ${err.message}</span>`);
+      setLoading(false);
+      setSelectedLineIdx(0); // Reset selected line index
+    }
   };
 
   // Khi chọn dòng khác
