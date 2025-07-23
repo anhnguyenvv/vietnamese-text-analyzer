@@ -54,7 +54,24 @@ def create_plot(word_freq, n=10):
     buf.close()
     plt.close()
     return plot_data
-
+def get_word_freq(text, remove_stopwords=True, keep_case=False):
+    """
+    Trả về tần suất từ trong văn bản.
+    - remove_stopwords: loại bỏ stopwords khỏi tần suất từ
+    - keep_case: nếu True giữ nguyên chữ hoa/thường, nếu False chuyển về chữ thường khi đếm từ
+    """
+    clean_text = normalize_text(text, lowercase= not keep_case, remove_icon= True)
+    words = tokenize_words(clean_text)
+    stopwords = set(get_stopwords())
+    words = [w for w in words if w.replace(" ", "").isalpha() ]
+    if keep_case:
+        filtered_words = [w for w in words if w.lower() not in stopwords]
+    else:
+        filtered_words = [w for w in words if w not in stopwords]
+    if remove_stopwords:
+        words = filtered_words
+    stopword_count=len(words) - len(filtered_words)
+    return collections.Counter(words), stopword_count
 def analyze_text(text, remove_stopwords=True, keep_case=False):
     """
     Phân tích văn bản: trả về thống kê số câu, từ, ký tự, số, ký tự đặc biệt, emoji, stopwords, tần suất từ, v.v.
@@ -69,23 +86,11 @@ def analyze_text(text, remove_stopwords=True, keep_case=False):
         num_special_chars += 1 if not c.isalnum() and not c.isspace() else 0
         num_digits += c.isdigit()
         num_emojis += emoji.is_emoji(c)
-    
-    clean_text = normalize_text(text, lowercase= not keep_case, remove_icon= True)
-
-    sentences = tokenize_sentences(clean_text)
-    words = tokenize_words(clean_text)
-    len_sentences = len(sentences)    
-    words = [w for w in words if w.replace(" ", "").isalpha() ]
-    stopwords = set(get_stopwords())
-    if keep_case:
-        filtered_words = [w for w in words if w.lower() not in stopwords]
-    else:
-        filtered_words = [w for w in words if w not in stopwords]
-    stopword_count = len(words) - len(filtered_words)
-    if remove_stopwords:
-        words = filtered_words
-    word_freq = collections.Counter(words)
-    num_words = len(words)
+    sentences = tokenize_sentences(text)
+    len_sentences = len(sentences)
+    word_freq, stopword_count = get_word_freq(text, remove_stopwords=remove_stopwords, keep_case=keep_case)
+    num_words = sum(word_freq.values())
+    words = list(word_freq.keys())
     result = {
         "num_sentences": len_sentences,
         "num_words": num_words,

@@ -7,7 +7,7 @@ const SummarizationTool = () => {
   const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
-  const [maxLength, setMaxLength] = useState(256); // Thêm state cho độ dài tóm tắt
+  const [length, setLength] = useState("medium"); // Thêm state cho độ dài tóm tắt
   const [sampleUrls] = useState(TEST_SAMPLE_PATHS.summary);
 
   const handleFileSelect = (content) => {
@@ -25,7 +25,7 @@ const SummarizationTool = () => {
     try {
       const res = await axios.post(`${API_BASE}/api/summarization/summarize`, {
         text: textInput,
-        max_length: maxLength, // Truyền độ dài vào API
+        length: length, // Truyền độ dài vào API
       });
       const data = res.data;
       if (data.summary) {
@@ -58,15 +58,12 @@ const SummarizationTool = () => {
           />
           <div style={{ margin: "8px 0" }}>
             <label>
-              Độ dài tối đa của tóm tắt:&nbsp;
-              <input
-                type="number"
-                min={50}
-                max={1000}
-                value={maxLength}
-                onChange={e => setMaxLength(Number(e.target.value))}
-                style={{ width: 80 }}
-              />&nbsp;token
+              Độ dài của tóm tắt:&nbsp;
+              <select value={length} onChange={e => setLength(e.target.value)}>
+                <option value="short">Ngắn (3-4 câu)</option>
+                <option value="medium">Vừa (5-6 câu)</option>
+                <option value="long">Dài (8-9 câu)</option>
+              </select>
             </label>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
