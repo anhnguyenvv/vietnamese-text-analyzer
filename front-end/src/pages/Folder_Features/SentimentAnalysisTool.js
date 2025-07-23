@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import "./Features.css";
-import { API_BASE, TEST_SAMPLE_PATHS }  from "../../config"; // Địa chỉ API backend
+import { API_BASE, TEST_SAMPLE_PATHS }  from "../../config"; 
 import FileUploader from "./FileUploader";
+import CsvViewer from "./csvViewer"; 
 import { Pie } from "react-chartjs-2";
 import axios from "axios";
 import Papa from "papaparse";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend);
+
 
 const SentimentAnalysisTool = () => {
   const [textInput, setTextInput] = useState("");
@@ -14,19 +16,16 @@ const SentimentAnalysisTool = () => {
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [csvResultUrl, setCsvResultUrl] = useState(null);
-  const [csvResultPreview, setCsvResultPreview] = useState([]);
   const [csvDownloadName, setCsvDownloadName] = useState("sentiment_result.csv");
   const [selectedModel, setSelectedModel] = useState("sentiment"); // Thêm state chọn model
-  //const [labelType, setLabelType] = useState("label"); 
   const [csvData, setCsvData] = useState([]); 
   const [readMode, setReadMode] = useState("paragraph");
   const [sampleUrls, setSampleUrls] = useState(TEST_SAMPLE_PATHS.sentiment);
- 
-  const handleFileSelect = (content, file, readMode) => {
+
+  const handleFileSelect = (content, file, readMode, csvColumn) => {
     setTextInput(content);
     setSelectedFile(file || null);
     setReadMode(readMode);
-    setCsvResultPreview([]);
     setResult(null);
     setCsvResultUrl(null);
     setCsvDownloadName("sentiment_result.csv");
@@ -35,12 +34,11 @@ const SentimentAnalysisTool = () => {
         reader.onload = (e) => {
           const fileContent = e.target.result;
           const parsed = Papa.parse(fileContent.trim(), { skipEmptyLines: true });
-          setCsvData(parsed.data); 
+          setCsvData(parsed.data);
         };
         reader.readAsText(file);
         
       } else {
-        setCsvResultPreview([]);
         setCsvData([]);
       }
   };
@@ -49,7 +47,6 @@ const SentimentAnalysisTool = () => {
     setLoading(true);
     setResult(null);
     setCsvResultUrl(null);
-    setCsvResultPreview([]);
     setCsvDownloadName("sentiment_result.csv");
     const lines = textInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
     if (lines.length === 0) {
@@ -108,10 +105,6 @@ const SentimentAnalysisTool = () => {
       const blob = new Blob([csvResult], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       setCsvResultUrl(url);
-      const text = await blob.text();
-      const parsed = Papa.parse(text.trim(), { skipEmptyLines: true });
-      const previewRows = parsed.data; 
-      setCsvResultPreview(previewRows);
       setLoading(false);
       } catch (err) {
         setResult({ error: "Có lỗi xảy ra khi gọi API: " + err.message });
@@ -120,7 +113,7 @@ const SentimentAnalysisTool = () => {
       }   
   };
     // Thay đổi model sẽ xóa kết quả và dữ liệu liên quan
-  const handleModelChange = (e) => {
+    const handleModelChange = (e) => {
     setSelectedModel(e.target.value);
     setSampleUrls(
       e.target.value === "sentiment"
@@ -129,55 +122,8 @@ const SentimentAnalysisTool = () => {
     );
     setResult(null);
     setCsvResultUrl(null);
-    setCsvResultPreview([]);
-     
   };
-  // Xử lý file CSV
-  // const handleAnalyzeFile = async () => {
-  //   if (!selectedFile || !selectedFile.name.endsWith(".csv")) {
-  //     alert("Vui lòng chọn file CSV hợp lệ!");
-  //     return;
-  //   }
-  //   setLoading(true);
-  //   setResult(null);
-  //   setCsvResultUrl(null);
-  //   setCsvResultPreview([]);
-  //   try {
-  //     const formData = new FormData();
 
-  //     formData.append("file", selectedFile);
-  //     formData.append("model_name", selectedModel); // Gửi model_name
-
-  //     const res = await fetch(`${API_BASE}/api/sentiment/analyze-file`, {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-  //     if (res.ok) {
-  //       const blob = await res.blob();
-  //       const url = window.URL.createObjectURL(blob);
-  //       setCsvResultUrl(url);
-
-  //       // Đặt tên file kết quả dựa trên file gốc
-  //       const baseName = selectedFile.name.replace(/\.csv$/i, "");
-  //       setCsvDownloadName(`${baseName}_${selectedModel}_result.csv`);
-
-  //       // Đọc trước kết quả để xem trước
-  //       const text = await blob.text();
-  //       const parsed = Papa.parse(text.trim(), { skipEmptyLines: true });
-  //       const previewRows = parsed.data; 
-  //       setCsvResultPreview(previewRows);
-
-  //       setResult({ message: "Phân tích file CSV thành công. Bạn có thể xem trước và tải kết quả bên dưới." });
-  //     } else {
-  //       const data = await res.json();
-  //       setResult({ error: data.error || "Có lỗi xảy ra khi xử lý file." });
-  //     }
-  //   } catch (err) {
-  //     setResult({ error: "Có lỗi xảy ra khi gọi API: " + err.message });
-  //   }
-  //   setLoading(false);
-  // };
-  // Chuẩn bị dữ liệu cho Pie Chart
   const pieData = result && !result.error ? {
     labels: selectedModel === "vispam"
       ? ["No-spam", "Spam"]
@@ -203,6 +149,7 @@ const SentimentAnalysisTool = () => {
       },
     ],
   } : null;
+
 
   return (
     <div className="sentiment-analysis-tool">
@@ -231,33 +178,10 @@ const SentimentAnalysisTool = () => {
         </div>
       </div>
       
-      {/* <div className="options" style={{ marginBottom: 12 }}>
-        <label style={{ marginRight: 8 }}>Chọn nhãn trả về:</label>
-
-        <div style={{ display: "inline-flex", gap: 16, alignItems: "center" }}>
-          <label>
-            <input
-              type="radio"
-              value="label"
-              checked={labelType === "label"}
-              onChange={() => setLabelType("label")}
-            /> Xuất nhãn dạng tên (label)
-          </label>
-          <label style={{ marginLeft: 16 }}>
-            <input
-              type="radio"
-              value="id"
-              checked={labelType === "id"}
-              onChange={() => setLabelType("id")}
-            /> Xuất nhãn dạng số (id)
-          </label>
-        </div>
-      </div> */}
-     
       <div style={{ color: "#d69e2e", fontStyle: "italic", marginBottom: 8 , fontSize: 14 }}>
         {selectedModel === "sentiment"
           ? "Mô hình phân tích cảm xúc: Dự đoán văn bản là Tích cực, Trung tính hoặc Tiêu cực."
-          : "Mô hình phát hiện spam: Dự đoán văn bản là Spam hoặc Không phải spam."}
+          : "Mô hình phát hiện review spam: Dự đoán review trên các trang thương mại điện tử là Spam hoặc Không phải spam."}
       </div>
       
       <FileUploader onFileSelect={handleFileSelect } sampleUrls={sampleUrls} />
@@ -299,15 +223,15 @@ const SentimentAnalysisTool = () => {
 
         </div>
         
-          
         <div className="result-area">
           <label>Kết quả</label>
-          <div className="result-box">
-            {!result && (
-              <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
-            )}
+          {!csvResultUrl && (
+            <div className="result-box">
+              {!result && (
+                <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
+              )}
 
-            {result && !result.error && result.label && (
+              {result && !result.error && result.label && (
               <div style={{ marginTop: 16 }}>
                 <strong>Nhận định:  </strong>
                 <span style={{ color: "#0984e3", fontWeight: 600 }}>
@@ -359,50 +283,12 @@ const SentimentAnalysisTool = () => {
                 style={{ maxWidth: 500, margin: "16px auto" }}
               />
             )}
-            
-            {csvResultUrl && (
-                <div style={{ marginTop: 16 }}>
-                  <strong>Xem trước file kết quả:</strong>
-                  <div
-                    style={{
-                      background: "#fafafa",
-                      border: "1px solid #eee",
-                      borderRadius: 4,
-                      padding: 8,
-                      fontFamily: "monospace",
-                      fontSize: 13,
-                      maxHeight: 220,
-                      overflow: "auto",
-                      marginBottom: 8,
-                    }}
-                  >
-                    {/* Hiển thị bảng preview */}
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                      <tbody>
-                        {csvResultPreview.map((row, idx) => (
-                          <tr key={idx} style={{ background: idx === 0 ? "#e0e0e0" : "inherit" }}>
-                            {row.map((cell, cidx) => (
-                              <td
-                                key={cidx}
-                                style={{
-                                  border: "1px solid #ddd",
-                                  padding: "4px 8px",
-                                  fontWeight: idx === 0 ? "bold" : "normal",
-                                  whiteSpace: "pre-wrap",
-                                }}
-                              >
-                                {cell}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  
-                </div>
-              )}
+   
           </div>
+          )}
+          {csvResultUrl && (
+                <CsvViewer csvFile={csvResultUrl} />
+          )}
           <div className="csv-download-area">
             {/* Hiển thị nút tải file CSV nếu có kết quả */}
             {csvResultUrl && (

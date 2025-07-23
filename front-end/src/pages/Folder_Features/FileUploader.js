@@ -21,26 +21,41 @@ const FileUploader = ({ onFileSelect, sampleUrls }) => {
     if (readMode === "all") {
       if (fileObj && fileObj.name && fileObj.name.endsWith(".csv") && csvColumn) {
         const parsed = Papa.parse(fileContent.trim(), { header: true, skipEmptyLines: true });
-        const textLines = parsed.data.map(row =>{
+        const filteredData = parsed.data.filter(row => row[csvColumn]&& row[csvColumn].trim() !== "");
+        if (filteredData.length === 0) {
+          onFileSelect("Không có dữ liệu trong cột đã chọn.", fileObj, readMode, csvColumn);
+          return;
+        }
+        const filteredContent = Papa.unparse(filteredData, { header: true });
+        const filteredCsvFile = new File([filteredContent], fileObj.name, { type: "text/csv" });
+        const textLines = filteredData.map(row =>{
                           const val = row[csvColumn];
                           return typeof val === "string" ? val.replace(/\r?\n\s*\r?\n/g, " ") : (val ? String(val) : "");
                         }).filter(Boolean);
         const allText = textLines.join("\n\n");
-        onFileSelect(allText, fileObj, readMode);
+        onFileSelect(allText, filteredCsvFile, readMode, csvColumn);
       } else {
-        onFileSelect(allContent, fileObj, readMode);
+        onFileSelect(allContent, fileObj, readMode, csvColumn);
       }
     } else {      
       if (fileObj && fileObj.name && fileObj.name.endsWith(".csv")) {
         const parsed = Papa.parse(fileContent.trim(), { header: true, skipEmptyLines: true });
-        const textLines = parsed.data.map(row => row[csvColumn]).filter(Boolean);
+        const filteredData = parsed.data.filter(row => row[csvColumn] && row[csvColumn].trim() !== "");
+        if (filteredData.length === 0) {
+          onFileSelect("Không có dữ liệu trong cột đã chọn.", fileObj, readMode, csvColumn);
+          return;
+        }
+        const filteredContent = Papa.unparse(filteredData, { header: true });
+        const filteredCsvFile = new File([filteredContent], fileObj.name, { type: "text/csv" });
+
+        const textLines = filteredData.map(row => row[csvColumn]).filter(Boolean);
         setLines(textLines);
         setSelectedLine(textLines[0] || "");
-        onFileSelect(textLines[0] || "", fileObj, readMode);
+        onFileSelect(textLines[0] || "", filteredCsvFile, readMode, csvColumn);
       }
       else {
       setSelectedLine(lines[0] || "");
-      onFileSelect(lines[0] || "", fileObj, readMode);
+      onFileSelect(lines[0] || "", fileObj, readMode, csvColumn);
     }
     }
     // eslint-disable-next-line

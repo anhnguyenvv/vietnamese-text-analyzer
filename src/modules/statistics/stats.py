@@ -6,6 +6,7 @@ from modules.preprocessing.normalization import normalize_text
 from modules.preprocessing.tokenization import tokenize_sentences, tokenize_words
 from wordcloud import WordCloud
 import emoji
+import time
 
 def create_wordcloud(word_freq):
     """
@@ -70,8 +71,7 @@ def get_word_freq(text, remove_stopwords=True, keep_case=False):
         filtered_words = [w for w in words if w not in stopwords]
     if remove_stopwords:
         words = filtered_words
-    stopword_count=len(words) - len(filtered_words)
-    return collections.Counter(words), stopword_count
+    return collections.Counter(words), words, len(words) - len(filtered_words)
 def analyze_text(text, remove_stopwords=True, keep_case=False):
     """
     Phân tích văn bản: trả về thống kê số câu, từ, ký tự, số, ký tự đặc biệt, emoji, stopwords, tần suất từ, v.v.
@@ -88,15 +88,14 @@ def analyze_text(text, remove_stopwords=True, keep_case=False):
         num_emojis += emoji.is_emoji(c)
     sentences = tokenize_sentences(text)
     len_sentences = len(sentences)
-    word_freq, stopword_count = get_word_freq(text, remove_stopwords=remove_stopwords, keep_case=keep_case)
-    num_words = sum(word_freq.values())
+    word_freq, words, stopword_count = get_word_freq(text, remove_stopwords=remove_stopwords, keep_case=keep_case)
     words = list(word_freq.keys())
+    num_words = len(words)
     result = {
         "num_sentences": len_sentences,
         "num_words": num_words,
         "num_chars": num_chars,
         "avg_sentence_len": round(sum(len(tokenize_words(s)) for s in sentences) / len_sentences, 2) if len_sentences else 0,
-        "avg_word_len": round(sum(len(w) for w in words) / num_words, 2) if words else 0,
         "vocab_size": len(set(words)),
         "num_digits": num_digits,
         "num_special_chars": num_special_chars,
@@ -128,25 +127,26 @@ def analyze_file(file_path, remove_stopwords=False):
     #     return results
 if __name__ == '__main__':
     # Example usage
-    text = '''ELO 3. Hà Nội Ngữ cảnh, trách nhiệm và đạo đức 
-ELO 3. 1. Ngữ cảnh bên ngoài, xã hội, kinh tế và môi trường 
-ELO 3. 1. 1 Các vấn đề và giá trị của xã hội, kinh tế và môi trường đương đại 
-ELO 3. 1. 2 Vai trò và trách nhiệm 
-ELO 3. 1. 3 Ngữ cảnh văn hóa, lịch sử 
-ELO 3. 1. 4 Luật lệ và quy định của xã hội 
-ELO 3. 2. Ngữ cảnh công ty và doanh nghiệp 
-ELO 3. 2. 1 Ngữ cảnh và văn hóa của công ty, tổ chức 
-ELO 3. 2. 2 Các bên liên quan, mục tiêu và chiến lược của công ty/ doanh nghiệp 
-ELO 3. 2. 3 Luật lệ và quy định của công ty/ doanh nghiệp 
-ELO 3. 3. Đạo đức, trách nhiệm và các giá trị cá nhân cốt lõi 
-ELO 3. 3. 1 Các chuẩn mực và nguyên tắc đạo đức 
-ELO 3. 3. 2 Trách nhiệm và cách hành xử chuyên nghiệp 
-ELO 3. 3. 3 Sự cam kết 
-ELO 3. 3. 4 Trung thực, uy tín và trung thành 🧐😗☺️'''
+    text = '''Chắc chắn một điều rằng, những kẻ ấy vĩnh viễn không thể tự khẳng định vị trí của mình trong xã hội, mãi mãi chỉ có thể sống dưới cái bóng của kẻ khác. Tuy nhiên bên cạnh những con người biết khát vọng và hướng đến những điều tốt đẹp thì trong xã hội vẫn còn đâu đó những con người không biết vươn lên, tự mãn với bản thân. Những người như vậy sẽ làm xã hội đi xuống, họ đáng bị phê phán và lên án
+
+Nước xanh biếc vào buổi sáng, vàng nhạt vào buổi trưa và đỏ thẫm vào buổi chiều tà. Chỉ có những người yêu dòng sông tha thiết mới cảm nhận được cái đẹp của dòng sông. Nhớ những buổi trưa hè trốn ngủ, ra dòng sông chơi. Nhớ những buổi chiều đi mót khoai, sắn, cả một lũ đem ra bờ sông, lấy lá đa đốt lên rồi nướng ăn. Đứa nào đứa lấy chân tay lấm lem,1,Biểu cảm. Tôi yêu dòng sông quê, yêu cả những người bạn, yêu cả những cánh đồng vàng ươm
+
+Những thác nước sôi réo ào ạt đổ về từ thượng nguồn, cuồn cuộn chảy bọt tung trắng xoá, có sức tàn phá thật đáng sợ! Những tai hoạ do sông Đà gây ra trở thành mối lo thường xuyên của người dân sinh sống hai bên bờ từ bao đời nay. Em rất thích vẻ đẹp của sông Đà vào mùa nước cạn, nước trong vắt có thể nhìn thấy rõ từng đàn cá lội tung tăng, từng hòn đá, hòn cuội dưới đáy sông. Chiều chiều, chúng em thoả thích bơi lội và nô giỡn. Giữa lòng sông, những doi cát dài nối tiếp nhau. Từng đoàn thuyền của dân kéo ra đây lấy cát. Chúng em sục chân thật sâu vào cát rồi lội ngược dòng với một niềm thích thú khó tả
+
+Năm 1640, ông Henry Dunster (Henry Đanxtơ) tốt nghiệp trường Đại học Cambrige ở Anh, được cử làm hiệu trưởng trường Harvard.Ông điều hành theo mô hình của Anh và dạy các môn: Khoa học xã hội, ngôn ngữ và ba môn triết học. Khoa thần học ra đời năm 1721 nhờ sự giúp đỡ của một nhà kinh doanh ở London để trả lương cho giáo viên. Sáu năm sau, trường có thêm khoa Toán học và khoa Triết học. Trong 100 năm đầu, trường phải dựa vào sự giúp đỡ của nhà nước thuộc địa, nhờ các khoản tiền ủng hộ của các cựu sinh viên và tổ chức nhân đạo, cho đến năm 1833 thì chấm dứt.
+
+Ơ, bác vẽ cháu đấy ư? Không, không, đừng vẽ cháu! Để cháu giới thiệu với bác những người khác đáng cho bác vẽ hơn. Phải, người họa sĩ già vừa nói chuyện, tay vừa bất giác hí hoáy vào cuốn sổ tì lên đầu gối. Hơn bao nhiêu người khác, ông biết rất rõ sự bất lực của nghệ thuật, của hội họa trong cuộc hành trình vĩ đại là cuộc đời
+
+Người ta thường nói thể thao là trò chơi của sức mạnh, của tốc độ và sự dẻo dai. Nhưng sâu xa hơn, thể thao là một ngôn ngữ không lời, nơi con người đối thoại với chính bản thể của mình – bằng mồ hôi, sự đau đớn và cả những giấc mơ tưởng như không thể với tới.
+Trên đường chạy, không chỉ là cuộc đua giữa người với người. Đó còn là cuộc chạy đua giữa cái "tôi yếu đuối" và cái "tôi kiên cường" trong chính mỗi vận động viên. Mỗi bước chân vấp ngã là một câu hỏi hiện sinh: "Liệu mình còn muốn tiến về phía trước không?" Và mỗi lần bật dậy là một câu trả lời dứt khoát: "Còn. Bởi vì tôi vẫn chưa chạm tới giới hạn cuối cùng."
+Có ai từng nhìn một vận động viên bật khóc sau vạch đích mà không thấy tim mình nhói lên? Nước mắt ấy không đơn thuần là niềm vui chiến thắng. Đó là tổng hòa của tháng ngày khổ luyện, của những buổi sáng gió lạnh tê tay và những tối muộn chỉ còn tiếng bước chân vang vọng trên sân tập.
+Thể thao không chỉ rèn luyện thể lực – nó gọt giũa nhân cách. Nó dạy ta biết thua, biết thắng, và trên hết, biết đứng dậy sau mỗi lần thất bại. Trong một thế giới ồn ào và đầy toan tính, nơi mà con người ngày càng xa rời bản năng tự nhiên, thể thao giữ lại cho ta một điều thuần khiết: khát vọng vượt lên chính mình.
+Và đó cũng là lý do, dù không phải ai cũng trở thành vận động viên, nhưng ai cũng có thể sống một đời thể thao – kiên trì, mạnh mẽ và không ngừng bước tới.
+    '''
+    time_start = time.time()
     result = analyze_text(text, remove_stopwords=True)
-    print(result)
-    print(f'top 10 từ: {result["word_freq"].most_common(10)}')
-    plot_url = create_plot(result['word_freq'])
-    print(f"Plot URL: {plot_url[:50]}...")  # Print first 50 characters of the plot URL
     wordcloud_url = create_wordcloud(result['word_freq'])
+    time_end = time.time()
+    print(f"Analysis took {time_end - time_start:.2f} seconds")
+    print(result)
     print(f"Wordcloud URL: {wordcloud_url[:50]}...")  # Print first 50 characters of the wordcloud URL

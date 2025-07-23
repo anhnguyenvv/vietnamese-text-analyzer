@@ -51,14 +51,16 @@ def classify():
     model_name = data.get('model_name', "essay_identification")
     classification = get_classifier(model_name)
     try:
+        if not text.strip():
+            return jsonify({"error": "Input text cannot be empty."}), 400
         predicted = classification.classify(
             text,
             model_name=model_name if model_name else classification.model_name
         )
         result = {
             "label_name": predicted['label'],
-            "all_labels": {k: v for k, v in predicted.items() if k != 'label'},  # Remove 'label' key from all_labels
-            "model_name": classification.model_name
+            "model_name": classification.model_name,
+            "label_id": predicted['label_id'],
         }
         # Lưu lịch sử vào database
         save_history(
@@ -68,4 +70,10 @@ def classify():
         )
         return jsonify(result)
     except Exception as e:
+        print(f"Error during classification: {e}")
+        save_history(
+            feature="classification",
+            input_text=text,
+            result=str({"error": str(e)})
+        )
         return jsonify({"error": str(e)}), 500

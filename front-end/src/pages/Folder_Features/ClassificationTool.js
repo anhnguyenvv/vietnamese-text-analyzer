@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
+import CsvViewer from "./csvViewer"; // Import CsvViewer component
 import Papa from "papaparse";
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
-import { Bar } from "react-chartjs-2";
 import axios from "axios";
 import {API_BASE, TEST_SAMPLE_PATHS}from "../../config"; // Địa chỉ API backend
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
@@ -13,41 +13,38 @@ const ClassificationTool = () => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedClassification, setSelectedClassification] = useState("essay_identification");
-
   const [csvResultUrl, setCsvResultUrl] = useState(null);
-  const [csvResultPreview, setCsvResultPreview] = useState([]);
   const [csvDownloadName, setCsvDownloadName] = useState("classification_result.csv");
   const [selectedFile, setSelectedFile] = useState(null);
   const [csvData, setCsvData] = useState([]);
   const [readMode, setReadMode] = useState("paragraph");
   const [sampleUrls, setSampleUrls] = useState(TEST_SAMPLE_PATHS.essay_identification);
 
-  const handleFileSelect = (content, file, readModeParam) => {
+  const handleFileSelect = (content, file, readMode, csvColumn) => {
     setTextInput(content);
     setSelectedFile(file || null);
-    setReadMode(readModeParam);
+    setReadMode(readMode);
     setResult(null);
     setCsvResultUrl(null);
-    setCsvResultPreview([]);
-    setCsvDownloadName("classification_result.csv");
+    setCsvDownloadName("sentiment_result.csv");
     if (file && file.name.endsWith(".csv")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const fileContent = e.target.result;
-        const parsed = Papa.parse(fileContent.trim(), { skipEmptyLines: true });
-        setCsvData(parsed.data);
-      };
-      reader.readAsText(file);
-    } else {
-      setCsvData([]);
-      setCsvResultPreview([]);
-    }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const fileContent = e.target.result;
+          const parsed = Papa.parse(fileContent.trim(), { skipEmptyLines: true });
+          const filteredData = parsed.data.filter(row => row && row[csvColumn].trim() !== "");
+          setCsvData(filteredData);
+        };
+        reader.readAsText(file);
+        
+      } else {
+        setCsvData([]);
+      }
   };
   const handleAnalyze = async () => {
     setLoading(true);
     setResult(null);
     setCsvResultUrl(null);
-    setCsvResultPreview([]);
     setCsvDownloadName("classification_result.csv");
     const lines = textInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
     if (lines.length === 0) {
@@ -62,6 +59,7 @@ const ClassificationTool = () => {
     })
     .then(res => {
       if (res.data && res.data.label_name) {
+        setResult(res.data);
         return {
           text: line,
           label: res.data.label_name,
@@ -75,7 +73,6 @@ const ClassificationTool = () => {
   try {
     const results = await Promise.all(promises);
     if (results.length === 1) {
-      setResult(results[0]);
       setLoading(false);
       return;
     } 
@@ -106,35 +103,11 @@ const ClassificationTool = () => {
     const blob = new Blob([csvResult], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     setCsvResultUrl(url);
-    const text = await blob.text();
-    const parsed = Papa.parse(text.trim(), { skipEmptyLines: true });
-    const previewRows = parsed.data; 
-    setCsvResultPreview(previewRows);
     setLoading(false);
   } catch (err) {
     setResult({ error: err.message || "Có lỗi xảy ra!" });
     setLoading(false);
   }
-  };
-
-  const getBarChartData = (result) => {
-    if (!result || !result.all_labels) return null;
-    // Lấy 3 nhãn có xác suất cao nhất
-    const sorted = Object.entries(result.all_labels)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3);
-    const labels = sorted.map(([label]) => label);
-    const data = sorted.map(([_, v]) => Math.round(v * 1000) / 10);
-    return {
-      labels,
-      datasets: [
-        {
-          label: "Xác suất (%)",
-          data,
-          backgroundColor: "#0984e3",
-        },
-      ],
-    };
   };
 
   return (
@@ -213,8 +186,9 @@ const ClassificationTool = () => {
         </div>
         <div className="result-area">
           <label>Kết quả</label>
+          {!csvResultUrl && (
           <div className="result-box">
-            {!result && (
+            {!result&& (
               <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
             )}
             {result && result.error && (
@@ -224,78 +198,16 @@ const ClassificationTool = () => {
               <div style={{ marginTop: 16 }}>
                 <strong>Nhận định: </strong>
                 <span style={{ color: "#0984e3", fontWeight: 600 }}>
-                  {result.label_name}
+                   {selectedClassification === "topic_classification" ? "Chủ đề" : "Thể loại"} {result.label_name}
                 </span>
               </div>
             )}
-            {result && !result.error && result.all_labels && (
-              <div style={{ maxWidth: 420, margin: "24px auto 0" }}>
-                <Bar
-                  data={getBarChartData(result)}
-                  options={{
-                    responsive: true,
-                    plugins: {
-                      legend: { display: false },
-                      tooltip: { callbacks: { label: ctx => `${ctx.parsed.y}%` } }
-                    },
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: { display: true, text: "Xác suất (%)" }
-                      },
-                      x: {
-                        title: { display: true, text: "Nhãn" }
-                      }
-                    }
-                  }}
-                />
-                <div style={{ textAlign: "center", marginTop: 8, fontSize: 13, color: "#636e72" }}>
-                  Biểu đồ xác suất 3 nhãn dự đoán cao nhất
-                </div>
-              </div>
-            )}
-            {csvResultUrl && (
-              <div style={{ marginTop: 16 }}>
-                <strong>Xem trước file kết quả:</strong>
-                <div
-                  style={{
-                    background: "#fafafa",
-                    border: "1px solid #eee",
-                    borderRadius: 4,
-                    padding: 8,
-                    fontFamily: "monospace",
-                    fontSize: 13,
-                    maxHeight: 220,
-                    overflow: "auto",
-                    marginBottom: 8,
-                  }}
-                >
-                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <tbody>
-                      {csvResultPreview.map((row, idx) => (
-                        <tr key={idx} style={{ background: idx === 0 ? "#e0e0e0" : "inherit" }}>
-                          {row.map((cell, cidx) => (
-                            <td
-                              key={cidx}
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "4px 8px",
-                                fontWeight: idx === 0 ? "bold" : "normal",
-                                whiteSpace: "pre-wrap",
-                              }}
-                            >
-                              {cell}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+           
           </div>
+          )}
+          {csvResultUrl && (
+              <CsvViewer csvFile={csvResultUrl} />
+          )}
           <div className="csv-download-area">
             {csvResultUrl && (
               <div>

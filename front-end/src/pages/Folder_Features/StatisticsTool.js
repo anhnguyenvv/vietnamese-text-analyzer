@@ -39,7 +39,6 @@ const StatisticsTool = () => {
     setLoading(false);
   };
 
-  // Helper để render thống kê đẹp hơn
   const renderStats = (stats) => {
     if (!stats) return null;
     const {
@@ -47,7 +46,6 @@ const StatisticsTool = () => {
       num_words,
       num_chars,
       avg_sentence_len,
-      avg_word_len,
       vocab_size,
       num_stopwords,
       num_digits,
@@ -64,7 +62,6 @@ const StatisticsTool = () => {
         <div><strong>Số ký tự đặc biệt:</strong> {num_special_chars}</div>
         <div><strong>Số emoji:</strong> {num_emojis}</div>
         <div><strong>Độ dài TB câu:</strong> {avg_sentence_len}</div>
-        <div><strong>Độ dài TB từ:</strong> {avg_word_len}</div>
         <div><strong>Kích thước từ vựng:</strong> {vocab_size}</div>
         <div><strong>Số stopword:</strong> {num_stopwords}</div>
         <div><strong>Tỉ lệ stopword:</strong> {((100 * num_stopwords) / num_words).toFixed(2)}%</div>
@@ -144,7 +141,6 @@ const StatisticsTool = () => {
          
         </div>
       </div>
-       {/* PHẦN BIỂU ĐỒ và WORD CLOUD BÊN NGOÀI KHUNG */}
           {result && !result.error && (
             <div className="result-visualizations">
               {result.stats.word_freq && (() => {
