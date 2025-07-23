@@ -28,10 +28,6 @@ def summarize_text(text: str, length="medium") -> str:
     """
     word_freq, _ = get_word_freq(text, remove_stopwords=True, keep_case=False)
     key_words = [w for w, _ in sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:5]]
-    meta_pattern = re.compile(
-            r'\b(số\s*liệu|văn\s*phong|tóm\s*tắt|yêu\s*cầu|quan\s*trọng|câu|lưu\s*ý|độ\s*dài|tập\s*trung|giữ\s*lại|thông\s*tin|phong\s*cách|hãy|bài\s*viết|khóa\s*chính)\b|[\d-]+\s*câu',
-            re.IGNORECASE
-        )
     length_setting = length_settings.get(length, length_settings["medium"])
     text = text + " </s>" + f"Tóm tắt văn bản trên với độ dài {length_setting['target_length']}. Ưu tiên giữ các thông tin liên quan đến: {key_words}, không thêm bất kỳ thông tin nào không có trong văn bản."
     enc = tokenizer(text, return_tensors="pt", max_length=1024, truncation=True)
