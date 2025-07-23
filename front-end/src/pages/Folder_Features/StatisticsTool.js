@@ -6,12 +6,14 @@ import FileUploader from "./FileUploader";
 import { Bar } from "react-chartjs-2";
 import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+
 const StatisticsTool = () => {
   const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [removeStopwords, setRemoveStopwords] = useState(true);
-
+  const [sampleUrls] = useState(TEST_SAMPLE_PATHS.stats);
+  
   const handleFileSelect = (content) => {
     setTextInput(content);
     setResult(null);
@@ -89,7 +91,7 @@ const StatisticsTool = () => {
         </label>
       </div>
 
-      <FileUploader onFileSelect={handleFileSelect} />
+      <FileUploader onFileSelect={handleFileSelect} sampleUrls={sampleUrls} />
 
       <div className="text-area-container">
         <div className="input-area">

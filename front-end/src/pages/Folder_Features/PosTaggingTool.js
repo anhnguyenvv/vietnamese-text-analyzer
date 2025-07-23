@@ -131,6 +131,7 @@ const PosTaggingTool = () => {
   const [fileName, setFileName] = useState("");
   const [allResults, setAllResults] = useState([]);
   const [selectedLineIdx, setSelectedLineIdx] = useState(0);
+  const [sampleUrls] = useState(TEST_SAMPLE_PATHS.pos);
 
   const handleFileSelect = (content, file) => {
     setTextInput(content);
@@ -305,7 +306,11 @@ const PosTaggingTool = () => {
           Underthesea
         </label>
       </div>
-      <FileUploader onFileSelect={handleFileSelect} />
+
+      <FileUploader 
+       onFileSelect={handleFileSelect}
+       sampleUrls={sampleUrls} 
+      />
 
       <div className="text-area-container">
       

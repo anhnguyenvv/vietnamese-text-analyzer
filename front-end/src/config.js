@@ -7,21 +7,24 @@ const API_BASE =
 
 const TEST_SAMPLE_PATHS = {
   sentiment: [
-    "../public/test_samples/sentiment/sentiment_sample.txt",
-    "../public/test_samples/sentiment/sentiment_sample.csv"
+    "/test_samples/sentiment/sentiment_sample.txt",
+    "/test_samples/sentiment/sentiment_sample.csv"
   ],
   classification: [
-    "../public/test_samples/classification/classification_sample.txt",
-    "../public/test_samples/classification/classification_sample.csv"
+    "/test_samples/classify/classification_sample.txt",
+    "/test_samples/classify/classification_sample.csv"
   ],
   pos: [
-    "../public/test_samples/pos/pos_sample.txt"
+    "/test_samples/pos/pos_sample.txt"
   ],
   ner: [
-    "../public/test_samples/ner/ner_sample.txt"
+    "/test_samples/ner/ner_sample.txt"
   ],
   summary: [
-    "../public/test_samples/summary/summary_sample.txt"
+    "/test_samples/summary/summary_sample.txt"
+  ],
+  stats: [
+    "/test_samples/stats/statistic_sample.txt"
   ]
 };
 

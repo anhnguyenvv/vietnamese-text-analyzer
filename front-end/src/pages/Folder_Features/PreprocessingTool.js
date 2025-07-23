@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { API_BASE, TEST_SAMPLE_URLS }  from "../../config"; // Địa chỉ API backend
+import { API_BASE, TEST_SAMPLE_PATHS}  from "../../config"; // Địa chỉ API backend
 import "./Features.css";
 import FileUploader from "./FileUploader";
 import axios from "axios";
@@ -21,7 +21,7 @@ const PreprocessingTool = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [csvData, setCsvData] = useState([]);
   const [readMode, setReadMode] = useState("paragraph");
-
+  const [sampleUrls] = useState(TEST_SAMPLE_PATHS.preprocess);
   const handleFileSelect = (content, file, readModeParam) => {
     setTextInput(content);
     setSelectedFile(file || null);
@@ -160,7 +160,7 @@ const PreprocessingTool = () => {
         </label>
         
       </div>
-      <FileUploader onFileSelect={handleFileSelect} />
+      <FileUploader onFileSelect={handleFileSelect} sampleUrls={sampleUrls} />
 
       <div className="text-area-container">
         <div className="input-area">

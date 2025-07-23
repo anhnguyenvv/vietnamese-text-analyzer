@@ -4,7 +4,7 @@ import Papa from "papaparse";
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
 
-const FileUploader = ({ onFileSelect, externalContent, onTextColumnChange, }) => {
+const FileUploader = ({ onFileSelect, sampleUrls }) => {
   const [fileName, setFileName] = useState("");
   const [lines, setLines] = useState([]);
   const [selectedLine, setSelectedLine] = useState("");
@@ -16,24 +16,6 @@ const FileUploader = ({ onFileSelect, externalContent, onTextColumnChange, }) =>
   const [csvColumns, setCsvColumns] = useState([]);
   const [csvColumn, setCsvColumn] = useState(null);
   const [csvPreviewTable, setCsvPreviewTable] = useState([]);
-  useEffect(() => {
-    if (externalContent && typeof externalContent === "string") {
-      setFileName("");
-      setFileObj(null);
-      setFileContent(externalContent);
-      setAllContent(externalContent);
-      const paras = externalContent.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(p => p);
-      setLines(paras);
-      setSelectedLine(paras[0] || "");
-      setCsvColumns([]);
-      setCsvColumn("");
-      setCsvPreviewTable([]);
-      if (onFileSelect) onFileSelect(paras[0] || "", null);
-    }
-  }, [externalContent, onFileSelect]);
-  useEffect(() => {
-    if (onTextColumnChange) onTextColumnChange(csvColumn);
-  }, [csvColumn, onTextColumnChange]);
   useEffect(() => {
     if (!fileContent) return;
     if (readMode === "all") {
@@ -49,24 +31,26 @@ const FileUploader = ({ onFileSelect, externalContent, onTextColumnChange, }) =>
         onFileSelect(allContent, fileObj, readMode);
       }
     } else {      
-      if (fileObj && fileObj.name && fileObj.name.endsWith(".csv") && csvColumn) {
+      if (fileObj && fileObj.name && fileObj.name.endsWith(".csv")) {
         const parsed = Papa.parse(fileContent.trim(), { header: true, skipEmptyLines: true });
         const textLines = parsed.data.map(row => row[csvColumn]).filter(Boolean);
         setLines(textLines);
+        setSelectedLine(textLines[0] || "");
+        onFileSelect(textLines[0] || "", fileObj, readMode);
       }
+      else {
       setSelectedLine(lines[0] || "");
       onFileSelect(lines[0] || "", fileObj, readMode);
+    }
     }
     // eslint-disable-next-line
   }, [readMode, fileContent, csvColumn]);
 
-  const handleChange = async (e) => {
-    const file = e.target.files[0];
+  const loadFile = async (file) => {
     if (!file) return;
     if (file.size > MAX_FILE_SIZE) {
       alert("Vui lòng chọn file nhỏ hơn 5MB.");
-      e.target.value = "";
-      return;
+      return "";
     }
     setFileName(file.name);
     setFileObj(file);
@@ -103,8 +87,7 @@ const FileUploader = ({ onFileSelect, externalContent, onTextColumnChange, }) =>
         const parsed = Papa.parse(reader.result.trim(), { skipEmptyLines: true });
         setCsvPreviewTable(parsed.data.slice(0, 6)); // header + 5 dòng
         if (parsed.data.length > 0) {
-          // Nếu tên là cột là trống thì lấy header là chỉ số của cột
-          const headers = parsed.data[0].map((col, idx) => col || idx);
+          const headers = parsed.data[0];
           setCsvColumns(headers);
           setCsvColumn(headers[0]); // mặc định chọn cột đầu
         }
@@ -121,6 +104,11 @@ const FileUploader = ({ onFileSelect, externalContent, onTextColumnChange, }) =>
       setCsvPreviewTable([]);
       onFileSelect("Định dạng không hỗ trợ. Hãy dùng .txt, .docx, .csv");
     }
+  }
+
+  const handleChange = async (e) => {
+    const file = e.target.files[0];
+    loadFile(file);
   };
 
   const handleSelectLine = (e) => {
@@ -130,6 +118,7 @@ const FileUploader = ({ onFileSelect, externalContent, onTextColumnChange, }) =>
 
   const handleSelectCsvColumn = (e) => {
     setCsvColumn(e.target.value);
+
   };
 
   return (
@@ -272,7 +261,47 @@ const FileUploader = ({ onFileSelect, externalContent, onTextColumnChange, }) =>
           </select>
         </div>
       )}
-    </div>
+      {sampleUrls && sampleUrls.length > 0 && (
+      <div style={{ margin: "12px 0" }}>
+            <b>Tải file mẫu thử nghiệm:</b>
+            {sampleUrls.map((url, idx) => (
+              <span key={url} style={{ marginRight: 16 }}>
+                <button
+                  type="button"
+                  style={{
+                    color: "#0984e3",
+                    background: "transparent",
+                    border: "none",
+                    textDecoration: "underline",
+                    fontSize: 15,
+                    marginRight: 4,
+                  }}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    try {
+                      const res = await fetch(url);
+                      const text = await res.text();
+                      // Tạo file object như khi chọn file thật
+                      const ext = url.split('.').pop().toLowerCase();
+                      let mime = "text/plain";
+                      if (ext === "csv") mime = "text/csv";
+                      if (ext === "docx") mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                      const fakeFile = new File([text], url.split("/").pop(), { type: mime });
+                      // Truyền vào FileUploader như file mới
+                      loadFile(fakeFile);
+                      setFileName(fakeFile.name);
+                    } catch {
+                      alert("Không thể tải file mẫu!");
+                    }
+                  }}
+                >
+                  {url.split("/").pop()}
+                </button>
+              </span>
+            ))}
+          </div>
+      )}
+    </div>    
   );
 };
 

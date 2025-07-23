@@ -42,6 +42,7 @@ const NamedEntityTool = () => {
   const [jsonResultUrl, setJsonResultUrl] = useState(null);
   const [jsonDownloadName, setJsonDownloadName] = useState("ner_result.json");
   const [fileName, setFileName] = useState("");
+  const [sampleUrls] = useState(TEST_SAMPLE_PATHS.ner);
   const handleFileSelect = (content, file) => {
     setTextInput(content);
     setResultHtml("");
@@ -213,7 +214,12 @@ const NamedEntityTool = () => {
           Underthesea
         </label>
       </div>
-      <FileUploader onFileSelect={handleFileSelect} />
+
+      <FileUploader 
+        onFileSelect={handleFileSelect} 
+        sampleUrls={sampleUrls}
+      />
+
       <div className="text-area-container">
         <div className="input-area">
           <label>Văn bản</label>

@@ -20,6 +20,7 @@ const ClassificationTool = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [csvData, setCsvData] = useState([]);
   const [readMode, setReadMode] = useState("paragraph");
+  const [sampleUrls] = useState(TEST_SAMPLE_PATHS.classification);
 
   const handleFileSelect = (content, file, readModeParam) => {
     setTextInput(content);
@@ -40,20 +41,6 @@ const ClassificationTool = () => {
     } else {
       setCsvData([]);
       setCsvResultPreview([]);
-    }
-  };
-  const handleLoadSample = async (url) => {
-    try {
-      const res = await fetch(url);
-      const text = await res.text();
-      setTextInput(text);
-      setSelectedFile(null);
-      setResult(null);
-      setCsvResultUrl(null);
-      setCsvResultPreview([]);
-      setCsvDownloadName("sentiment_result.csv");
-    } catch (e) {
-      alert("Không thể tải file mẫu!");
     }
   };
   const handleAnalyze = async () => {
@@ -155,7 +142,7 @@ const ClassificationTool = () => {
             checked={selectedClassification === "essay_identification"}
             onChange={() => setSelectedClassification("essay_identification")}
           />{" "}
-          Phân loại kiểu văn bản
+          Phân loại thể loại văn bản
         </label>
         <label style={{ marginLeft: 16 }}>
           <input
@@ -170,15 +157,15 @@ const ClassificationTool = () => {
       </div>
       <div style={{ color: "#d69e2e", fontStyle: "italic", marginBottom: 8 , fontSize: 14 }}>
         {selectedClassification === "essay_identification"
-          ? "Mô hình phân loại kiểu văn bản: Dự đoán thể loại văn bản với các nhãn như: Nghị luận, Biểu cảm, Miêu tả, Thuyết minh, Tự sự."
+          ? "Mô hình phân loại thể loại văn bản: Dự đoán thể loại văn bản với các nhãn như: Nghị luận, Biểu cảm, Miêu tả, Thuyết minh, Tự sự."
           : "Mô hình phân loại chủ đề: Dự đoán văn bản thuộc về chủ đề nào với 10 chủ đề khác nhau."}
       </div>
       <FileUploader
-        onFileSelect={handleFileSelect}
+        onFileSelect={handleFileSelect} 
+        sampleUrls={sampleUrls}
       />
       <div className="text-area-container">
         <div className="input-area">
-          khi không là file csv
           {!(readMode === "all" && selectedFile && selectedFile.name.endsWith(".csv")) && (
             <>
               <label>Văn bản</label>

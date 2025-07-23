@@ -20,6 +20,8 @@ const SentimentAnalysisTool = () => {
   //const [labelType, setLabelType] = useState("label"); 
   const [csvData, setCsvData] = useState([]); 
   const [readMode, setReadMode] = useState("paragraph");
+  const [sampleUrls] = useState(TEST_SAMPLE_PATHS.sentiment);
+ 
   const handleFileSelect = (content, file, readMode) => {
     setTextInput(content);
     setSelectedFile(file || null);
@@ -250,43 +252,8 @@ const SentimentAnalysisTool = () => {
           ? "Mô hình phân tích cảm xúc: Dự đoán văn bản là Tích cực, Trung tính hoặc Tiêu cực."
           : "Mô hình phát hiện spam: Dự đoán văn bản là Spam hoặc Không phải spam."}
       </div>
-      <div style={{ margin: "12px 0" }}>
-        <b>Tải file mẫu thử nghiệm:</b>
-        {TEST_SAMPLE_PATHS.sentiment.map((url, idx) => (
-          <span key={url} style={{ marginRight: 16 }}>
-            <a
-              href="#"
-              style={{
-                color: "#0984e3",
-                textDecoration: "underline",
-                fontSize: 15,
-                marginRight: 4,
-              }}
-              onClick={async (e) => {
-                e.preventDefault();
-                try {
-                  const res = await fetch(url);
-                  const text = await res.text();
-                  // Xác định loại file
-                  if (url.endsWith(".csv")) {
-                    // Giả lập file object cho FileUploader
-                    const fakeFile = new File([text], url.split("/").pop(), { type: "text/csv" });
-                    // Gọi FileUploader như khi chọn file CSV
-                    handleFileSelect(text, fakeFile, "paragraph");
-                  } else {
-                    handleFileSelect(text, null, "paragraph");
-                  }
-                } catch {
-                  alert("Không thể tải file mẫu!");
-                }
-              }}
-            >
-              {url.split("/").pop()}
-            </a>
-          </span>
-        ))}
-      </div>
-      <FileUploader onFileSelect={handleFileSelect} />
+      
+      <FileUploader onFileSelect={handleFileSelect } sampleUrls={sampleUrls} />
       <div className="text-area-container">
         <div className="input-area">
           {!(readMode === "all" && selectedFile && selectedFile.name.endsWith(".csv")) && (
@@ -322,7 +289,9 @@ const SentimentAnalysisTool = () => {
             )}
           </div>
 
+
         </div>
+        
           
         <div className="result-area">
           <label>Kết quả</label>

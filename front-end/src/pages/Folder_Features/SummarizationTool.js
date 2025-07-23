@@ -8,7 +8,7 @@ const SummarizationTool = () => {
   const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [sampleUrls] = useState(TEST_SAMPLE_PATHS.summary);
   const handleFileSelect = (content) => {
     setTextInput(content);
   };
@@ -35,7 +35,10 @@ const SummarizationTool = () => {
   return (
     <div className="summarization-tool">
       <strong>Tóm tắt văn bản</strong>
-      <FileUploader onFileSelect={handleFileSelect} />
+      <FileUploader
+        onFileSelect={handleFileSelect}
+        sampleUrls={sampleUrls}
+      />
 
       <div className="text-area-container">
         <div className="input-area">
