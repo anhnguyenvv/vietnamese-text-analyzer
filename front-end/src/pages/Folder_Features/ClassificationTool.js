@@ -67,6 +67,8 @@ const ClassificationTool = () => {
             text: line,
             label: res.data.label_name
         });
+        setResult(res.data);
+
         }
         else {
           setResult({ error: "Có lỗi xảy ra: " + (res.data.error || "Không rõ") });
@@ -80,10 +82,10 @@ const ClassificationTool = () => {
       }
     }
     if (results.length === 1) {
-      setResult(results[0]);
-      setLoading(false);
+      setLoading(false);      
       return;
     } 
+    setResult(null);
     let csvResult = Papa.unparse(results);
     if (selectedFile && selectedFile.name.endsWith(".csv")) {
       setCsvDownloadName(`${selectedFile.name.replace(/\.csv$/i, "")}_${selectedClassification}_result.csv`);

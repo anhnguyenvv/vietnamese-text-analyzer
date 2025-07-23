@@ -202,13 +202,16 @@ const PreprocessingTool = () => {
             {result && result.error && (
               <div style={{ color: "red" }}>{result.error}</div>
             )}
-            {result && !result.error && (
+            {result && !result.error && ( 
+              <div>   
               <div>
                 <div>
-                  <strong>Văn bản đã xử lý:</strong> {result.cleaned_text}
+                   {result.cleaned_text}
                 </div>
-
               </div>
+
+              
+              </div> 
             )}
             {csvResultUrl && (
               <div style={{ marginTop: 16 }}>
@@ -251,6 +254,23 @@ const PreprocessingTool = () => {
               </div>
             )}
           </div>
+          {result && !result.error && (
+            <button
+                onClick={() => navigator.clipboard.writeText(result.cleaned_text)}
+                style={{
+                  marginTop: 8,
+                  padding: "6px 12px",
+                  background: "#0984e3",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 4,
+                    padding: "6px 10px",
+                  cursor: "pointer",
+                }}
+              >
+                Sao chép                
+              </button>
+          )}
           <div className="csv-download-area">
             {csvResultUrl && (
               <div>
