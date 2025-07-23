@@ -14,6 +14,14 @@ const TEST_SAMPLE_PATHS = {
     "/test_samples/sentiment/sentiment_sample.txt",
     "/test_samples/sentiment/sentiment_sample.csv"
   ],
+  spam: [
+    "/test_samples/spam/spam_detection_sample.txt",
+    "/test_samples/spam/spam_detection_sample.csv"
+  ],
+  essay_identification: [
+    "/test_samples/essay_identification/essay_identification_sample.txt",
+    "/test_samples/essay_identification/essay_identification_sample.csv"
+  ],
   classification: [
     "/test_samples/classify/classification_sample.txt",
     "/test_samples/classify/classification_sample.csv"

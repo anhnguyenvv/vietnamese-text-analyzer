@@ -20,7 +20,7 @@ const SentimentAnalysisTool = () => {
   //const [labelType, setLabelType] = useState("label"); 
   const [csvData, setCsvData] = useState([]); 
   const [readMode, setReadMode] = useState("paragraph");
-  const [sampleUrls] = useState(TEST_SAMPLE_PATHS.sentiment);
+  const [sampleUrls, setSampleUrls] = useState(TEST_SAMPLE_PATHS.sentiment);
  
   const handleFileSelect = (content, file, readMode) => {
     setTextInput(content);
@@ -121,6 +121,11 @@ const SentimentAnalysisTool = () => {
     // Thay đổi model sẽ xóa kết quả và dữ liệu liên quan
   const handleModelChange = (e) => {
     setSelectedModel(e.target.value);
+    setSampleUrls(
+      e.target.value === "sentiment"
+        ? TEST_SAMPLE_PATHS.sentiment
+        : TEST_SAMPLE_PATHS.spam
+    );
     setResult(null);
     setCsvResultUrl(null);
     setCsvResultPreview([]);

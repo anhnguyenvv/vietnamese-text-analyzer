@@ -20,7 +20,7 @@ const ClassificationTool = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [csvData, setCsvData] = useState([]);
   const [readMode, setReadMode] = useState("paragraph");
-  const [sampleUrls] = useState(TEST_SAMPLE_PATHS.classification);
+  const [sampleUrls, setSampleUrls] = useState(TEST_SAMPLE_PATHS.essay_identification);
 
   const handleFileSelect = (content, file, readModeParam) => {
     setTextInput(content);
@@ -140,7 +140,11 @@ const ClassificationTool = () => {
             name="classification"
             value="essay_identification"
             checked={selectedClassification === "essay_identification"}
-            onChange={() => setSelectedClassification("essay_identification")}
+            onChange={() => {
+              setSelectedClassification("essay_identification");
+              setSampleUrls(TEST_SAMPLE_PATHS.essay_identification);
+            }}
+
           />{" "}
           Phân loại thể loại văn bản
         </label>
@@ -150,7 +154,10 @@ const ClassificationTool = () => {
             name="classification"
             value="topic_classification"
             checked={selectedClassification === "topic_classification"}
-            onChange={() => setSelectedClassification("topic_classification")}
+            onChange={() => {
+              setSelectedClassification("topic_classification");
+              setSampleUrls(TEST_SAMPLE_PATHS.topic_classification);
+            }}
           />{" "}
           Phân loại chủ đề
         </label>
