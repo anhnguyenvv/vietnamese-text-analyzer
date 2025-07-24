@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect} from "react";
 import mammoth from "mammoth";
 import Papa from "papaparse";
 
@@ -9,7 +9,6 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
   const [lines, setLines] = useState([]);
   const [selectedLine, setSelectedLine] = useState("");
   const [readMode, setReadMode] = useState("paragraph");
-  const [fileObj, setFileObj] = useState(sharedFile || null);
   const [fileContent, setFileContent] = useState("");
   const [allContent, setAllContent] = useState("");
   // Thêm state cho bảng CSV
@@ -19,15 +18,15 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
   useEffect(() => {
     if (!fileContent) return;
     if (readMode === "all") {
-      if (fileObj && fileObj.name && fileObj.name.endsWith(".csv") && csvColumn) {
+      if (sharedFile && sharedFile.name && sharedFile.name.endsWith(".csv") && csvColumn) {
         const parsed = Papa.parse(fileContent.trim(), { header: true, skipEmptyLines: true });
         const filteredData = parsed.data.filter(row => row[csvColumn]&& row[csvColumn].trim() !== "");
         if (filteredData.length === 0) {
-          onFileSelect("Không có dữ liệu trong cột đã chọn.", fileObj, readMode, csvColumn);
+          onFileSelect("Không có dữ liệu trong cột đã chọn.", sharedFile, readMode, csvColumn);
           return;
         }
         const filteredContent = Papa.unparse(filteredData, { header: true });
-        const filteredCsvFile = new File([filteredContent], fileObj.name, { type: "text/csv" });
+        const filteredCsvFile = new File([filteredContent], sharedFile.name, { type: "text/csv" });
         const textLines = filteredData.map(row =>{
                           const val = row[csvColumn];
                           return typeof val === "string" ? val.replace(/\r?\n\s*\r?\n/g, " ") : (val ? String(val) : "");
@@ -35,18 +34,18 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
         const allText = textLines.join("\n\n");
         onFileSelect(allText, filteredCsvFile, readMode, csvColumn);
       } else {
-        onFileSelect(allContent, fileObj, readMode, csvColumn);
+        onFileSelect(allContent, sharedFile, readMode, csvColumn);
       }
     } else {      
-      if (fileObj && fileObj.name && fileObj.name.endsWith(".csv")) {
+      if (sharedFile && sharedFile.name && sharedFile.name.endsWith(".csv")) {
         const parsed = Papa.parse(fileContent.trim(), { header: true, skipEmptyLines: true });
         const filteredData = parsed.data.filter(row => row[csvColumn] && row[csvColumn].trim() !== "");
         if (filteredData.length === 0) {
-          onFileSelect("Không có dữ liệu trong cột đã chọn.", fileObj, readMode, csvColumn);
+          onFileSelect("Không có dữ liệu trong cột đã chọn.", sharedFile, readMode, csvColumn);
           return;
         }
         const filteredContent = Papa.unparse(filteredData, { header: true });
-        const filteredCsvFile = new File([filteredContent], fileObj.name, { type: "text/csv" });
+        const filteredCsvFile = new File([filteredContent], sharedFile.name, { type: "text/csv" });
 
         const textLines = filteredData.map(row => row[csvColumn]).filter(Boolean);
         setLines(textLines);
@@ -55,7 +54,7 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
       }
       else {
       setSelectedLine(lines[0] || "");
-      onFileSelect(lines[0] || "", fileObj, readMode, csvColumn);
+      onFileSelect(lines[0] || "", sharedFile, readMode, csvColumn);
     }
     }
     // eslint-disable-next-line
@@ -68,7 +67,7 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
       return "";
     }
     setFileName(file.name);
-    setFileObj(file);
+    setSharedFile(file);
     const ext = file.name.split('.').pop().toLowerCase();
 
     if (ext === "txt") {
@@ -112,13 +111,17 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
       setLines([]);
       setSelectedLine("");
       setFileContent("");
-      setFileObj(null);
+      setSharedFile(null);
       setAllContent("");
       setCsvColumns([]);
       setCsvColumn("");
       setCsvPreviewTable([]);
       onFileSelect("Định dạng không hỗ trợ. Hãy dùng .txt, .docx, .csv");
     }
+  }  
+  
+  if (sharedFile && fileName === "") {
+    loadFile(sharedFile);
   }
   
   const handleChange = async (e) => {
@@ -128,20 +131,12 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
 
   const handleSelectLine = (e) => {
     setSelectedLine(e.target.value);
-    onFileSelect(e.target.value, fileObj, readMode);
+    onFileSelect(e.target.value, sharedFile, readMode);
   };
-  const isFirstLoad = useRef(true);
   const handleSelectCsvColumn = (e) => {
     setCsvColumn(e.target.value);
 
   };
-  useEffect(() => {
-    if (sharedFile && isFirstLoad.current) {
-      loadFile(sharedFile);
-      isFirstLoad.current = false;
-    }
-    // eslint-disable-next-line
-  }, [sharedFile]);
   return (
     <div className="file-upload">
       <input
@@ -178,7 +173,7 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
                 setLines([]);
                 setSelectedLine("");
                 setReadMode("paragraph");
-                setFileObj(null);
+                setSharedFile(null);
                 setFileContent("");
                 setAllContent("");
                 setCsvColumns([]);
@@ -193,7 +188,7 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
           </>
         )}
       </div>
-      {fileName && fileObj && fileObj.name.endsWith(".csv") && csvColumns.length > 0 && (
+      {fileName && sharedFile && sharedFile.name.endsWith(".csv") && csvColumns.length > 0 && (
         <div style={{ marginTop: 10 }}>
           <label>Chọn cột chứa văn bản cần xử lý:&nbsp;</label>
           <select value={csvColumn} onChange={handleSelectCsvColumn}>

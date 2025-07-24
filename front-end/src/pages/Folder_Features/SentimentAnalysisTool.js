@@ -184,7 +184,7 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
           : "Mô hình phát hiện review spam: Dự đoán review trên các trang thương mại điện tử là Spam hoặc Không phải spam."}
       </div>
       
-      <FileUploader onFileSelect={handleFileSelect } sampleUrls={sampleUrls} />
+      <FileUploader onFileSelect={handleFileSelect } sampleUrls={sampleUrls} sharedFile={sharedFile} setSharedFile={setSharedFile} />
       <div className="text-area-container">
         <div className="input-area">
             <>

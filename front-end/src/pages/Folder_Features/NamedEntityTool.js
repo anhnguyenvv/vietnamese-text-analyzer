@@ -247,6 +247,8 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
       <FileUploader 
         onFileSelect={handleFileSelect} 
         sampleUrls={sampleUrls}
+        sharedFile={sharedFile}
+        setSharedFile={setSharedFile}
       />
 
       <div className="text-area-container">

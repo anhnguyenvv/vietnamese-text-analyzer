@@ -325,6 +325,8 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
       <FileUploader 
        onFileSelect={handleFileSelect}
        sampleUrls={sampleUrls} 
+        sharedFile={sharedFile}
+        setSharedFile={setSharedFile}
       />
 
       <div className="text-area-container">

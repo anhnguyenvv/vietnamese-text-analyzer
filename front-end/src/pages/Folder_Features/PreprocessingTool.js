@@ -159,7 +159,7 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
         </label>
         
       </div>
-      <FileUploader onFileSelect={handleFileSelect} sampleUrls={sampleUrls} />
+      <FileUploader onFileSelect={handleFileSelect} sampleUrls={sampleUrls} sharedFile={sharedFile} setSharedFile={setSharedFile} />
 
       <div className="text-area-container">
         <div className="input-area">

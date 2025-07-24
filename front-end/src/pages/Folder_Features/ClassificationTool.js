@@ -146,6 +146,8 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
       <FileUploader
         onFileSelect={handleFileSelect} 
         sampleUrls={sampleUrls}
+        sharedFile={sharedFile}
+        setSharedFile={setSharedFile}
       />
       <div className="text-area-container">
         <div className="input-area">
