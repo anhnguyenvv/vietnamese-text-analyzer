@@ -31,7 +31,7 @@ def remove_stopwords(tokens: str) -> str:
     Loại bỏ stopwords khỏi văn bản.
     """
     stopwords = get_stopwords()
-    filtered_tokens = [token for token in tokens if token.lower() not in stopwords]
+    filtered_tokens = [token for token in tokens if token not in stopwords]
     return filtered_tokens
 
 
