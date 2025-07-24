@@ -63,95 +63,113 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
         const colIdx = filterPopup.colIdx;
         const values = uniqueValuesByColumn[colIdx] || [];
         const filteredValues = values.filter(val =>
-        !searchKeyword || (val && val.toString().toLowerCase().includes(searchKeyword.toLowerCase()))
+            !searchKeyword || (val && val.toString().toLowerCase().includes(searchKeyword.toLowerCase()))
         );
         return (
-        <div
-            style={{
-            position: "absolute",
-            zIndex: 1000,
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 8,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-            padding: 12,
-            minWidth: 220,
-            top: filterPopup.anchor?.top ?? 40,
-            left: filterPopup.anchor?.left ?? 40,
-            }}
-        >
-            <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-                type="text"
-                placeholder="Tìm kiếm nhãn..."
-                value={searchKeyword}
-                onChange={e => setSearchKeyword(e.target.value)}
-                style={{ width: "100%", padding: "6px 8px", fontSize: 14, borderRadius: 4, border: "1px solid #ccc" }}
-            />
-            <span role="img" aria-label="search">🔍</span>
-            </div>
-            <div style={{ maxHeight: 140, overflowY: "auto", marginBottom: 8 }}>
-            {filteredValues.map(val => (
-                <label key={val} style={{ display: "block", fontSize: 13, marginBottom: 4 }}>
-                <input
-                    type="checkbox"
-                    checked={
-                    columnFilters[colIdx]
-                        ? columnFilters[colIdx].includes(val)
-                        : false
-                    }
-                    onChange={e => {
-                    setColumnFilters(filters => {
-                        const prev = filters[colIdx] || [];
-                        let next;
-                        if (e.target.checked) {
-                        next = [...prev, val];
-                        } else {
-                        next = prev.filter(v => v !== val);
-                        }
-                        return { ...filters, [colIdx]: next };
-                    });
-                    }}
-                />{" "}
-                {val}
-                </label>
-            ))}
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-            <button
+        <>
+            <div
                 style={{
-                padding: "4px 12px",
-                borderRadius: 4,
-                border: "1px solid #ccc",
-                background: "#f1f2f6",
-                cursor: "pointer",
-                fontSize: 13,
-                }}
-                onClick={() => setColumnFilters(filters => ({ ...filters, [colIdx]: [] }))}
-            >
-                Clear
-            </button>
-            <button
-                style={{
-                padding: "4px 12px",
-                borderRadius: 4,
-                border: "1px solid #0984e3",
-                background: "#0984e3",
-                color: "#fff",
-                cursor: "pointer",
-                fontSize: 13,
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    width: "100vw",
+                    height: "100vh",
+                    zIndex: 999,
                 }}
                 onClick={() => {
-                setFilterPopup(null);
-                setSearchKeyword("");
+                    setFilterPopup(null);
+                    setSearchKeyword("");
+                }}
+            />
+            <div
+                style={{
+                position: "absolute",
+                zIndex: 1000,
+                background: "#fff",
+                border: "1px solid #ccc",
+                borderRadius: 8,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                padding: 12,
+                minWidth: 220,
+                top: filterPopup.anchor?.top ?? 40,
+                left: filterPopup.anchor?.left ?? 40,
                 }}
             >
-                Apply
-            </button>
+                <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                    type="text"
+                    placeholder="Tìm kiếm nhãn..."
+                    value={searchKeyword}
+                    onChange={e => setSearchKeyword(e.target.value)}
+                    style={{ width: "100%", padding: "6px 8px", fontSize: 14, borderRadius: 4, border: "1px solid #ccc" }}
+                />
+                <span role="img" aria-label="search">🔍</span>
+                </div>
+                <div style={{ maxHeight: 140, overflowY: "auto", marginBottom: 8 }}>
+                {filteredValues.map(val => (
+                    <label key={val} style={{ display: "block", fontSize: 13, marginBottom: 4 }}>
+                    <input
+                        type="checkbox"
+                        checked={
+                        columnFilters[colIdx]
+                            ? columnFilters[colIdx].includes(val)
+                            : false
+                        }
+                        onChange={e => {
+                        setColumnFilters(filters => {
+                            const prev = filters[colIdx] || [];
+                            let next;
+                            if (e.target.checked) {
+                            next = [...prev, val];
+                            } else {
+                            next = prev.filter(v => v !== val);
+                            }
+                            return { ...filters, [colIdx]: next };
+                        });
+                        }}
+                    />{" "}
+                    {val}
+                    </label>
+                ))}
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                <button
+                    style={{
+                    padding: "4px 12px",
+                    borderRadius: 4,
+                    border: "1px solid #ccc",
+                    background: "#f1f2f6",
+                    cursor: "pointer",
+                    fontSize: 13,
+                    }}
+                    onClick={() => setColumnFilters(filters => ({ ...filters, [colIdx]: [] }))}
+                >
+                    Clear
+                </button>
+                <button
+                    style={{
+                    padding: "4px 12px",
+                    borderRadius: 4,
+                    border: "1px solid #0984e3",
+                    background: "#0984e3",
+                    color: "#fff",
+                    cursor: "pointer",
+                    fontSize: 13,
+                    }}
+                    onClick={() => {
+                    setFilterPopup(null);
+                    setSearchKeyword("");
+                    }}
+                >
+                    Apply
+                </button>
+                </div>
             </div>
-        </div>
+        </>
+
         );
     };
+
     const labelStats = useMemo(() => {
         if (!filteredData.length || !filteredData[0]) return {};
         const colIdx = filteredData[0].indexOf(labelColumn);
@@ -179,15 +197,17 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
     }, [labelStats]);
 
     return (
-        <div className="csv-viewer-container" style={{ position: "relative" }}>
+        <div className="csv-viewer-container" style={{ 
+            position: "relative"
+        }}>
             <div style={{ position: "relative" }}>
             {statistics && (
-            <div style={{ fontSize: 5, margin: "8px 0" }}>
+            <div style={{ fontSize: 12, margin: "8px 0" }}>
                 <strong>Thống kê nhãn:</strong>
                 {Object.keys(labelStats).length === 0 ? (
                 <span style={{ color: "#888", marginLeft: 8 }}>Không có dữ liệu.</span>
                 ) : (
-                <div style={{ maxWidth: 200, margin: "7px 0" }}>
+                <div style={{ maxWidth: 300, margin: "7px 0" }}>
                     <Bar
                     data={barData}
                     options={{
@@ -201,8 +221,8 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
                         y: { title: { display: true, text: "Số lượng" }, beginAtZero: true },
                         },
                     }}
-                    height={120}
-                    width={200} 
+                    height={160}
+                    width={300} 
                     />
                 </div>
                 )}
@@ -305,86 +325,6 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
             </table>
             {renderFilterPopup()}
             </div> 
-            {/*{csvData.length > 1 && (
-                <div style={{ marginBottom: 8, display: "flex", gap: 12 }}>
-                {csvData[0].map((colName, colIdx) => (
-                    <div key={colIdx} style={{ minWidth: 120, position: "relative" }}>
-                    <div style={{ fontWeight: "bold", marginBottom: 4 }}>
-                        {colName}
-                        <button
-                        style={{
-                            marginLeft: 6,
-                            padding: "2px 6px",
-                            borderRadius: "50%",
-                            border: "1px solid #ccc",
-                            background: "#f1f2f6",
-                            cursor: "pointer",
-                            fontSize: 13,
-                        }}
-                        onClick={e => {
-                            const container = e.target.closest(".csv-viewer-container");
-                            const containerRect = container.getBoundingClientRect();
-                            const rect = e.target.getBoundingClientRect();
-                            setFilterPopup({
-                                colIdx,
-                                anchor: {
-                                top: rect.bottom - containerRect.top,
-                                left: rect.left - containerRect.left
-                                }
-                            });
-                            setSearchKeyword("");
-                        }}
-                        title="Lọc dữ liệu"
-                        >
-                        ⏷
-                        </button>
-                    </div>
-                    </div>
-                ))}
-                </div>
-            )}
-            {renderFilterPopup()}
-            <div
-                style={{
-                background: "#fafafa",
-                border: "1px solid #eee",
-                borderRadius: 4,
-                padding: 8,
-                fontFamily: "monospace",
-                fontSize: 13,
-                maxHeight: 320,
-                overflow: "auto",
-                marginBottom: 8,
-                }}
-            >
-                <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                <tbody>
-                    {filteredData.map((row, idx) => (
-                    <tr key={idx} style={{ background: idx === 0 ? "#e0e0e0" : "inherit" }}>
-                        {row.map((cell, cidx) => (
-                        <td
-                            key={cidx}
-                            style={{
-                            border: "1px solid #ddd",
-                            padding: "4px 8px",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            width: "auto",
-                            minWidth: 30,
-                            maxWidth: 150,
-                            }}
-                            title={cell} 
-                        >
-                            {cell}
-                        </td>
-                        ))}
-                    </tr>
-                    ))}
-                </tbody>
-                </table>
-            </div> */}
-
 
         </div>
     </div>);

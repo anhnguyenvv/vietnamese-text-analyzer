@@ -10,11 +10,9 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 
-const SentimentAnalysisTool = () => {
-  const [textInput, setTextInput] = useState("");
+const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
   const [csvResultUrl, setCsvResultUrl] = useState(null);
   const [csvDownloadName, setCsvDownloadName] = useState("sentiment_result.csv");
   const [selectedModel, setSelectedModel] = useState("sentiment"); // Thêm state chọn model
@@ -23,11 +21,12 @@ const SentimentAnalysisTool = () => {
   const [sampleUrls, setSampleUrls] = useState(TEST_SAMPLE_PATHS.sentiment);
 
   const handleFileSelect = (content, file, readMode, csvColumn) => {
-    setTextInput(content);
-    setSelectedFile(file || null);
     setReadMode(readMode);
     setResult(null);
+    setSharedFile(file || null);
     setCsvResultUrl(null);
+    setSharedTextInput(content);
+    setSharedFile(file || null);
     setCsvDownloadName("sentiment_result.csv");
     if (file && file.name.endsWith(".csv")) {
         const reader = new FileReader();
@@ -48,7 +47,7 @@ const SentimentAnalysisTool = () => {
     setResult(null);
     setCsvResultUrl(null);
     setCsvDownloadName("sentiment_result.csv");
-    const lines = textInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
+    const lines = sharedTextInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
     if (lines.length === 0) {
       setResult({ error: "Vui lòng nhập văn bản hoặc chọn file để phân tích." });
       setLoading(false);
@@ -80,10 +79,10 @@ const SentimentAnalysisTool = () => {
         return;
       } 
       let csvResult = Papa.unparse(results);
-      if (selectedFile)
+      if (sharedFile)
       {
-        setCsvDownloadName(`${selectedFile.name.replace(/\.[^/.]+$/, "")}_clean.csv`);
-          if (selectedFile.name.endsWith(".csv")) {
+        setCsvDownloadName(`${sharedFile.name.replace(/\.[^/.]+$/, "")}_clean.csv`);
+          if (sharedFile.name.endsWith(".csv")) {
           const csvWithResults = csvData.map((row, index) => {
             if (index === 0) {
               const resultKeys = results[0] ? Object.keys(results[0]).filter(key => key !== "text") : [];
@@ -187,17 +186,17 @@ const SentimentAnalysisTool = () => {
       <FileUploader onFileSelect={handleFileSelect } sampleUrls={sampleUrls} />
       <div className="text-area-container">
         <div className="input-area">
-          {!(readMode === "all" && selectedFile && selectedFile.name.endsWith(".csv")) && (
             <>
               <label>Văn bản</label>
               <textarea
                 rows={10}
                 placeholder="Nhập văn bản tại đây..."
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
+                value={sharedTextInput}
+                disabled={(readMode === "all" && sharedFile && sharedFile.name.endsWith(".csv"))}
+                onChange={(e) => {setSharedTextInput(e.target.value)}}
               />
+
             </>
-          )}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button
               className="analyze-button"
@@ -221,11 +220,10 @@ const SentimentAnalysisTool = () => {
           </div>
 
 
-        </div>
-        
+        </div>        
+        {!csvResultUrl && (        
         <div className="result-area">
           <label>Kết quả</label>
-          {!csvResultUrl && (
             <div className="result-box">
               {!result && (
                 <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
@@ -283,12 +281,14 @@ const SentimentAnalysisTool = () => {
                 style={{ maxWidth: 500, margin: "16px auto" }}
               />
             )}
-   
+            </div>
           </div>
           )}
-          {csvResultUrl && (
+      </div>
+      {csvResultUrl && (
+          <div className="result-area">
+            <label>Kết quả phân tích</label>
                 <CsvViewer csvFile={csvResultUrl} />
-          )}
           <div className="csv-download-area">
             {/* Hiển thị nút tải file CSV nếu có kết quả */}
             {csvResultUrl && (
@@ -323,9 +323,8 @@ const SentimentAnalysisTool = () => {
               </div>
             )}
           </div>
-        </div>
-      </div>
-      
+          </div>
+          )}
     </div>
   );
 };  

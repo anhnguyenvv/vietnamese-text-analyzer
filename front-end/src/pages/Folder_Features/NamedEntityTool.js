@@ -32,8 +32,7 @@ function highlightEntities(text, entities) {
   return result;
 }
 
-const NamedEntityTool = () => {
-  const [textInput, setTextInput] = useState("");
+const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [resultHtml, setResultHtml] = useState("");
   const [entityCount, setEntityCount] = useState({});
   const [loading, setLoading] = useState(false);
@@ -45,7 +44,7 @@ const NamedEntityTool = () => {
   const [fileName, setFileName] = useState("");
   const [sampleUrls] = useState(TEST_SAMPLE_PATHS.ner);
   const handleFileSelect = (content, file) => {
-    setTextInput(content);
+    setSharedTextInput(content);
     setResultHtml("");
     setEntityCount({});
     setAllResults([]);
@@ -63,7 +62,7 @@ const NamedEntityTool = () => {
     setJsonResultUrl(null);
 
     // Tách từng dòng (bỏ dòng trống)
-    const lines = textInput
+    const lines = sharedTextInput
       .split(/\r?\n/)
       .map(line => line.trim())
       .filter(line => line);
@@ -256,8 +255,8 @@ const NamedEntityTool = () => {
           <textarea
             rows={10}
             placeholder="Nhập văn bản tại đây..."
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
+            value={sharedTextInput}
+            onChange={(e) => setSharedTextInput(e.target.value)}
           />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>

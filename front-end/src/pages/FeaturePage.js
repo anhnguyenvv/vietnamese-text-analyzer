@@ -33,22 +33,32 @@ const FeaturePage = () => {
   const [selectedOption, setSelectedOption] = useState("thong-ke");
   const [showSidebar, setShowSidebar] = useState(true);
 
+  const [sharedTextInput, setSharedTextInput] = useState("");
+  const [sharedFile, setSharedFile] = useState(null);
+
+  // Truyền props xuống các màn
   const renderMainContent = () => {
+    const sharedProps = {
+      sharedTextInput,
+      setSharedTextInput,
+      sharedFile,
+      setSharedFile,
+    };
     switch (selectedOption) {
       case "thong-ke":
-        return <StatisticsTool />;
+        return <StatisticsTool {...sharedProps} />;
       case "tien-xu-ly":
-        return <PreprocessingTool />;
+        return <PreprocessingTool {...sharedProps} />;
       case "cam-xuc":
-        return <SentimentAnalysisTool />;
+        return <SentimentAnalysisTool {...sharedProps} />;
       case "tom-tat":
-        return <SummarizationTool />;
+        return <SummarizationTool {...sharedProps} />;
       case "ner":
-        return <NamedEntityTool />;
+        return <NamedEntityTool {...sharedProps} />;
       case "gan-nhan":
-        return <PosTaggingTool />;
+        return <PosTaggingTool {...sharedProps} />;
       case "phan-loai":
-        return <ClassificationTool />;
+        return <ClassificationTool {...sharedProps} />;
       default:
         return null;
     }

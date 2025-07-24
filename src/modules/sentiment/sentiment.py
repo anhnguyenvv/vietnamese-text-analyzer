@@ -37,33 +37,7 @@ def analyze_sentiment(text, max_length=256):
     result["label_id"] = max_idx
 
     return result   
-
-def analyze_sentiment_file(uploaded_file, text_column='text'):
-    """
-    Nhận file CSV hoặc TXT, trả về DataFrame kết quả phân tích cảm xúc.
-    """
-    # Đọc dữ liệu
-    if uploaded_file.name.endswith('.csv'):
-        df = pd.read_csv(uploaded_file)
-        texts = df[text_column].astype(str).tolist()
-    elif uploaded_file.name.endswith('.txt'):
-        texts = [line.strip() for line in uploaded_file if line.strip()]
-    else:
-        raise ValueError("Chỉ hỗ trợ file .csv hoặc .txt")
-
-    # Phân tích cảm xúc từng dòng
-    results = []
-    for text in texts:
-        res = analyze_sentiment(text)
-        results.append({
-            "text": text,
-            "label": res["label"],
-            "score": res["score"],
-            "label_id": res["label_id"]
-        })
-    return pd.DataFrame(results)
-  
-    
+ 
 # Ví dụ sử dụng
 if __name__ == "__main__":
     text = "Cũng giống mấy khoá Youtube học cũng được"

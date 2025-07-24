@@ -7,7 +7,7 @@ import { Bar } from "react-chartjs-2";
 import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const StatisticsTool = () => {
+const StatisticsTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);

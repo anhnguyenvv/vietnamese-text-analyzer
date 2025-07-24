@@ -124,7 +124,6 @@ class TopicClassificationClassifier(BaseClassifier):
 # tải sẳn trc các model
 for model_name in [
     "essay_identification",
-    "vispam-Phobert",
     "vispam-VisoBert",
     "topic_classification"
 ]:

@@ -6,8 +6,7 @@ import axios from "axios";
 import Papa from "papaparse";
 import CsvViewer from "./csvViewer";
 
-const PreprocessingTool = () => {
-  const [textInput, setTextInput] = useState("");
+const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [removeStopwords, setRemoveStopwords] = useState(true);
@@ -17,14 +16,13 @@ const PreprocessingTool = () => {
   const [removeNumbers, setRemoveNumbers] = useState(true);
   const [csvResultUrl, setCsvResultUrl] = useState(null);
   const [csvDownloadName, setCsvDownloadName] = useState("text_cleaned.csv");
-  const [selectedFile, setSelectedFile] = useState(null);
   const [csvData, setCsvData] = useState([]);
   const [readMode, setReadMode] = useState("paragraph");
   const [sampleUrls] = useState(TEST_SAMPLE_PATHS.preprocess);
 
   const handleFileSelect = (content, file, readMode, csvColumn) => {
-    setTextInput(content);
-    setSelectedFile(file || null);
+    setSharedTextInput(content);
+    setSharedFile(file || null);
     setReadMode(readMode);
     setResult(null);
     setCsvResultUrl(null);
@@ -49,7 +47,7 @@ const PreprocessingTool = () => {
     setResult("");
     setCsvResultUrl(null);
     setCsvDownloadName("preprocess_result.csv");
-    const lines = textInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
+    const lines = sharedTextInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
     if (lines.length === 0) {
       setResult({ error: "Vui lòng nhập văn bản hoặc chọn file để phân tích." });
       setLoading(false);
@@ -83,10 +81,10 @@ const PreprocessingTool = () => {
       return;
     } 
     let csvResult = Papa.unparse(results);
-    if (selectedFile)
+    if (sharedFile)
     {
-      setCsvDownloadName(`${selectedFile.name.replace(/\.[^/.]+$/, "")}_clean.csv`);
-        if (selectedFile.name.endsWith(".csv")) {
+      setCsvDownloadName(`${sharedFile.name.replace(/\.[^/.]+$/, "")}_clean.csv`);
+        if (sharedFile.name.endsWith(".csv")) {
         const csvWithResults = csvData.map((row, index) => {
           if (index === 0) {
             const resultKeys = results[0] ? Object.keys(results[0]).filter(key => key !== "text") : [];
@@ -165,14 +163,14 @@ const PreprocessingTool = () => {
 
       <div className="text-area-container">
         <div className="input-area">
-          {!(readMode === "all" && selectedFile && selectedFile.name.endsWith(".csv")) && (
+          {!(readMode === "all" && sharedFile && sharedFile.name.endsWith(".csv")) && (
             <>
               <label>Văn bản</label>
               <textarea
                 rows={10}
                 placeholder="Nhập văn bản tại đây..."
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
+                value={sharedTextInput}
+                onChange={(e) => setSharedTextInput(e.target.value)}
               />
             </>
           )}

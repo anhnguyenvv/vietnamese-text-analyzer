@@ -120,8 +120,7 @@ function highlightPOS(result, selectedIdx = null) {
     .join(" ");
 }
 
-const PosTaggingTool = () => {
-  const [textInput, setTextInput] = useState("");
+const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState("vncorenlp");
@@ -134,7 +133,7 @@ const PosTaggingTool = () => {
   const [sampleUrls] = useState(TEST_SAMPLE_PATHS.pos);
 
   const handleFileSelect = (content, file) => {
-    setTextInput(content);
+    setSharedTextInput(content);
     setFileName(file.name);
     setResult("");
     setRawResult([]); 
@@ -150,7 +149,7 @@ const PosTaggingTool = () => {
 
     try {
       const res = await axios.post(`${API_BASE}/api/pos/tag`, {
-        text: textInput,
+        text: sharedTextInput,
         model: selectedModel,
       });
       const data = res.data;
@@ -178,7 +177,7 @@ const PosTaggingTool = () => {
     setJsonResultUrl(null);
 
     // Tách từng dòng (bỏ dòng trống)
-    const lines = textInput
+    const lines = sharedTextInput
       .split(/\r?\n/)
       .map(line => line.trim())
       .filter(line => line);
@@ -335,8 +334,8 @@ const PosTaggingTool = () => {
           <textarea
             rows={10}
             placeholder="Nhập văn bản tại đây..."
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
+            value={sharedTextInput}
+            onChange={(e) => setSharedTextInput(e.target.value)}
           />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>

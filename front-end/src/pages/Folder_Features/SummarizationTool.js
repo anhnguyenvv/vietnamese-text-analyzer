@@ -14,7 +14,7 @@ const SummarizationTool = () => {
     setTextInput(content);
   };
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
     setLoading(true);
     setResult("");
     if (!textInput.trim()) {

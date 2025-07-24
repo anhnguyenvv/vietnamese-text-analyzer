@@ -8,21 +8,19 @@ import axios from "axios";
 import {API_BASE, TEST_SAMPLE_PATHS}from "../../config"; // Địa chỉ API backend
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const ClassificationTool = () => {
-  const [textInput, setTextInput] = useState("");
+const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedClassification, setSelectedClassification] = useState("essay_identification");
   const [csvResultUrl, setCsvResultUrl] = useState(null);
   const [csvDownloadName, setCsvDownloadName] = useState("classification_result.csv");
-  const [selectedFile, setSelectedFile] = useState(null);
   const [csvData, setCsvData] = useState([]);
   const [readMode, setReadMode] = useState("paragraph");
   const [sampleUrls, setSampleUrls] = useState(TEST_SAMPLE_PATHS.essay_identification);
 
   const handleFileSelect = (content, file, readMode, csvColumn) => {
-    setTextInput(content);
-    setSelectedFile(file || null);
+    setSharedTextInput(content);
+    setSharedFile(file || null);
     setReadMode(readMode);
     setResult(null);
     setCsvResultUrl(null);
@@ -30,10 +28,8 @@ const ClassificationTool = () => {
     if (file && file.name.endsWith(".csv")) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          const fileContent = e.target.result;
-          const parsed = Papa.parse(fileContent.trim(), { skipEmptyLines: true });
-          const filteredData = parsed.data.filter(row => row && row[csvColumn].trim() !== "");
-          setCsvData(filteredData);
+          const parsed = Papa.parse(e.target.result.trim(), { skipEmptyLines: true });
+          setCsvData(parsed.data);
         };
         reader.readAsText(file);
         
@@ -46,7 +42,7 @@ const ClassificationTool = () => {
     setResult(null);
     setCsvResultUrl(null);
     setCsvDownloadName("classification_result.csv");
-    const lines = textInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
+    const lines = sharedTextInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
     if (lines.length === 0) {
       setResult({ error: "Vui lòng nhập văn bản hoặc chọn file để phân tích." });
       setLoading(false);
@@ -59,7 +55,6 @@ const ClassificationTool = () => {
     })
     .then(res => {
       if (res.data && res.data.label_name) {
-        setResult(res.data);
         return {
           text: line,
           label: res.data.label_name,
@@ -73,15 +68,16 @@ const ClassificationTool = () => {
   try {
     const results = await Promise.all(promises);
     if (results.length === 1) {
+      setResult(results[0].label);
       setLoading(false);
       return;
     } 
     setResult(null);
     let csvResult = Papa.unparse(results);
-    if (selectedFile)
+    if (sharedFile)
     {
-      setCsvDownloadName(`${selectedFile.name.replace(/\.[^/.]+$/, "")}_clean.csv`);
-        if (selectedFile.name.endsWith(".csv")) {
+      setCsvDownloadName(`${sharedFile.name.replace(/\.[^/.]+$/, "")}_classify.csv`);
+        if (sharedFile.name.endsWith(".csv")) {
         const csvWithResults = csvData.map((row, index) => {
           if (index === 0) {
             const resultKeys = results[0] ? Object.keys(results[0]).filter(key => key !== "text") : [];
@@ -136,7 +132,7 @@ const ClassificationTool = () => {
             checked={selectedClassification === "topic_classification"}
             onChange={() => {
               setSelectedClassification("topic_classification");
-              setSampleUrls(TEST_SAMPLE_PATHS.topic_classification);
+              setSampleUrls(TEST_SAMPLE_PATHS.classification);
             }}
           />{" "}
           Phân loại chủ đề
@@ -153,14 +149,14 @@ const ClassificationTool = () => {
       />
       <div className="text-area-container">
         <div className="input-area">
-          {!(readMode === "all" && selectedFile && selectedFile.name.endsWith(".csv")) && (
+          {!(readMode === "all" && sharedFile && sharedFile.name.endsWith(".csv")) && (
             <>
               <label>Văn bản</label>
               <textarea
                 rows={10}
                 placeholder="Nhập văn bản tại đây..."
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
+                value={sharedTextInput}
+                onChange={(e) => setSharedTextInput(e.target.value)}
               />
             </>
           )}
