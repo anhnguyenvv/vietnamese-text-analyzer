@@ -30,10 +30,8 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
     if (file && file.name.endsWith(".csv")) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          const fileContent = e.target.result;
-          const parsed = Papa.parse(fileContent.trim(), { skipEmptyLines: true });
-          const filteredData = parsed.data.filter(row => row && row[csvColumn].trim() !== "");
-          setCsvData(filteredData);
+          const parsed = Papa.parse(e.target.result.trim(), { skipEmptyLines: true });
+          setCsvData(parsed.data);
         };
         reader.readAsText(file);
         
