@@ -179,11 +179,12 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
     setPopupInfo(null);
     setJsonResultUrl(null);
 
-    // Tách từng dòng (bỏ dòng trống)
+    // Tách từng dòng (bỏ dòng trống) 
     const lines = sharedTextInput
-      .split(/\r?\n\s*\r?\n/)
+      .split(/\n/)
       .map(line => line.trim())
       .filter(line => line);
+
 
     if (lines.length === 0) {
       setResult(`<span style="color:red">Vui lòng nhập văn bản hoặc chọn file để phân tích.</span>`);
