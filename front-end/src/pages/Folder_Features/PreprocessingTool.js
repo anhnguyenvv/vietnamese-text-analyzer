@@ -47,8 +47,7 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
     setResult("");
     setCsvResultUrl(null);
     setCsvDownloadName("preprocess_result.csv");
-    const lines = sharedTextInput.split(/\r?\n\s*\r?\n/)
-                      .map(line => line.trim()).filter(line => line);
+    const lines = sharedTextInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
     if (lines.length === 0) {
       setResult({ error: "Vui lòng nhập văn bản hoặc chọn file để phân tích." });
       setLoading(false);

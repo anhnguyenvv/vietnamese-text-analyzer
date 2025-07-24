@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import mammoth from "mammoth";
 import Papa from "papaparse";
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
 
-const FileUploader = ({ onFileSelect, sampleUrls }) => {
+const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) => {
   const [fileName, setFileName] = useState("");
   const [lines, setLines] = useState([]);
   const [selectedLine, setSelectedLine] = useState("");
   const [readMode, setReadMode] = useState("paragraph");
-  const [fileObj, setFileObj] = useState(null);
+  const [fileObj, setFileObj] = useState(sharedFile || null);
   const [fileContent, setFileContent] = useState("");
   const [allContent, setAllContent] = useState("");
   // Thêm state cho bảng CSV
@@ -120,7 +120,7 @@ const FileUploader = ({ onFileSelect, sampleUrls }) => {
       onFileSelect("Định dạng không hỗ trợ. Hãy dùng .txt, .docx, .csv");
     }
   }
-
+  
   const handleChange = async (e) => {
     const file = e.target.files[0];
     loadFile(file);
@@ -130,12 +130,18 @@ const FileUploader = ({ onFileSelect, sampleUrls }) => {
     setSelectedLine(e.target.value);
     onFileSelect(e.target.value, fileObj, readMode);
   };
-
+  const isFirstLoad = useRef(true);
   const handleSelectCsvColumn = (e) => {
     setCsvColumn(e.target.value);
 
   };
-
+  useEffect(() => {
+    if (sharedFile && isFirstLoad.current) {
+      loadFile(sharedFile);
+      isFirstLoad.current = false;
+    }
+    // eslint-disable-next-line
+  }, [sharedFile]);
   return (
     <div className="file-upload">
       <input

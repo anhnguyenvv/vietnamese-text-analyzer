@@ -8,28 +8,27 @@ import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const StatisticsTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
-  const [textInput, setTextInput] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [removeStopwords, setRemoveStopwords] = useState(true);
   const [sampleUrls] = useState(TEST_SAMPLE_PATHS.stats);
   
   const handleFileSelect = (content) => {
-    setTextInput(content);
+    setSharedTextInput(content);
     setResult(null);
   };
 
   const handleAnalyze = async () => {
     setLoading(true);
     setResult(null);
-    if (!textInput.trim()) {
+    if (!sharedTextInput.trim()) {
       setResult({ error: "Vui lòng nhập văn bản hoặc tải tệp lên!" });
       setLoading(false);
       return;
     }
     try {
       const res = await axios.post(`${API_BASE}/api/statistics/statistics`, {
-        text: textInput,
+        text: sharedTextInput,
         remove_stopwords: removeStopwords
       });
       setResult(res.data);
@@ -101,8 +100,8 @@ const StatisticsTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
           <textarea
             rows={10}
             placeholder="Nhập văn bản tại đây..."
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
+            value={sharedTextInput}
+            onChange={(e) => setSharedTextInput(e.target.value)}
           />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>

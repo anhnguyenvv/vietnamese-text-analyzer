@@ -3,28 +3,27 @@ import "./Features.css";
 import FileUploader from "./FileUploader";
 import axios from "axios";
 import { API_BASE, TEST_SAMPLE_PATHS }  from "../../config"; // Địa chỉ API backend
-const SummarizationTool = () => {
-  const [textInput, setTextInput] = useState("");
+const SummarizationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [length, setLength] = useState("medium"); // Thêm state cho độ dài tóm tắt
   const [sampleUrls] = useState(TEST_SAMPLE_PATHS.summary);
 
   const handleFileSelect = (content) => {
-    setTextInput(content);
+    setSharedTextInput(content);
   };
 
-  const handleAnalyze = async ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
+  const handleAnalyze = async () => {
     setLoading(true);
     setResult("");
-    if (!textInput.trim()) {
+    if (!sharedTextInput.trim()) {
       setResult("Vui lòng nhập văn bản hoặc tải tệp lên!");
       setLoading(false);
       return;
     }
     try {
       const res = await axios.post(`${API_BASE}/api/summarization/summarize`, {
-        text: textInput,
+        text: sharedTextInput,
         length: length, // Truyền độ dài vào API
       });
       const data = res.data;
@@ -45,6 +44,7 @@ const SummarizationTool = () => {
       <FileUploader
         onFileSelect={handleFileSelect}
         sampleUrls={sampleUrls}
+        sharedFile ={sharedFile}
       />
 
       <div className="text-area-container">
@@ -53,8 +53,8 @@ const SummarizationTool = () => {
           <textarea
             rows={10}
             placeholder="Nhập văn bản tại đây..."
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
+            value={sharedTextInput}
+            onChange={(e) => setSharedTextInput(e.target.value)}
           />
           <div style={{ margin: "8px 0" }}>
             <label>
