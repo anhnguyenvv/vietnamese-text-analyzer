@@ -45,6 +45,7 @@ const SummarizationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
         onFileSelect={handleFileSelect}
         sampleUrls={sampleUrls}
         sharedFile ={sharedFile}
+        setSharedFile={setSharedFile}
       />
 
       <div className="text-area-container">
