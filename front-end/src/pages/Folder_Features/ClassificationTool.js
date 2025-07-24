@@ -68,7 +68,7 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
   try {
     const results = await Promise.all(promises);
     if (results.length === 1) {
-      setResult(results[0].label);
+      setResult(results[0]);
       setLoading(false);
       return;
     } 
@@ -86,11 +86,11 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
           if (index - 1 >= results.length) {
             return row; 
           }
-          const result = results[index - 1] ? results[index - 1] : {};
-          delete result.text; 
+          const res = results[index - 1] ? results[index - 1] : {};
+          delete res.text; 
           return [
               ...row,
-              ...Object.values(result)
+              ...Object.values(res)
           ];
         });
         csvResult = Papa.unparse(csvWithResults);
