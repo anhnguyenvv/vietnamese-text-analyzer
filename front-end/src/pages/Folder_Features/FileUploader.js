@@ -4,7 +4,7 @@ import Papa from "papaparse";
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
 
-const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) => {
+const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, changeFile }) => {
   const [fileName, setFileName] = useState("");
   const [lines, setLines] = useState([]);
   const [selectedLine, setSelectedLine] = useState("");
@@ -138,6 +138,9 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
     setCsvColumn(e.target.value);
 
   };
+  changeFile && setTimeout(() => {
+    loadFile(sharedFile);
+  }, 100);
   return (
     <div className="file-upload">
       <input
@@ -261,7 +264,7 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
           </label>
         </div>
       )}
-
+      
       {fileName && readMode === "paragraph" && lines.length > 1 && (
         <div style={{ marginTop: 10 }}>
           <label>Chọn đoạn để xử lý:&nbsp;</label>
