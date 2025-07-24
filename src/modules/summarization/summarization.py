@@ -26,7 +26,7 @@ def summarize_text(text: str, length="medium") -> str:
     """
     Tóm tắt văn bản tiếng Việt.
     """
-    word_freq, _ = get_word_freq(text, remove_stopwords=True, keep_case=False)
+    word_freq, _, _= get_word_freq(text, remove_stopwords=True, keep_case=False)
     key_words = [w for w, _ in sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:5]]
     length_setting = length_settings.get(length, length_settings["medium"])
     text = text + " </s>" + f"Tóm tắt văn bản trên với độ dài {length_setting['target_length']}. Ưu tiên giữ các thông tin liên quan đến: {key_words}, không thêm bất kỳ thông tin nào không có trong văn bản."
