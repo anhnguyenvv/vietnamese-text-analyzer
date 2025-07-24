@@ -76,7 +76,31 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
   try {
     const results = await Promise.all(promises); 
     if (results.length === 1) {
-      setResult(results[0]);
+      const original = results[0].text;
+  const cleaned = results[0].cleaned_text;
+
+       let cleanedIdx = 0;
+  let diffCharArr = [];
+  for (let i = 0; i < original.length; i++) {
+    if (cleanedIdx < cleaned.length && original[i] === cleaned[cleanedIdx]) {
+      diffCharArr.push(<span key={i}>{original[i]}</span>);
+      cleanedIdx++;
+    } else {
+      // Ký tự bị xóa
+      diffCharArr.push(
+        <span key={i} style={{ textDecoration: "line-through", color: "#d63031" }}>
+          {original[i]}
+        </span>
+      );
+    }
+  }
+
+      setResult({
+    ...results[0],
+    original_length: original.length,
+    cleaned_length: cleaned.length,
+    diffCharArr
+  });
       setLoading(false);
       return;
     } 
@@ -204,10 +228,30 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
             )}
             {result && !result.error && ( 
                 <div>
-                   {result.cleaned_text}
-                </div>              
+                   <div style={{ marginBottom: 4 }}>
+                      <b>Kết quả làm sạch:</b>
+                      <div>{result.cleaned_text}</div>
+                    </div>
+                    
+                </div>             
             )}
           </div>
+          )}
+          {result && !result.error && (
+          <div style={{ marginBottom: 8, fontSize: 15 }}>
+            <textarea
+              rows={3}
+              readOnly
+              value={`Văn bản gốc:\n${plainDiffText}`} // plainDiffText là chuỗi đã xử lý
+            />
+            <br />
+
+            <span>
+              Số ký tự trước: <b>{result.original_length}</b> &nbsp;|&nbsp;
+              Số ký tự sau: <b>{result.cleaned_length}</b>
+            </span>
+                      
+                </div> 
           )}
           {csvResultUrl && (
             <CsvViewer csvFile={csvResultUrl} statistics={false} />
