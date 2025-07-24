@@ -219,17 +219,14 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
         
         <div className="input-area">
            
-          {!(readMode === "all" && sharedFile && sharedFile.name.endsWith(".csv")) && (
-            <>
               <label>Văn bản</label>
               <textarea
                 rows={10}
                 placeholder="Nhập văn bản tại đây..."
                 value={sharedTextInput}
+                disabled={(readMode === "all" && sharedFile && sharedFile.name.endsWith(".csv"))}
                 onChange={(e) => setSharedTextInput(e.target.value)}
               />
-            </>
-          )}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
               Xử lý
