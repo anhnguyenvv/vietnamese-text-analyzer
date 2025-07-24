@@ -134,7 +134,10 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
 
   const handleFileSelect = (content, file) => {
     setSharedTextInput(content);
-    setFileName(file.name);
+    setSharedFile(file);
+    if (file) {
+      setFileName(file.name || "");
+    }
     setResult("");
     setRawResult([]); 
     setPopupInfo(null);
@@ -192,13 +195,13 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
         text: line,
         model: selectedModel,
       }).then(res => {
-        if (Array.isArray(res.data.result)) {
+        if (res.data.result) {
           return {
             input: line,
             result: res.data.result,
           };
         } else {
-          throw new Error(res.data.error || "Không rõ");
+          throw new Error(res.data.error + line|| "Không rõ");
         }
       })
     );

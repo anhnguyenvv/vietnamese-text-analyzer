@@ -25,6 +25,7 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile }) =
           onFileSelect("Không có dữ liệu trong cột đã chọn.", sharedFile, readMode, csvColumn);
           return;
         }
+        
         const filteredContent = Papa.unparse(filteredData, { header: true });
         const filteredCsvFile = new File([filteredContent], sharedFile.name, { type: "text/csv" });
         const textLines = filteredData.map(row =>{
