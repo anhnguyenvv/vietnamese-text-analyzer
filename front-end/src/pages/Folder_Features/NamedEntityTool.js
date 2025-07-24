@@ -44,7 +44,7 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
   const [fileName, setFileName] = useState("");
   const [sampleUrls] = useState(TEST_SAMPLE_PATHS.ner);
   const handleFileSelect = (content, file) => {
-    setSharedTextInput(content | "");
+    setSharedTextInput(content);
     setSharedFile(file);
     setFileName(file ? file.name : "");
     setResultHtml("");
