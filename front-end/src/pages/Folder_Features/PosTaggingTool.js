@@ -178,7 +178,7 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
 
     // Tách từng dòng (bỏ dòng trống)
     const lines = sharedTextInput
-      .split(/\r?\n/)
+      .split(/\r?\n\s*\r?\n/)
       .map(line => line.trim())
       .filter(line => line);
 
