@@ -52,7 +52,7 @@ def create_app():
             module="request"
         )
         return response
-
+    
     return app
 
 if __name__ == '__main__':
