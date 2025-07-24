@@ -77,33 +77,65 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
     const results = await Promise.all(promises); 
     if (results.length === 1) {
       const original = results[0].text;
-  const cleaned = results[0].cleaned_text;
+      const cleaned = results[0].cleaned_text;
 
-       let cleanedIdx = 0;
-  let diffCharArr = [];
-  for (let i = 0; i < original.length; i++) {
-    if (cleanedIdx < cleaned.length && original[i] === cleaned[cleanedIdx]) {
-      diffCharArr.push(<span key={i}>{original[i]}</span>);
-      cleanedIdx++;
-    } else {
-      // Ký tự bị xóa
-      diffCharArr.push(
-        <span key={i} style={{ textDecoration: "line-through", color: "#d63031" }}>
-          {original[i]}
-        </span>
-      );
-    }
-  }
-
+      // Loại bỏ dấu cách khi so sánh
+      let cleanedIdx = 0;
+      let diffCharArr = [];
+      for (let i = 0; i < original.length; i++) {
+        if (original[i] === " ") {
+          // Giữ nguyên dấu cách, không so sánh
+          diffCharArr.push(<span key={i}> </span>);
+          continue;
+        }
+        // Tìm ký tự tiếp theo trong cleaned mà không phải dấu cách
+        while (cleanedIdx < cleaned.length && cleaned[cleanedIdx] === " ") {
+          cleanedIdx++;
+        }
+        if (
+          cleanedIdx < cleaned.length &&
+          original[i] === cleaned[cleanedIdx]
+        ) {
+          diffCharArr.push(<span key={i}>{original[i]}</span>);
+          cleanedIdx++;
+        } else if (
+          cleanedIdx < cleaned.length &&
+          original[i].toLowerCase() === cleaned[cleanedIdx] &&
+          original[i] !== cleaned[cleanedIdx]
+        ) {
+          // Ký tự bị chuyển sang chữ thường
+          diffCharArr.push(
+            <span
+              key={i}
+              style={{
+                color: "#0984e3",
+                textDecoration: "underline dotted",
+                fontWeight: 600,
+              }}
+              title="Đã chuyển sang chữ thường"
+            >
+              {original[i]}
+            </span>
+          );
+          cleanedIdx++;
+        } else {
+          // Ký tự bị xóa
+          diffCharArr.push(
+            <span key={i} style={{ textDecoration: "line-through", color: "#d63031" }}>
+              {original[i]}
+            </span>
+          );
+        }
+      }
       setResult({
-    ...results[0],
-    original_length: original.length,
-    cleaned_length: cleaned.length,
-    diffCharArr
-  });
+        ...results[0],
+        original_length: original.length,
+        cleaned_length: cleaned.length,
+        diffCharArr,
+      });
       setLoading(false);
       return;
-    } 
+    }
     let csvResult = Papa.unparse(results);
     if (sharedFile)
     {
@@ -186,7 +218,9 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
       <FileUploader onFileSelect={handleFileSelect} sampleUrls={sampleUrls} sharedFile={sharedFile} setSharedFile={setSharedFile} />
 
       <div className="text-area-container">
+        
         <div className="input-area">
+           
           {!(readMode === "all" && sharedFile && sharedFile.name.endsWith(".csv")) && (
             <>
               <label>Văn bản</label>
@@ -218,6 +252,40 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
 
         <div className="result-area">
           <label>Kết quả</label>
+
+          {result && !result.error && (
+          <div style={{ marginBottom: 8, fontSize: 15 }}>
+            <span>
+              Số ký tự ban đầu: <b>{result.original_length}</b> &nbsp;|&nbsp;
+              Số ký tự sau xử lý: <b>{result.cleaned_length}</b>
+            </span>
+            <br />
+              <b>Văn bản gốc:</b>
+              <br />
+
+            <div
+              style={{
+                background: "#fff",
+                border: "1px solid #ccc",
+                borderRadius: 4,
+                padding: 8,
+                minHeight: 60,
+                fontFamily: "inherit",
+                fontSize: 15,
+                whiteSpace: "pre-wrap",
+                marginBottom: 12,
+                marginTop: 8,
+              }}
+            >
+              {result.diffCharArr}
+            </div>
+
+          <b>Kết quả xử lý:</b>
+          <br />
+
+          </div>
+          )}
+
           {!csvResultUrl && (
             <div className="result-box">
             {!result && (
@@ -229,7 +297,6 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
             {result && !result.error && ( 
                 <div>
                    <div style={{ marginBottom: 4 }}>
-                      <b>Kết quả làm sạch:</b>
                       <div>{result.cleaned_text}</div>
                     </div>
                     
@@ -237,22 +304,7 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
             )}
           </div>
           )}
-          {result && !result.error && (
-          <div style={{ marginBottom: 8, fontSize: 15 }}>
-            <textarea
-              rows={3}
-              readOnly
-              value={`Văn bản gốc:\n${plainDiffText}`} // plainDiffText là chuỗi đã xử lý
-            />
-            <br />
-
-            <span>
-              Số ký tự trước: <b>{result.original_length}</b> &nbsp;|&nbsp;
-              Số ký tự sau: <b>{result.cleaned_length}</b>
-            </span>
-                      
-                </div> 
-          )}
+         
           {csvResultUrl && (
             <CsvViewer csvFile={csvResultUrl} statistics={false} />
           )}
