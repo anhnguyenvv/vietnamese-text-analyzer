@@ -81,6 +81,7 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
       let csvResult = Papa.unparse(results);
       if (sharedFile)
       {
+        
         setCsvDownloadName(`${sharedFile.name.replace(/\.[^/.]+$/, "")}_clean.csv`);
           if (sharedFile.name.endsWith(".csv")) {
           const csvWithResults = csvData.map((row, index) => {
