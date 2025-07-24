@@ -19,7 +19,7 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
   const [csvData, setCsvData] = useState([]);
   const [readMode, setReadMode] = useState("paragraph");
   const [sampleUrls] = useState(TEST_SAMPLE_PATHS.preprocess);
-
+  const [changeFile, setChangeFile] = useState(false);
   const handleFileSelect = (content, file, readMode, csvColumn) => {
     setSharedTextInput(content);
     setSharedFile(file || null);
@@ -61,13 +61,13 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
           remove_numbers: removeNumbers
         })
     .then(res => {
-      if (res.data && res.data.preprocessed_text) {
+      if (res.data) {
         return {
           text: line,
           cleaned_text: res.data.preprocessed_text || "",
         };
       } else {
-        throw new Error(res.data.error || "Không rõ");
+        throw new Error(res.data.error || "Không có kết quả");
       }
     })
   );
@@ -167,6 +167,7 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
   }
   };
 
+
   return (
     <div className="preprocessing-tool">
       <strong>Tùy chọn tiền xử lý:</strong>
@@ -213,7 +214,12 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
         </label>
         
       </div>
-      <FileUploader onFileSelect={handleFileSelect} sampleUrls={sampleUrls} sharedFile={sharedFile} setSharedFile={setSharedFile} />
+      <FileUploader onFileSelect={handleFileSelect} 
+        sampleUrls={sampleUrls} 
+        sharedFile={sharedFile} 
+        setSharedFile={setSharedFile}
+        changeFile={changeFile}
+       />
 
       <div className="text-area-container">
         
@@ -332,7 +338,7 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
                   borderLeft: "4px solid #0984e3",
                 }}
               >
-                Gợi ý: Bạn có thể sử dụng văn bản đã làm sạch này để tiếp tục phân tích cảm xúc, phân loại, gán nhãn, tóm tắt hoặc các xử lý khác trong hệ thống!
+                Gợi ý: Bạn có thể sử dụng văn bản đã xử lý ở đây để tiếp tục phân tích cảm xúc, phân loại, gán nhãn, tóm tắt hoặc các xử lý khác trong hệ thống!
               </div>
             </>
           )}
@@ -368,6 +374,57 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
                 </span>
               </div>
             )}
+            {result && !result.error && (
+              <>
+                <button
+                  onClick={() => {
+                  setSharedFile(null);
+                  setSharedTextInput(result.cleaned_text);
+                  setResult(null);
+                  setCsvResultUrl(null);
+                  }}
+                  style={{
+                    marginTop: 8,
+                    padding: "6px 12px",
+                    background: "#00b894",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 4,
+                    cursor: "pointer",
+                    marginRight: 8,
+                  }}
+                >
+                  Dùng kết quả cho bước tiếp theo
+                </button>
+                
+              </>
+            )}
+            {csvResultUrl && (
+                  <button
+                    onClick={async () => {
+                      setSharedFile(null);
+                      const response = await fetch(csvResultUrl);
+                      const blob = await response.blob();
+                      const file = new File([blob], csvDownloadName, { type: "text/csv" });
+                      setSharedFile(file);
+                      setResult(null);
+                      setCsvResultUrl(null);
+                      setChangeFile(true); // yêu cầu FileUploader xóa file
+                      setTimeout(() => setChangeFile(false), 1);
+                    }}
+                    style={{
+                      marginTop: 8,
+                      padding: "6px 12px",
+                      background: "#0984e3",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Dùng file kết quả cho bước tiếp theo
+                  </button>
+                )}
           </div>
         </div>
       </div>
