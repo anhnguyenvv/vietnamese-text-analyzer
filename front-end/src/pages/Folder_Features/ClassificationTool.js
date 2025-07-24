@@ -68,7 +68,7 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
   try {
     const results = await Promise.all(promises);
     if (results.length === 1) {
-      setResult(results[0]);
+      setResult(results[0]||{ label_name: "Không có kết quả phân loại."});
       setLoading(false);
       return;
     } 
