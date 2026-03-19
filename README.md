@@ -1,5 +1,4 @@
 # Vietnamese NLP 
-
 This project is a web application for processing Vietnamese natural language using various NLP techniques. It provides functionalities such as text preprocessing, part-of-speech tagging, named entity recognition, sentiment analysis, text classification, summarization, statistics
 
 ## Features
@@ -116,6 +115,9 @@ To run the application, execute the following command:
 ```
 python src/app.py
 ```
+
+[DEMO](https://www.youtube.com/watch?v=K1Yqx6mqJoY)
+
 
 The application will start on `http://127.0.0.1:5000/`.
 **Note:**  
