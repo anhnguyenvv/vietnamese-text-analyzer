@@ -1,6 +1,10 @@
 from utils.vncore import get_vncore_model
 from underthesea import pos_tag, ner
 
+
+def _normalize_vncore_token(token):
+    return token.replace("_", " ") if isinstance(token, str) else token
+
 def pos_tagging(text, model='vncorenlp'):
     """
     Performs POS tagging on the input text.
@@ -8,7 +12,7 @@ def pos_tagging(text, model='vncorenlp'):
     if model == 'vncorenlp':        
         vncore_model = get_vncore_model()
         pos_tags = vncore_model.pos_tag(text)
-        pos_tags = [item for sublist in pos_tags for item in sublist]
+        pos_tags = [(_normalize_vncore_token(word), tag) for sublist in pos_tags for word, tag in sublist]
 
     elif model == 'underthesea':
         pos_tags = pos_tag(text)
