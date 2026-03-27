@@ -37,6 +37,8 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
   const [entityCount, setEntityCount] = useState({});
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState("vncorenlp");
+  const [compareMode, setCompareMode] = useState(false);
+  const [comparePayload, setComparePayload] = useState(null);
   const [allResults, setAllResults] = useState([]);
   const [selectedLineIdx, setSelectedLineIdx] = useState(0);
   const [jsonResultUrl, setJsonResultUrl] = useState(null);
@@ -52,6 +54,7 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
     setAllResults([]);
     setSelectedLineIdx(0);
     setJsonResultUrl(null);
+    setComparePayload(null);
   };
 
   const handleAnalyze = async () => {
@@ -61,6 +64,7 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
     setAllResults([]);
     setSelectedLineIdx(0);
     setJsonResultUrl(null);
+    setComparePayload(null);
 
     // Tách từng dòng (bỏ dòng trống)
     const lines = sharedTextInput
@@ -73,11 +77,20 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
       setLoading(false);
       return;
     }
-    const promises = lines.map(line => 
-       axios.post(`${API_BASE}/api/ner/ner`, {
+    const promises = lines.map((line) => {
+      if (compareMode) {
+        return axios.post(`${API_BASE}/api/ner/compare`, {
+          text: line,
+        }).then((res) => ({
+          input: line,
+          compare: res.data,
+        }));
+      }
+
+      return axios.post(`${API_BASE}/api/ner/ner`, {
         text: line,
         model: selectedModel,
-      }).then(res => {
+      }).then((res) => {
         if (res.data.result) {
           return {
             input: line,
@@ -93,8 +106,8 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
           input: line,
           error: "Không có kết quả nhận diện thực thể.",
         };
-      })
-    );
+      });
+    });
     try {
       const results = await Promise.all(promises);
     // const results = [];
@@ -118,7 +131,11 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
     setAllResults(results);
 
     // Hiển thị kết quả đầu tiên
-    if (Array.isArray(results[0]?.result)) {
+    if (compareMode && results[0]?.compare) {
+      setComparePayload(results[0].compare);
+      setResultHtml("");
+      setEntityCount({});
+    } else if (Array.isArray(results[0]?.result)) {
       setResultHtml(highlightEntities(results[0].input, results[0].result));
       // Thống kê entity cho dòng đầu
       const mergedEntities = [];
@@ -177,7 +194,11 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
   const handleSelectLine = idx => {
     setSelectedLineIdx(idx);
     const item = allResults[idx];
-    if (Array.isArray(item?.result)) {
+    if (compareMode && item?.compare) {
+      setComparePayload(item.compare);
+      setResultHtml("");
+      setEntityCount({});
+    } else if (Array.isArray(item?.result)) {
       setResultHtml(highlightEntities(item.input, item.result));
       // Thống kê entity cho dòng này
       const mergedEntities = [];
@@ -245,6 +266,22 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
         </label>
       </div>
 
+      <div style={{ marginBottom: 8 }}>
+        <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <input
+            type="checkbox"
+            checked={compareMode}
+            onChange={(e) => {
+              setCompareMode(e.target.checked);
+              setResultHtml("");
+              setEntityCount({});
+              setComparePayload(null);
+            }}
+          />
+          So sánh VnCoreNLP vs Underthesea
+        </label>
+      </div>
+
       <FileUploader 
         onFileSelect={handleFileSelect} 
         sampleUrls={sampleUrls}
@@ -297,9 +334,42 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
           )}
           <label>Kết quả (NER)</label>
           <div className="result-box">
-            <div dangerouslySetInnerHTML={{ __html: resultHtml }} />
+            {!compareMode && <div dangerouslySetInnerHTML={{ __html: resultHtml }} />}
 
-            {Object.keys(entityCount).length > 0 && (
+            {compareMode && comparePayload && (
+              <div>
+                <div style={{ marginBottom: 8 }}>
+                  <strong>Tỷ lệ khớp:</strong> {(comparePayload?.summary?.agreement_rate ?? 0) * 100}%
+                  <span style={{ marginLeft: 10 }}>
+                    <strong>Matched:</strong> {comparePayload?.summary?.matched_pairs}
+                  </span>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <strong>VnCoreNLP:</strong>
+                  <div
+                    style={{ marginTop: 4 }}
+                    dangerouslySetInnerHTML={{
+                      __html: highlightEntities(comparePayload?.input_text || "", comparePayload?.models?.vncorenlp || []),
+                    }}
+                  />
+                </div>
+                <div>
+                  <strong>Underthesea:</strong>
+                  <div
+                    style={{ marginTop: 4 }}
+                    dangerouslySetInnerHTML={{
+                      __html: highlightEntities(comparePayload?.input_text || "", comparePayload?.models?.underthesea || []),
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {compareMode && !comparePayload && (
+              <div style={{ color: "#888" }}>Kết quả so sánh sẽ hiển thị ở đây...</div>
+            )}
+
+            {!compareMode && Object.keys(entityCount).length > 0 && (
               <div>
                 <strong>Thống kê số lượt xuất hiện:</strong>
                 <table

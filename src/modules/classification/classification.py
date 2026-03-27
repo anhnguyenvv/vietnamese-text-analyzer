@@ -121,14 +121,6 @@ class TopicClassificationClassifier(BaseClassifier):
         
         return self.tokenizer(text, padding="max_length", max_length=self.max_length,
                               return_tensors='pt', truncation=True, return_attention_mask=True)
-# tải sẳn trc các model
-for model_name in [
-    "essay_identification",
-    "vispam-VisoBert",
-    "topic_classification"
-]:
-    get_classifier(model_name)
-
 if __name__ == "__main__":
     # classifier = get_classifier("vispam-VisoBert")
     # text = "Bộ Công Thương xóa một tổng cục, giảm nhiều đầu mối"

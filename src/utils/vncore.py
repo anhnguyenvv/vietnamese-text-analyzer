@@ -5,6 +5,9 @@ import requests
 from vncorenlp import VnCoreNLP
 from pathlib import Path
 
+
+_VNCORE_INSTANCE = None
+
 def download_file(url, dst):
     r = requests.get(url, stream=True)
     with open(dst, 'wb') as f:
@@ -83,11 +86,13 @@ class VnCore:
     def parse(self, text):
         return self.annotator.parse(text)
 
-vncorenlp_path = Path(Config.VNCORENLP_DIR)
 
-# Nếu chưa có model thì tải
-if not vncorenlp_path.exists():
-    VnCore.download_model(save_dir=str(vncorenlp_path.parent))  # GỌI TRỰC TIẾP STATIC
-
-# Sau đó khởi tạo bình thường
-vncore_model = VnCore(vncorenlp_path=str(vncorenlp_path))
+def get_vncore_model() -> VnCore:
+    """Lazy-load and cache VnCoreNLP model on first use."""
+    global _VNCORE_INSTANCE
+    if _VNCORE_INSTANCE is None:
+        vncorenlp_path = Path(Config.VNCORENLP_DIR)
+        if not vncorenlp_path.exists():
+            VnCore.download_model(save_dir=str(vncorenlp_path.parent))
+        _VNCORE_INSTANCE = VnCore(vncorenlp_path=str(vncorenlp_path))
+    return _VNCORE_INSTANCE

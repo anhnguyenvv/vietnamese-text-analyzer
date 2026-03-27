@@ -35,3 +35,4 @@ runtime.txt
 # src/model/vispam/PhoBERT_vispamReview.pth
 # src/model/vispam/visoBert_vispamReview.pth
 front-end/generate_samples.js
+src/config/settings.py

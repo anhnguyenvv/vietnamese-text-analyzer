@@ -85,6 +85,44 @@ textarea {
   margin-top: 16px;
 }
 
+.file-limit-hint {
+  font-size: 12px;
+  color: #4b5563;
+  margin-bottom: 8px;
+}
+
+.drop-zone {
+  border: 1.5px dashed #9cc7e6;
+  border-radius: 10px;
+  padding: 10px;
+  background: #f9fcff;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.drop-zone.active {
+  border-color: #238fde;
+  background: #eef7ff;
+}
+
+.upload-alert {
+  margin-top: 8px;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.upload-alert.error {
+  background: #ffe7e7;
+  color: #8a1f1f;
+  border: 1px solid #ffc3c3;
+}
+
+.upload-alert.info {
+  background: #eef6ff;
+  color: #1e3a5f;
+  border: 1px solid #c7def8;
+}
+
 .file-button {
   background-color: #238fde;
   color: white;

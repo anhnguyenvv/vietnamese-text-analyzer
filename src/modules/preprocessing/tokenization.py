@@ -1,13 +1,12 @@
 import re
-from utils.vncore import vncore_model
+from utils.vncore import get_vncore_model
 from underthesea import sent_tokenize
-
-annotator = vncore_model
 
 def tokenize_words(text):
     """
     Tokenizes the input text into words.
     """
+    annotator = get_vncore_model()
     # Normalize whitespace and remove special characters
     #text = re.sub(r'[^\w\s]', '', text)    
     sentences = annotator.tokenize(text)

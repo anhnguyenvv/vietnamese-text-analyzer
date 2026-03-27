@@ -124,6 +124,8 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState("vncorenlp");
+  const [compareMode, setCompareMode] = useState(false);
+  const [comparePayload, setComparePayload] = useState(null);
   const [rawResult, setRawResult] = useState([]);
   const [popupInfo, setPopupInfo] = useState(null);
   const resultBoxRef = useRef();
@@ -144,6 +146,7 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
     setAllResults([]);
     setSelectedLineIdx(0);
     setJsonResultUrl(null);
+    setComparePayload(null);
   };
   /*const handleAnalyze = async () => {
     setLoading(true);
@@ -178,6 +181,7 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
     setResult("");
     setPopupInfo(null);
     setJsonResultUrl(null);
+    setComparePayload(null);
 
     // Tách từng dòng (bỏ dòng trống) 
     const lines = sharedTextInput
@@ -191,21 +195,29 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
       setLoading(false);
       return;
     }
-    const promises = lines.map(line =>
-      axios.post(`${API_BASE}/api/pos/tag`, {
+    const promises = lines.map((line) => {
+      if (compareMode) {
+        return axios.post(`${API_BASE}/api/pos/compare`, {
+          text: line,
+        }).then((res) => ({
+          input: line,
+          compare: res.data,
+        }));
+      }
+
+      return axios.post(`${API_BASE}/api/pos/tag`, {
         text: line,
         model: selectedModel,
-      }).then(res => {
+      }).then((res) => {
         if (res.data.result) {
           return {
             input: line,
             result: res.data.result,
           };
-        } else {
-          throw new Error(res.data.error + line|| "Không rõ");
         }
-      })
-    );
+        throw new Error(res.data.error + line || "Không rõ");
+      });
+    });
     //       model: selectedModel,
     //     });
     //     results.push({
@@ -223,7 +235,11 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
       const results = await Promise.all(promises);
       setAllResults(results);
     // Hiển thị kết quả đầu tiên
-    if (Array.isArray(results[0]?.result)) {
+    if (compareMode && results[0]?.compare) {
+      setComparePayload(results[0].compare);
+      setResult("");
+      setRawResult([]);
+    } else if (Array.isArray(results[0]?.result)) {
       setRawResult(results[0].result);
       setResult(highlightPOS(results[0].result, null));
     } else if (results[0]?.error) {
@@ -250,7 +266,11 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
   const handleSelectLine = idx => {
     setSelectedLineIdx(idx);
     const item = allResults[idx];
-    if (Array.isArray(item?.result)) {
+    if (compareMode && item?.compare) {
+      setComparePayload(item.compare);
+      setResult("");
+      setRawResult([]);
+    } else if (Array.isArray(item?.result)) {
       setRawResult(item.result);
       setResult(highlightPOS(item.result, null));
     } else if (item?.error) {
@@ -325,6 +345,21 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
           Underthesea
         </label>
       </div>
+      <div style={{ marginBottom: 8 }}>
+        <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <input
+            type="checkbox"
+            checked={compareMode}
+            onChange={(e) => {
+              setCompareMode(e.target.checked);
+              setResult("");
+              setRawResult([]);
+              setComparePayload(null);
+            }}
+          />
+          So sánh VnCoreNLP vs Underthesea
+        </label>
+      </div>
 
       <FileUploader 
        onFileSelect={handleFileSelect}
@@ -380,15 +415,40 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
           <label>Kết quả</label>
            
           <div className="result-box" ref={resultBoxRef} style={{ position: "relative" }}>
-            {result ? (
+            {!compareMode && result ? (
               <div dangerouslySetInnerHTML={{ __html: result }} />
-            ) : (
+            ) : !compareMode ? (
               <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
+            ) : comparePayload ? (
+              <div>
+                <div style={{ marginBottom: 8 }}>
+                  <strong>Tỷ lệ khớp:</strong> {(comparePayload?.summary?.agreement_rate ?? 0) * 100}%
+                  <span style={{ marginLeft: 10 }}>
+                    <strong>Matched:</strong> {comparePayload?.summary?.matched_pairs}
+                  </span>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <strong>VnCoreNLP:</strong>
+                  <div
+                    style={{ marginTop: 4 }}
+                    dangerouslySetInnerHTML={{ __html: highlightPOS(comparePayload?.models?.vncorenlp || [], null) }}
+                  />
+                </div>
+                <div>
+                  <strong>Underthesea:</strong>
+                  <div
+                    style={{ marginTop: 4 }}
+                    dangerouslySetInnerHTML={{ __html: highlightPOS(comparePayload?.models?.underthesea || [], null) }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div style={{ color: "#888" }}>Kết quả so sánh sẽ hiển thị ở đây...</div>
             )}
             
             
           </div>
-          {popupInfo && (
+          {!compareMode && popupInfo && (
               <div
                 className="pos-popup"
                 style={{

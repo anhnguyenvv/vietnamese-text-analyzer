@@ -5,18 +5,26 @@ import torch
 from modules.preprocessing import normalize_text
 import numpy as np
 
-print("Loading sentiment analysis model..." + Config.MODELS_DIR['sentiment'])
+_SENTIMENT_MODEL = None
+_SENTIMENT_TOKENIZER = None
+_SENTIMENT_LABEL_MAP = None
 
-LABEL_MAP = AutoConfig.from_pretrained(Config.MODELS_DIR['sentiment']).id2label
 
-# Load model và tokenizer
-model = AutoModelForSequenceClassification.from_pretrained(Config.MODELS_DIR['sentiment']).to(Config.DEVICE)
-tokenizer = AutoTokenizer.from_pretrained(Config.MODELS_DIR['sentiment'], use_fast=False)
+def _get_sentiment_resources():
+    global _SENTIMENT_MODEL, _SENTIMENT_TOKENIZER, _SENTIMENT_LABEL_MAP
+    if _SENTIMENT_MODEL is None or _SENTIMENT_TOKENIZER is None or _SENTIMENT_LABEL_MAP is None:
+        print("Loading sentiment analysis model..." + Config.MODELS_DIR['sentiment'])
+        _SENTIMENT_LABEL_MAP = AutoConfig.from_pretrained(Config.MODELS_DIR['sentiment']).id2label
+        _SENTIMENT_MODEL = AutoModelForSequenceClassification.from_pretrained(Config.MODELS_DIR['sentiment']).to(Config.DEVICE)
+        _SENTIMENT_TOKENIZER = AutoTokenizer.from_pretrained(Config.MODELS_DIR['sentiment'], use_fast=False)
+    return _SENTIMENT_MODEL, _SENTIMENT_TOKENIZER, _SENTIMENT_LABEL_MAP
 
 
 def analyze_sentiment(text, max_length=256):
     if not text:
         return {"NEG": 0.0, "NEU": 0.0, "POS": 0.0, "label": "NaN"}
+
+    model, tokenizer, label_map = _get_sentiment_resources()
     text = normalize_text(text)
     input_ids = torch.tensor([tokenizer.encode(text, max_length=max_length, truncation=True)]).to(Config.DEVICE)
 
@@ -29,11 +37,11 @@ def analyze_sentiment(text, max_length=256):
     ranking = ranking[::-1]
     result = {}
     for i in range(scores.shape[0]):
-        l = LABEL_MAP[ranking[i]]
+        l = label_map[ranking[i]]
         s = scores[ranking[i]]
         result[l] = round(float(s), 4)
     max_idx = int(ranking[0])
-    result['label'] = LABEL_MAP[max_idx]
+    result['label'] = label_map[max_idx]
     result["label_id"] = max_idx
 
     return result   

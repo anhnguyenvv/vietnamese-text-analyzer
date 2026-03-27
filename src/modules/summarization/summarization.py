@@ -2,8 +2,19 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from config.settings import Config
 import re
 from modules.statistics.stats import get_word_freq
-tokenizer = AutoTokenizer.from_pretrained(Config.MODELS_DIR['summarization'])
-model = AutoModelForSeq2SeqLM.from_pretrained(Config.MODELS_DIR['summarization'])
+
+_SUMMARIZATION_TOKENIZER = None
+_SUMMARIZATION_MODEL = None
+
+
+def _get_summarization_resources():
+    global _SUMMARIZATION_TOKENIZER, _SUMMARIZATION_MODEL
+    if _SUMMARIZATION_TOKENIZER is None or _SUMMARIZATION_MODEL is None:
+        _SUMMARIZATION_TOKENIZER = AutoTokenizer.from_pretrained(Config.MODELS_DIR['summarization'])
+        _SUMMARIZATION_MODEL = AutoModelForSeq2SeqLM.from_pretrained(Config.MODELS_DIR['summarization'])
+    return _SUMMARIZATION_TOKENIZER, _SUMMARIZATION_MODEL
+
+
 length_settings = {
 "short": {
     "max_tokens": 100,
@@ -26,6 +37,7 @@ def summarize_text(text: str, length="medium") -> str:
     """
     Tóm tắt văn bản tiếng Việt.
     """
+    tokenizer, model = _get_summarization_resources()
     word_freq, _, _= get_word_freq(text, remove_stopwords=True, keep_case=False)
     key_words = [w for w, _ in sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:5]]
     length_setting = length_settings.get(length, length_settings["medium"])

@@ -26,3 +26,15 @@ class Config:
         'essay_identification': int(os.getenv('ESSAY_ID_NUM_LABELS', 5)),
 
     }
+
+    # Startup model warm-up (disabled by default to keep local dev fast).
+    PRELOAD_MODELS_ON_STARTUP = os.getenv('PRELOAD_MODELS_ON_STARTUP', 'False') == 'True'
+    PRELOAD_MODELS = [
+        item.strip()
+        for item in os.getenv(
+            'PRELOAD_MODELS',
+            'sentiment,summarization,essay_identification,topic_classification,vispam-Phobert,vispam-VisoBert,vncorenlp'
+        ).split(',')
+        if item.strip()
+    ]
+    PRELOAD_FAIL_FAST = os.getenv('PRELOAD_FAIL_FAST', 'False') == 'True'

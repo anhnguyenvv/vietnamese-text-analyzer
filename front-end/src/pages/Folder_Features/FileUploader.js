@@ -2,7 +2,14 @@ import React, { useState, useEffect} from "react";
 import mammoth from "mammoth";
 import Papa from "papaparse";
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+const LIMITS = {
+  MAX_FILE_SIZE_MB: 5,
+  MAX_ROWS: 5000,
+  MAX_TEXT_LENGTH: 20000,
+  ENCODING: "utf-8 / utf-8-sig",
+};
+
+const MAX_FILE_SIZE = LIMITS.MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, changeFile }) => {
   const [fileName, setFileName] = useState("");
@@ -15,6 +22,45 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
   const [csvColumns, setCsvColumns] = useState([]);
   const [csvColumn, setCsvColumn] = useState(null);
   const [csvPreviewTable, setCsvPreviewTable] = useState([]);
+  const [uploadError, setUploadError] = useState("");
+  const [uploadNotice, setUploadNotice] = useState("");
+  const [readProgress, setReadProgress] = useState(0);
+  const [dragActive, setDragActive] = useState(false);
+
+  const resetUploadState = () => {
+    setUploadError("");
+    setUploadNotice("");
+    setReadProgress(0);
+  };
+
+  const readAsArrayBuffer = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+          setReadProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Không thể đọc file."));
+      reader.readAsArrayBuffer(file);
+    });
+
+  const decodeUtf8Text = (arrayBuffer) => {
+    try {
+      const decoder = new TextDecoder("utf-8", { fatal: true });
+      return decoder.decode(arrayBuffer);
+    } catch (_err) {
+      return null;
+    }
+  };
+
+  const parseParagraphs = (text) =>
+    text
+      .split(/\r?\n\s*\r?\n/)
+      .map((p) => p.trim())
+      .filter((p) => p);
+
   useEffect(() => {
     if (!fileContent) return;
     if (readMode === "all") {
@@ -63,8 +109,11 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
 
   const loadFile = async (file) => {
     if (!file) return;
+
+    resetUploadState();
+
     if (file.size > MAX_FILE_SIZE) {
-      alert("Vui lòng chọn file nhỏ hơn 5MB.");
+      setUploadError(`File vượt quá ${LIMITS.MAX_FILE_SIZE_MB}MB. Vui lòng chọn file nhỏ hơn.`);
       return "";
     }
     setFileName(file.name);
@@ -72,17 +121,24 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
     const ext = file.name.split('.').pop().toLowerCase();
 
     if (ext === "txt") {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setFileContent(reader.result);
-        setAllContent(reader.result);
-        const paras = reader.result.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(p => p);
+      const buffer = await readAsArrayBuffer(file);
+      const utf8Text = decodeUtf8Text(buffer);
+      if (utf8Text === null) {
+        setUploadError("File TXT không đúng encoding UTF-8/UTF-8-SIG.");
+        return;
+      }
+
+      setFileContent(utf8Text);
+      setAllContent(utf8Text);
+      const paras = parseParagraphs(utf8Text);
+      const maxFoundLen = paras.reduce((maxLen, item) => Math.max(maxLen, item.length), 0);
+      if (maxFoundLen > LIMITS.MAX_TEXT_LENGTH) {
+        setUploadNotice(`Có đoạn dài hơn ${LIMITS.MAX_TEXT_LENGTH} ký tự và có thể bị backend từ chối.`);
+      }
         setLines(paras);
         setCsvColumns([]);
         setCsvColumn("");
         setCsvPreviewTable([]);
-      };
-      reader.readAsText(file);
     } else if (ext === "docx") {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
@@ -94,20 +150,30 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
       setCsvColumn("");
       setCsvPreviewTable([]);
     } else if (ext === "csv") {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setFileContent(reader.result);
-        setAllContent(reader.result);
-        // Parse CSV lấy header và preview
-        const parsed = Papa.parse(reader.result.trim(), { skipEmptyLines: true });
-        setCsvPreviewTable(parsed.data.slice(0, 6)); // header + 5 dòng
-        if (parsed.data.length > 0) {
-          const headers = parsed.data[0];
-          setCsvColumns(headers);
-          setCsvColumn(headers[0]); // mặc định chọn cột đầu
-        }
-      };
-      reader.readAsText(file);
+      const buffer = await readAsArrayBuffer(file);
+      const utf8Text = decodeUtf8Text(buffer);
+      if (utf8Text === null) {
+        setUploadError("File CSV không đúng encoding UTF-8/UTF-8-SIG.");
+        return;
+      }
+
+      setFileContent(utf8Text);
+      setAllContent(utf8Text);
+      const parsed = Papa.parse(utf8Text.trim(), { skipEmptyLines: true });
+      const rowCount = Math.max((parsed.data || []).length - 1, 0);
+
+      if (rowCount > LIMITS.MAX_ROWS) {
+        setUploadError(`File CSV có ${rowCount} dòng, vượt giới hạn ${LIMITS.MAX_ROWS} dòng.`);
+        return;
+      }
+
+      setCsvPreviewTable((parsed.data || []).slice(0, 6));
+      if (parsed.data.length > 0) {
+        const headers = parsed.data[0];
+        setCsvColumns(headers);
+        setCsvColumn(headers[0]);
+      }
+      setUploadNotice(`Đã đọc ${rowCount} dòng dữ liệu.`);
     } else {
       setLines([]);
       setSelectedLine("");
@@ -117,17 +183,30 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
       setCsvColumns([]);
       setCsvColumn("");
       setCsvPreviewTable([]);
+      setUploadError("Định dạng không hỗ trợ. Hãy dùng .txt, .docx, .csv");
       onFileSelect("Định dạng không hỗ trợ. Hãy dùng .txt, .docx, .csv");
     }
-  }  
-  
-  if (sharedFile && fileName === "") {
-    loadFile(sharedFile);
   }
+  
+  useEffect(() => {
+    if (sharedFile && fileName === "") {
+      loadFile(sharedFile);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sharedFile, fileName]);
   
   const handleChange = async (e) => {
     const file = e.target.files[0];
     loadFile(file);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    if (!e.dataTransfer.files || !e.dataTransfer.files[0]) {
+      return;
+    }
+    await loadFile(e.dataTransfer.files[0]);
   };
 
   const handleSelectLine = (e) => {
@@ -143,6 +222,9 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
   }, 100);
   return (
     <div className="file-upload">
+      <div className="file-limit-hint">
+        <strong>Giới hạn hệ thống:</strong> tối đa {LIMITS.MAX_FILE_SIZE_MB}MB, {LIMITS.MAX_ROWS} dòng CSV, {LIMITS.MAX_TEXT_LENGTH} ký tự/đoạn, encoding {LIMITS.ENCODING}.
+      </div>
       <input
         type="file"
         id="fileInput"
@@ -150,6 +232,21 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
         style={{ display: "none" }}
         onChange={handleChange}
       />
+      <div
+        className={`drop-zone ${dragActive ? "active" : ""}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragActive(true);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          setDragActive(false);
+        }}
+        onDrop={handleDrop}
+      >
+        <div style={{ marginBottom: 8, color: "#5a6", fontSize: 13 }}>
+          Kéo & thả file vào đây hoặc dùng nút Chọn file
+        </div>
       <div style={{ display: "flex", alignItems: "center" }}>
         <button
           type="button"
@@ -183,6 +280,7 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
                 setCsvColumns([]);
                 setCsvColumn("");
                 setCsvPreviewTable([]);
+                resetUploadState();
                 document.getElementById("fileInput").value = "";
                 if (onFileSelect) onFileSelect("", null);
               }}
@@ -192,6 +290,23 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
           </>
         )}
       </div>
+      </div>
+
+      {readProgress > 0 && readProgress < 100 && (
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 12, color: "#555" }}>Đang đọc file: {readProgress}%</div>
+          <div className="loading-bar-container" style={{ width: "100%" }}>
+            <div className="loading-bar" style={{ transform: "none", animation: "none", width: `${readProgress}%` }} />
+          </div>
+        </div>
+      )}
+
+      {uploadError && (
+        <div className="upload-alert error">{uploadError}</div>
+      )}
+      {uploadNotice && !uploadError && (
+        <div className="upload-alert info">{uploadNotice}</div>
+      )}
       {fileName && sharedFile && sharedFile.name.endsWith(".csv") && csvColumns.length > 0 && (
         <div style={{ marginTop: 10 }}>
           <label>Chọn cột chứa văn bản cần xử lý:&nbsp;</label>
