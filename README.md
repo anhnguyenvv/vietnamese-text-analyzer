@@ -13,10 +13,11 @@ A Vietnamese natural language processing platform with a backend + frontend arch
 - [VII. Running the Application](#vii-running-the-application)
 - [VIII. API and Key Features](#viii-api-and-key-features)
 - [IX. Testing and Quality Assurance](#ix-testing-and-quality-assurance)
-- [X. Development Guide](#x-development-guide)
+- [X. Model Training and Evaluation](#x-model-training-and-evaluation)
 - [XI. Operations and Monitoring](#xi-operations-and-monitoring)
 - [XII. Troubleshooting](#xii-troubleshooting)
 - [XIII. Documentation and Resources](#xiii-documentation-and-resources)
+- [XIV. Docker Deployment](#xiv-docker-deployment)
 
 ## I. Overview
 
@@ -97,25 +98,43 @@ vietnamese-text-analyzer/
 
 ### Backend
 
-- Flask: primary API framework.
-- Flask extensions: shared middleware and runtime configuration.
-- PyTorch/Transformers: model execution and inference.
-- Internal NLP modules: pipeline implementation for each task.
+- Flask 3.x: primary REST API framework.
+- Flask-CORS: cross-origin access between frontend and backend.
+- Flask-Limiter: rate limiting for heavy NLP endpoints.
+- Pydantic v2: request/response schema validation.
+- Structured JSON logging + request_id: operational traceability.
+- Service/Repository/Schema architecture: maintainable business and data layers.
 
 ### Frontend
 
-- React (Create React App): web UI.
+- React (Create React App): web user interface.
+- Axios: HTTP client for API integration.
+- PapaParse: CSV parsing for batch processing workflows.
+- Chart.js: metrics and visualization support.
 - Component/page-level CSS: modular styling structure.
 
 ### AI/NLP
 
-- PhoBERT, ViSoBERT: classification/sentiment models.
-- VnCoreNLP: Vietnamese POS/NER processing.
+- PyTorch + Hugging Face Transformers: model runtime and inference.
+- PhoBERT, ViSoBERT: classification and sentiment models.
+- VnCoreNLP and Underthesea: Vietnamese POS/NER processing and model comparison.
+- SentencePiece: tokenizer support for transformer pipelines.
 - Vietnamese stopword set and text preprocessing pipeline.
+
+### Data and Storage
+
+- SQLite: local persistence for history, feedback, and online metrics.
+- Pandas + NumPy: tabular processing and analytics utilities.
 
 ### Testing
 
 - Pytest: backend and route behavior testing.
+
+### DevOps and Delivery
+
+- GitHub Actions: CI/CD for tests, frontend build, and delivery artifacts.
+- Docker + Docker Compose: containerized deployment for local/prod-like runs.
+- GHCR/Docker Hub workflow: automated image publishing.
 
 ## V. Quick Start Guide
 
@@ -269,22 +288,30 @@ Current tests:
 - `tests/test_feedback_routes.py`: feedback API route tests.
 - `tests/conftest.py`: shared test bootstrap.
 
-## X. Development Guide
+## X. Model Training and Evaluation
 
-### 1. Architectural Conventions
+Training and evaluation assets are maintained in `train_eval/` as task-oriented notebooks.
 
-- `routes` should only handle request/response flow.
-- Business logic should be implemented in `services`.
-- DB/IO access should be implemented in `repositories`.
-- Validation contracts should be defined in `schemas`.
+### 1. Available Training/Evaluation Notebooks
 
-### 2. Suggested Improvements
+- `vntc-classification-using-phobert-transformer.ipynb`: topic classification pipeline and experiments.
+- `pt-vispamreviews-inference.ipynb`: sentiment inference and model behavior checks.
+- `vit5-base-vietnews-summarization-eva.ipynb`: summarization quality evaluation.
+- `pos-ner-eval (1).ipynb`: POS/NER benchmarking and comparison workflows.
+- `paultran-vn-essay-idf.ipynb`: essay-related feature exploration.
 
-- Increase unit test coverage for `src/modules`.
-- Add full API integration tests for NLP routes.
-- Move heavy jobs to a worker queue (Celery/RQ).
-- Add caching (Redis/in-memory) for repeated queries.
-- Convert notebook-based evaluation into CI-ready scripts.
+### 2. Recommended Workflow
+
+1. Start from a copied notebook and avoid overwriting baseline experiment files.
+2. Keep model checkpoints and dataset references versioned and documented.
+3. Export final metrics (accuracy/F1/ROUGE as applicable) into reproducible reports.
+4. Promote stable notebook pipelines into Python scripts for CI execution when possible.
+
+### 3. Reproducibility Notes
+
+- Pin package versions from `requirements.txt` before rerunning experiments.
+- Record random seeds and train/validation/test split strategy.
+- Save evaluation outputs with timestamped filenames for experiment tracking.
 
 ## XI. Operations and Monitoring
 
@@ -294,6 +321,34 @@ Recommended for production:
 - Track `4xx/5xx` error rates.
 - Monitor RAM/CPU usage during model loading.
 - Add a model health dashboard (version, load status, average response time).
+
+### CI/CD Pipeline (GitHub Actions)
+
+This project is configured with a CI/CD workflow at `.github/workflows/ci-cd.yml`.
+
+Container image publishing workflow is available at `.github/workflows/publish-image.yml`.
+
+- CI on `push` and `pull_request`:
+  - Run backend tests with `pytest`.
+  - Build frontend React app.
+- CD on `push` to `main`:
+  - Collect backend source + frontend build output.
+  - Publish a `delivery-package` artifact in GitHub Actions.
+- Image publish on `push` to `main` and git tag `v*`:
+  - Push image to GitHub Container Registry (GHCR).
+  - Optionally push image to Docker Hub if secrets are configured.
+
+Notes:
+
+- CI disables startup model preload via `PRELOAD_MODELS_ON_STARTUP=False` to keep pipeline deterministic and faster.
+- You can download generated artifacts from the successful workflow run page.
+
+Required repository secrets for Docker Hub publish:
+
+- `DOCKERHUB_USERNAME`: your Docker Hub username.
+- `DOCKERHUB_TOKEN`: Docker Hub access token.
+
+GHCR publish uses `GITHUB_TOKEN` automatically and does not require extra secrets.
 
 ## XII. Troubleshooting
 
@@ -355,12 +410,74 @@ npm.cmd install
 npm.cmd install react-scripts@5.0.1 --save
 ```
 
+### 6. Docker Command Not Recognized on Windows
+
+If you see `docker` or `docker-compose` is not recognized:
+
+1. Install Docker Desktop for Windows: https://www.docker.com/products/docker-desktop/
+2. Fully close and reopen PowerShell after installation.
+3. Verify installation:
+
+```powershell
+docker --version
+docker compose version
+```
+
+4. If command is still missing, sign out/in Windows or restart your machine to refresh PATH.
+
 ## XIII. Documentation and Resources
 
 - Frontend guide: `front-end/README.md`
-- Demo video: https://www.youtube.com/watch?v=K1Yqx6mqJoY
+- Demo video: [YouTube](https://www.youtube.com/watch?v=K1Yqx6mqJoY)
 - Backend entrypoint: `src/app.py`
 - Test suite: `tests/`
+
+## XIV. Docker Deployment
+
+Docker deployment files included:
+
+- `Dockerfile`: multi-stage build (frontend build + backend runtime).
+- `docker-compose.yml`: one-command service startup with persistent SQLite volume.
+- `.dockerignore`: optimized context for faster image builds.
+
+### 1. Build and run with Docker Compose
+
+```bash
+docker compose up --build -d
+```
+
+Access app at `http://localhost:5000`.
+
+Stop service:
+
+```bash
+docker compose down
+```
+
+Stop and remove DB volume:
+
+```bash
+docker compose down -v
+```
+
+If your environment still uses legacy Compose v1, `docker-compose` may work, but Docker Desktop (Compose v2) uses `docker compose`.
+
+### 2. Build and run with Docker CLI
+
+```bash
+docker build -t vietnamese-text-analyzer:latest .
+docker run -d --name vietnamese-text-analyzer -p 5000:5000 vietnamese-text-analyzer:latest
+```
+
+### 3. Recommended environment flags
+
+- `PRELOAD_MODELS_ON_STARTUP=False` for faster container startup.
+- `DEBUG=False` for production runs.
+
+### 4. Notes for model files
+
+- If local model files are already present in `src/model`, they are copied into the image.
+- If some Hugging Face models are remote, first request may download and cache model weights.
 
 ## License
 

@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  vietnamese-text-analyzer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vietnamese-text-analyzer
+    ports:
+      - "5000:5000"
+    environment:
+      PRELOAD_MODELS_ON_STARTUP: "False"
+      DEBUG: "False"
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - vta_db:/app/src/database
+    restart: unless-stopped
+
+volumes:
+  vta_db:
