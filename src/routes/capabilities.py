@@ -82,6 +82,15 @@ def list_capabilities():
                     "rate_limit": "20 per minute",
                 },
                 {
+                    "name": "text_to_speech",
+                    "endpoints": ["/api/tts/synthesize"],
+                    "rate_limit": "20 per minute",
+                    "options": {
+                        "lang": ["vi", "en"],
+                        "slow": [True, False],
+                    },
+                },
+                {
                     "name": "statistics",
                     "endpoints": ["/api/statistics/statistics"],
                     "rate_limit": "20 per minute",

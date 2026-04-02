@@ -5,7 +5,6 @@ import { API_BASE, TEST_SAMPLE_PATHS }  from "../../config"; // Địa chỉ API
 import FileUploader from "./FileUploader";
 import { Bar } from "react-chartjs-2";
 import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
-Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const StatisticsTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [result, setResult] = useState(null);
@@ -192,5 +191,7 @@ const StatisticsTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
     </div>
   );
 };
+
+Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default StatisticsTool;

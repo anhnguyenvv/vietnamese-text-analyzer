@@ -18,9 +18,9 @@ def analyze_api():
 
     stats = analyze_text(text, remove_stopwords=remove_stopwords)
     #plot = create_plot(stats['word_freq'])     
-    wordcloud = create_wordcloud(stats['word_freq'])  
+    #wordcloud = create_wordcloud(stats['word_freq'])  
     return jsonify({
         "stats": stats,
         #"plot": plot,
-        "wordcloud": wordcloud
+        #"wordcloud": wordcloud
     })

@@ -244,7 +244,7 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
     <div className="named-entity-tool">
       <strong>Tùy chọn nhận diện thực thể:</strong>
       <div className="options">
-        <label style={{ marginLeft: 16 }}>
+        <label className="feature-label-offset">
           <input
             type="radio"
             name="model"
@@ -266,8 +266,8 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
         </label>
       </div>
 
-      <div style={{ marginBottom: 8 }}>
-        <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
+      <div className="feature-margin-bottom-8">
+        <label className="feature-flex-inline">
           <input
             type="checkbox"
             checked={compareMode}
@@ -344,10 +344,10 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
                     <strong>Matched:</strong> {comparePayload?.summary?.matched_pairs}
                   </span>
                 </div>
-                <div style={{ marginBottom: 8 }}>
-                  <strong>VnCoreNLP:</strong>
+                <div className="feature-margin-bottom-8">
+                  <strong>Underthesea:</strong>
                   <div
-                    style={{ marginTop: 4 }}
+                    className="feature-margin-top-4"
                     dangerouslySetInnerHTML={{
                       __html: highlightEntities(comparePayload?.input_text || "", comparePayload?.models?.vncorenlp || []),
                     }}

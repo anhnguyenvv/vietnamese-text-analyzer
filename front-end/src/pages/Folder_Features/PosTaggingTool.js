@@ -324,7 +324,7 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
     <div className="pos-tagging-tool">
       <strong>Tùy chọn gán nhãn từ loại:</strong>
       <div className="options">
-        <label style={{ marginLeft: 16 }}>
+        <label className="feature-label-offset">
           <input
             type="radio"
             name="model"
@@ -345,8 +345,8 @@ const PosTaggingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
           Underthesea
         </label>
       </div>
-      <div style={{ marginBottom: 8 }}>
-        <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
+      <div className="feature-margin-bottom-8">
+        <label className="feature-flex-inline">
           <input
             type="checkbox"
             checked={compareMode}

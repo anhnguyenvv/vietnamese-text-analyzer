@@ -35,15 +35,94 @@ The platform is suitable for academic use, model experimentation, and integratio
 
 ## II. System Architecture
 
-The project follows a layered architecture for maintainability and scalability:
+### Tổng Quan Kiến Trúc
 
-- API Layer: `src/routes` handles request/response logic.
-- Service Layer: `src/services` orchestrates business logic.
-- Repository Layer: `src/repositories` handles persistence and data access.
-- Schema Layer: `src/schemas` validates input/output contracts.
-- NLP Core: `src/modules` contains task-specific processing logic.
-- Shared Utilities: `src/utils` provides reusable helpers.
-- Frontend: `front-end` (React) provides the user interface.
+Dự án được thiết kế theo mô hình **phân tầng (Layered Architecture)** để đáp ứng yêu cầu về khả năng bảo trì, mở rộng, và kiểm thử:
+
+**1. Frontend Layer (React)**
+- Cung cấp giao diện người dùng tương tác
+- Gọi các API endpoint của backend thông qua HTTP/REST
+- Hiển thị kết quả phân tích NLP một cách trực quan
+
+**2. API Layer (Flask Routes)**
+- Xử lý request/response từ frontend
+- Định nghĩa các endpoint cho từng tác vụ NLP
+- Áp dụng rate limiting để bảo vệ các endpoint nặng
+- Ghi nhật ký có cấu trúc với `request_id` để truy vết hoạt động
+
+**3. Schema Validation Layer (Pydantic v2)**
+- Xác thực input từ người dùng
+- Xác định output contracts cho các response
+- Cung cấp error messages rõ ràng khi input không hợp lệ
+
+**4. Service Layer (Business Logic)**
+- Điều phối logic nghiệp vụ giữa API và các tầng khác
+- Xử lý business rules và constraints
+- Gọi các phương thức inference và repository
+
+**5. Inference Layer (NLP Module)**
+- Quản lý tải mô hình AI
+- Thực hiện dự đoán/suy luận cho các tác vụ NLP:
+  - Text Classification
+  - POS Tagging & NER
+  - Sentiment Analysis
+  - Text Preprocessing
+  - Summarization
+  - Statistics Extraction
+- Models được preload trong memory để tái sử dụng giữa các request
+
+**6. Repository Layer (Data Access)**
+- Xử lý lưu trữ và truy xuất dữ liệu
+- Quản lý database persistence (SQLite)
+- Lưu trữ feedback, metrics, history từ người dùng
+
+**7. Utilities & Shared Resources**
+- Helper functions cho xác thực input
+- Model warmup và preloading management
+- Error handling utilities
+- Vietnamese language utilities (stopwords, tokenization)
+
+### Dữ Liệu và Lưu Trữ
+
+- **SQLite Database**: Lưu trữ history, feedback, metrics online
+- **Model Cache**: Models được load vào memory một lần và tái sử dụng
+- **Pre-trained Models**: Lưu trữ tại `src/model/` có kích thước lớn
+
+### Hiệu Năng và Mở Rộng
+
+- **Model Preloading**: Gunicorn preload mode đảm bảo models được load trước khi workers fork
+- **Rate Limiting**: Bảo vệ endpoints nặng (NLP processing) từ abuse
+- **Async Ready**: Kiến trúc sẵn sàng tích hợp Celery cho xử lý bất đồng bộ (summarization)
+- **Monitoring**: Prometheus metrics endpoint để theo dõi performance
+
+### Quy Trình Dữ Liệu Mẫu
+
+```
+User Request (Frontend)
+        ↓
+    API Endpoint (Flask Route)
+        ↓
+    Input Validation (Pydantic Schema)
+        ↓
+    Service Layer (Business Logic)
+        ↓
+    ┌─────────────────────────────────────┐
+    │  Fork Path for Different Modules:  │
+    │  - Classification                  │
+    │  - POS/NER                         │
+    │  - Sentiment                       │
+    │  - Summarization                   │
+    │  - Statistics                      │
+    └─────────────────┬───────────────────┘
+                      ↓
+            Inference Layer (Models)
+                      ↓
+            Output Formatting & Validation
+                      ↓
+        Repository Layer (Save if needed)
+                      ↓
+            Response to Frontend (JSON)
+```
 
 ## III. Project Structure
 
@@ -52,46 +131,186 @@ vietnamese-text-analyzer/
 ├── README.md
 ├── requirements.txt
 ├── pytest.ini
-├── front-end/
-│   ├── package.json
+├── package.json
+├── Dockerfile
+├── docker-compose.yml
+├── gunicorn.conf.py
+│
+├── front-end/                          # React frontend application
 │   ├── README.md
+│   ├── package.json
 │   ├── public/
 │   │   ├── index.html
+│   │   ├── manifest.json
+│   │   ├── robots.txt
+│   │   └── test_samples/               # Test sample data for UI demonstration
+│   │       ├── classify/
+│   │       ├── essay_identification/
+│   │       ├── ner/
+│   │       ├── pos/
+│   │       ├── preprocess/
+│   │       ├── sentiment/
+│   │       ├── spam/
+│   │       ├── stats/
+│   │       └── summary/
+│   ├── build/                          # Production build output
 │   │   └── test_samples/
 │   └── src/
+│       ├── App.css
 │       ├── App.js
 │       ├── config.js
-│       ├── components/
-│       └── pages/
-├── src/
-│   ├── app.py
-│   ├── extensions.py
-│   ├── config/
+│       ├── index.js
+│       ├── index.css
+│       ├── components/                 # Reusable React components
+│       │   ├── Navbar.js
+│       │   └── Navbar.css
+│       └── pages/                      # Page-level components
+│           ├── HomePage.js
+│           ├── HomePage.css
+│           ├── FeaturePage.js
+│           ├── FeaturePage.css
+│           ├── FeedbackPage.js
+│           ├── FeedbackPage.css
+│           └── Folder_Features/        # Feature-specific pages
+│
+├── src/                                # Backend Flask application
+│   ├── app.py                          # Flask app factory and entry point
+│   ├── extensions.py                   # Flask extensions (database, limiter, etc.)
+│   │
+│   ├── config/                         # Configuration management
+│   │   ├── __init__.py
 │   │   └── settings.py
-│   ├── database/
-│   │   └── db.py
-│   ├── model/
-│   │   ├── clf/
-│   │   ├── vispam/
-│   │   └── vncorenlp/
-│   ├── modules/
-│   │   ├── classification/
-│   │   ├── pos_ner/
-│   │   ├── preprocessing/
-│   │   ├── sentiment/
-│   │   ├── statistics/
-│   │   └── summarization/
-│   ├── routes/
-│   ├── repositories/
-│   ├── schemas/
-│   ├── services/
-│   └── utils/
-├── tests/
-│   ├── conftest.py
-│   ├── test_app_factory.py
-│   └── test_feedback_routes.py
-└── train_eval/
-    └── *.ipynb
+│   │
+│   ├── database/                       # Database layer
+│   │   ├── __init__.py
+│   │   └── db.py                       # SQLite database initialization
+│   │
+│   ├── model/                          # Pre-trained model weights storage
+│   │   ├── clf/                        # Text classification models
+│   │   │   └── PhoBERT_topic_classification.pth
+│   │   ├── vispam/                     # Spam/sentiment classification models
+│   │   │   ├── PhoBERT_vispamReview.pth
+│   │   │   └── ViSoBERT_vispamReview.pth
+│   │   └── vncorenlp/                  # VnCoreNLP resources for POS/NER
+│   │       └── models/
+│   │
+│   ├── modules/                        # NLP inference and processing modules
+│   │   ├── __init__.py
+│   │   ├── classification/             # Topic classification inference
+│   │   ├── pos_ner/                    # POS tagging and NER
+│   │   ├── preprocessing/              # Text normalization, tokenization
+│   │   ├── sentiment/                  # Sentiment analysis inference
+│   │   ├── statistics/                 # Text statistics extraction
+│   │   └── summarization/              # Text summarization
+│   │
+│   ├── routes/                         # REST API endpoints
+│   │   ├── __init__.py
+│   │   ├── capabilities.py             # System capabilities endpoint
+│   │   ├── classification.py           # Classification API routes
+│   │   ├── feedback.py                 # Feedback management API
+│   │   ├── metrics.py                  # Metrics and analytics endpoints
+│   │   ├── model_preload.py            # Model preloading utilities
+│   │   ├── ner.py                      # NER API routes
+│   │   ├── pos.py                      # POS tagging API routes
+│   │   ├── preprocessing.py            # Text preprocessing API routes
+│   │   ├── sentiment.py                # Sentiment analysis API routes
+│   │   ├── statistics.py               # Statistics API routes
+│   │   ├── summarization.py            # Summarization API routes
+│   │   └── tts.py                      # Text-to-speech API routes
+│   │
+│   ├── repositories/                   # Data access layer
+│   │   ├── __init__.py
+│   │   └── feedback_repository.py      # Feedback data persistence
+│   │
+│   ├── schemas/                        # Input/output validation schemas
+│   │   ├── __init__.py
+│   │   └── feedback.py                 # Feedback schema definitions
+│   │
+│   ├── services/                       # Business logic layer
+│   │   ├── __init__.py
+│   │   └── feedback_service.py         # Feedback business logic
+│   │
+│   ├── utils/                          # Utility functions and helpers
+│   │   ├── __init__.py
+│   │   ├── ab_testing.py               # A/B testing utilities
+│   │   ├── BERT.py                     # BERT-related utilities
+│   │   ├── download_models.py          # Model download scripts
+│   │   ├── error_handling.py           # Error handling utilities
+│   │   ├── inference_response.py       # Response formatting
+│   │   ├── input_validation.py         # Input validation helpers
+│   │   ├── model_warmup.py             # Model preloading logic
+│   │   ├── preload_manager.py          # Preloading management
+│   │   └── vncore.py                   # VnCoreNLP integration
+│   │
+│   └── content/                        # Static content resources
+│       └── Vstopword_new.txt           # Vietnamese stopwords list
+│
+├── monitoring/                         # Monitoring and observability
+│   ├── grafana/                        # Grafana dashboards and provisioning
+│   │   └── provisioning/
+│   │       └── datasources/            # Grafana data source config
+│   └── prometheus/
+│       └── prometheus.yml              # Prometheus scrape configuration
+│
+├── tests/                              # Test suite
+│   ├── conftest.py                     # Pytest configuration and fixtures
+│   ├── test_app_factory.py             # Flask app factory tests
+│   ├── test_feedback_routes.py         # Feedback endpoint tests
+│   ├── test_metrics_endpoint.py        # Metrics endpoint tests
+│   └── ...
+│
+└── train_eval/                         # Model training and evaluation notebooks
+    ├── vntc-classification-using-phobert-transformer.ipynb
+    ├── pt-vispamreviews-inference.ipynb
+    ├── vit5-base-vietnews-summarization-eva.ipynb
+    ├── pos-ner-eval (1).ipynb
+    ├── paultran-vn-essay-idf.ipynb
+    └── 5cd-ai-vietnamese-sentiment-visobert (1).ipynb
+```
+
+### Kiến Trúc Phân Tầng (Layered Architecture)
+
+Dự án tuân theo mô hình kiến trúc phân tầng để dễ bảo trì và mở rộng:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Frontend Layer (React)                     │
+│           front-end/src/components & pages              │
+└────────────────────┬────────────────────────────────────┘
+                     │ (HTTP/REST)
+┌────────────────────▼────────────────────────────────────┐
+│              API Layer (Flask Routes)                   │
+│       src/routes/* - Endpoint orchestration             │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────┐
+│        Schema & Validation Layer (Pydantic)            │
+│            src/schemas/* - Input/Output                 │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────┐
+│         Service Layer (Business Logic)                  │
+│       src/services/* - Orchestration Logic              │
+└────────────────────┬────────────────────────────────────┘
+                     │
+        ┌────────────┴────────────┐
+        │                         │
+┌───────▼──────────┐    ┌────────▼───────────┐
+│  Inference Layer │    │  Repository Layer  │
+│ src/modules/*    │    │ src/repositories/* │
+│ - Model loading  │    │ - Data persistence│
+│ - Predictions    │    │ - Feedback store   │
+└──────────────────┘    └────────┬───────────┘
+        │                        │
+┌───────▼──────────────────────────▼──────────┐
+│         Utilities & Helpers Layer           │
+│  src/utils/* - Shared infrastructure        │
+└────────────────────────────────────────────┘
+        │                │
+┌───────▼─────┐    ┌─────▼─────────────┐
+│   Models    │    │ Database (SQLite) │
+│ src/model/* │    │   src/database/   │
+└─────────────┘    └───────────────────┘
 ```
 
 ## IV. Technology Stack
@@ -104,6 +323,8 @@ vietnamese-text-analyzer/
 - Pydantic v2: request/response schema validation.
 - Structured JSON logging + request_id: operational traceability.
 - Service/Repository/Schema architecture: maintainable business and data layers.
+- Gunicorn workers with preload mode: efficient multi-process serving with models loaded before worker fork.
+- Celery-ready async execution pattern: suitable for offloading expensive summarization jobs.
 
 ### Frontend
 
@@ -222,6 +443,8 @@ python src/app.py
 
 Default backend URL: `http://127.0.0.1:5000`
 
+For production-style serving, run the app behind Gunicorn with preload enabled so model weights are loaded once in the master process before workers fork.
+
 ### 2. Run Frontend (Development Mode)
 
 ```bash
@@ -321,6 +544,31 @@ Recommended for production:
 - Track `4xx/5xx` error rates.
 - Monitor RAM/CPU usage during model loading.
 - Add a model health dashboard (version, load status, average response time).
+- Use Celery or another job queue for long-running summarization requests.
+
+### Prometheus and Grafana
+
+The backend exposes Prometheus metrics at `GET /metrics`.
+
+Available signals include:
+
+- HTTP request counters and latency histograms.
+- Inference summary gauges backed by the SQLite metrics table.
+- Existing JSON metrics at `GET /api/metrics/online` for API consumers.
+
+Start the monitoring stack with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+Open these endpoints after startup:
+
+- Backend API: `http://localhost:5000`
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3001`
+
+Grafana is provisioned with a Prometheus datasource at `http://prometheus:9090`.
 
 ### CI/CD Pipeline (GitHub Actions)
 

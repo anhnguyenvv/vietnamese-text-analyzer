@@ -10,6 +10,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { BiBrain } from "react-icons/bi";                // Thực thể có tên
 import { BsEmojiSmile } from "react-icons/bs";           // Cảm xúc
 import { HiOutlineDocumentText } from "react-icons/hi";  // Tóm tắt văn bản
+import { FiVolume2 } from "react-icons/fi";
 import "./FeaturePage.css";
 import StatisticsTool from "./Folder_Features/StatisticsTool";
 import PreprocessingTool from "./Folder_Features/PreprocessingTool";
@@ -18,6 +19,7 @@ import SummarizationTool from "./Folder_Features/SummarizationTool";
 import ClassificationTool from "./Folder_Features/ClassificationTool";
 import NamedEntityTool from "./Folder_Features/NamedEntityTool";
 import PosTaggingTool from "./Folder_Features/PosTaggingTool";
+import TextToSpeechTool from "./Folder_Features/TextToSpeechTool";
 
 const options = [
   { value: "thong-ke", label: "Thống kê", icon: <MdOutlineInsertChart /> },
@@ -27,12 +29,12 @@ const options = [
   { value: "cam-xuc", label: "Phân tích cảm xúc", icon: <BsEmojiSmile /> },
   { value: "phan-loai", label: "Phân loại", icon: <MdOutlineCategory /> },
   { value: "tom-tat", label: "Tóm tắt", icon: <HiOutlineDocumentText /> },
+  { value: "chuyen-giong-noi", label: "Chuyển giọng nói", icon: <FiVolume2 /> },
 ];
 
 const FeaturePage = () => {
   const [selectedOption, setSelectedOption] = useState("thong-ke");
   const [showSidebar, setShowSidebar] = useState(true);
-
   const [sharedTextInput, setSharedTextInput] = useState("");
   const [sharedFile, setSharedFile] = useState(null);
 
@@ -59,15 +61,17 @@ const FeaturePage = () => {
         return <PosTaggingTool {...sharedProps} />;
       case "phan-loai":
         return <ClassificationTool {...sharedProps} />;
+      case "chuyen-giong-noi":
+        return <TextToSpeechTool {...sharedProps} />;
       default:
         return null;
     }
   };
 
   return (
-    <div className="feature-container" style={{ display: "flex" }}>  
+    <div className="feature-container feature-page-layout">
       {showSidebar && (
-        <nav className="sidebar" style={{ position: "relative" }}>
+        <nav className="sidebar feature-sidebar">
           <h2 className="sidebar-title">Chức năng</h2>
           <ul className="sidebar-list">
             {options.map((item) => (
@@ -85,18 +89,7 @@ const FeaturePage = () => {
           </ul>
           {/* Nút ẩn sidebar dạng mũi tên */}
           <button
-            style={{
-              position: "absolute",
-              right: -36,
-              top: 24,
-              zIndex: 1000,
-              padding: "6px 8px",
-              borderRadius: "50%",
-              border: "1px solid #ccc",
-              background: "#fff",
-              cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.07)"
-            }}
+            className="sidebar-toggle-btn"
             onClick={() => setShowSidebar(false)}
             title="Ẩn chức năng"
           >
@@ -106,36 +99,14 @@ const FeaturePage = () => {
       )}
       {!showSidebar && (
         <button
-          style={{
-            position: "fixed",
-            left: 0,
-            top: 40,
-            zIndex: 1000,
-            padding: "6px 8px",
-            borderRadius: "50%",
-            border: "1px solid #ccc",
-            background: "#fff",
-            cursor: "pointer",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.07)"
-          }}
+          className="sidebar-open-btn"
           onClick={() => setShowSidebar(true)}
           title="Hiện chức năng"
         >
           <FaChevronRight />
         </button>
       )}
-      <div
-        className="content"
-        style={{
-          flex: 10,
-          minWidth: 0,        
-          marginTop: 80,
-          marginLeft: 20,
-          overflow: "auto",
-          padding: 0,
-          transition: "margin-left 0.2s"
-        }}
-      >
+      <div className="content feature-content">
         {renderMainContent()}
       </div>
     </div>

@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: vietnamese-text-analyzer
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - vietnamese-text-analyzer:5000

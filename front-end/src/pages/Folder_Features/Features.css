@@ -5,7 +5,8 @@
 .summarization-tool  strong,
 .text-summarization-tool  strong,
 .pos-tagging-tool  strong,
-.statistics-tool  strong {
+.statistics-tool  strong,
+.tts-tool  strong {
   display: inline-block;
   margin-bottom: 15px;
   font-size: 16.5px;
@@ -189,6 +190,98 @@ textarea {
   animation: progress-slide 1s linear infinite;
 }
 
+.feature-page-layout {
+  display: flex;
+}
+
+.feature-sidebar {
+  position: relative;
+}
+
+.sidebar-toggle-btn,
+.sidebar-open-btn {
+  padding: 6px 8px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  z-index: 1000;
+}
+
+.sidebar-toggle-btn {
+  position: absolute;
+  right: -36px;
+  top: 24px;
+}
+
+.sidebar-open-btn {
+  position: fixed;
+  left: 0;
+  top: 40px;
+}
+
+.feature-content {
+  flex: 10;
+  min-width: 0;
+  margin-top: 80px;
+  margin-left: 20px;
+  overflow: auto;
+  padding: 0;
+  transition: margin-left 0.2s;
+}
+
+.tts-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.tts-field-label {
+  margin-bottom: 0;
+}
+
+.tts-switch-label {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tts-action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tts-loading-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.tts-loading-label {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.tts-error {
+  margin-top: 10px;
+}
+
+.tts-audio-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tts-download-link {
+  width: fit-content;
+  text-decoration: none;
+}
+
 @keyframes progress-slide {
   0% {
     transform: translateX(-100%);
@@ -196,4 +289,165 @@ textarea {
   100% {
     transform: translateX(100%);
   }
+}
+
+/* Tool UI Helper Classes */
+.feature-flex-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feature-flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-flex-inline {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.feature-label-hint {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.feature-hint-text {
+  color: #888;
+}
+
+.feature-error-text {
+  color: #d63031;
+}
+
+.feature-label-offset {
+  margin-left: 16px;
+}
+
+.feature-margin-bottom-4 {
+  margin-bottom: 4px;
+}
+
+.feature-margin-bottom-8 {
+  margin-bottom: 8px;
+}
+
+.feature-margin-top-4 {
+  margin-top: 4px;
+}
+
+.feature-margin-top-8 {
+  margin-top: 8px;
+}
+
+.feature-margin-top-10 {
+  margin-top: 10px;
+}
+
+.feature-margin-top-12 {
+  margin-top: 12px;
+}
+
+.feature-margin-top-16 {
+  margin-top: 16px;
+}
+
+.feature-note-italic {
+  color: #d69e2e;
+  font-style: italic;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.feature-button-secondary {
+  padding: 6px 12px;
+  background: #00b894;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.feature-button-primary {
+  padding: 6px 12px;
+  background: #0984e3;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.feature-download-link {
+  background: #e0e0e0;
+  color: #444;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 50%;
+  font-weight: 500;
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 185, 148, 0.08);
+  transition: background 0.2s;
+  width: 36px;
+  height: 36px;
+}
+
+.feature-file-info-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-text-underline-blue {
+  color: #0984e3;
+  text-decoration: underline dotted;
+  font-weight: 600;
+}
+
+.feature-text-strikethrough-red {
+  text-decoration: line-through;
+  color: #d63031;
+}
+
+.feature-table-cell-border {
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.feature-entity-highlight {
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-right: 4px;
+  color: #222;
+}
+
+.feature-download-hint-box {
+  margin-top: 12px;
+  background: #f1f2f6;
+  border-radius: 4px;
+  padding: 10px 14px;
+  color: #444;
+  font-size: 15px;
+  font-style: italic;
+  border-left: 4px solid #0984e3;
+}
+
+.feature-note-box {
+  background: #f1f2f6;
+  border: 1px solid #dfe4ea;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 12px 0;
+}
+
+.feature-note-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 15px;
 }

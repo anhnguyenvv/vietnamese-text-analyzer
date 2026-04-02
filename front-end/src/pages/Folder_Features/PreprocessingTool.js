@@ -105,11 +105,7 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
           diffCharArr.push(
             <span
               key={i}
-              style={{
-                color: "#0984e3",
-                textDecoration: "underline dotted",
-                fontWeight: 600,
-              }}
+              className="feature-text-underline-blue"
               title="Đã chuyển sang chữ thường"
             >
               {original[i]}
@@ -119,7 +115,7 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
         } else {
           // Ký tự bị xóa
           diffCharArr.push(
-            <span key={i} style={{ textDecoration: "line-through", color: "#d63031" }}>
+            <span key={i} className="feature-text-strikethrough-red">
               {original[i]}
             </span>
           );
@@ -233,14 +229,14 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
                 disabled={(readMode === "all" && sharedFile && sharedFile.name.endsWith(".csv"))}
                 onChange={(e) => setSharedTextInput(e.target.value)}
               />
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div className="feature-flex-row">
             <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
               Xử lý
             </button>
 
              {loading && (
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
+              <div className="feature-flex-column">
+                <div className="feature-label-hint">
                   Đang xử lý...
                 </div>
                 <div className="loading-bar-container">
@@ -290,14 +286,14 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
           {!csvResultUrl && (
             <div className="result-box">
             {!result && (
-              <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
+              <div className="feature-hint-text">Kết quả sẽ hiển thị ở đây...</div>
             )}
             {result && result.error && (
-              <div style={{ color: "red" }}>{result.error}</div>
+              <div className="feature-error-text">{result.error}</div>
             )}
             {result && !result.error && ( 
                 <div>
-                   <div style={{ marginBottom: 4 }}>
+                   <div className="feature-margin-bottom-4">
                       <div>{result.cleaned_text}</div>
                     </div>
                     
@@ -313,31 +309,12 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
             <>
               <button
                 onClick={() => navigator.clipboard.writeText(result.cleaned_text)}
-                style={{
-                  marginTop: 8,
-                  padding: "6px 12px",
-                  background: "#0984e3",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                }}
+                className="feature-button-primary"
               >
                 Sao chép
               </button>
                 {/* Thêm các nút khác nếu cần */}
-              <div
-                style={{
-                  marginTop: 12,
-                  background: "#f1f2f6",
-                  borderRadius: 4,
-                  padding: "10px 14px",
-                  color: "#444",
-                  fontSize: 15,
-                  fontStyle: "italic",
-                  borderLeft: "4px solid #0984e3",
-                }}
-              >
+              <div className="feature-download-hint-box">
                 Gợi ý: Bạn có thể sử dụng văn bản đã xử lý ở đây để tiếp tục phân tích cảm xúc, phân loại, gán nhãn, tóm tắt hoặc các xử lý khác trong hệ thống!
               </div>
             </>
@@ -348,28 +325,12 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
                 <a
                   href={csvResultUrl}
                   download={csvDownloadName}
-                  className="analyze-button"
+                  className="feature-download-link"
                   title={`Tải file kết quả: ${csvDownloadName}`}
-                  style={{
-                    background: "#e0e0e0",
-                    color: "#444",
-                    textDecoration: "none",
-                    padding: "6px 10px",
-                    borderRadius: "50%",
-                    fontWeight: 500,
-                    fontSize: 18,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 2px 8px rgba(0,185,148,0.08)",
-                    transition: "background 0.2s",
-                    width: 36,
-                    height: 36,
-                  }}
                 >
                   <span role="img" aria-label="download">⬇️</span>
                 </a>
-                <span style={{ fontSize: 14, fontWeight: 500 }}>
+                <span className="processing-file-name">
                   {csvDownloadName}
                 </span>
               </div>
@@ -383,16 +344,7 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
                   setResult(null);
                   setCsvResultUrl(null);
                   }}
-                  style={{
-                    marginTop: 8,
-                    padding: "6px 12px",
-                    background: "#00b894",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                    marginRight: 8,
-                  }}
+                  className="feature-button-secondary"
                 >
                   Dùng kết quả cho bước tiếp theo
                 </button>
@@ -412,15 +364,7 @@ const PreprocessingTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
                       setChangeFile(true); // yêu cầu FileUploader xóa file
                       setTimeout(() => setChangeFile(false), 1);
                     }}
-                    style={{
-                      marginTop: 8,
-                      padding: "6px 12px",
-                      background: "#0984e3",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 4,
-                      cursor: "pointer",
-                    }}
+                    className="feature-button-primary"
                   >
                     Dùng file kết quả cho bước tiếp theo
                   </button>

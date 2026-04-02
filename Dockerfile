@@ -29,7 +29,8 @@ COPY src/ ./src/
 COPY pytest.ini ./pytest.ini
 COPY README.md ./README.md
 COPY --from=frontend-builder /app/front-end/build ./front-end/build
+COPY gunicorn.conf.py ./gunicorn.conf.py
 
 EXPOSE 5000
 
-CMD ["python", "src/app.py"]
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:create_app()"]

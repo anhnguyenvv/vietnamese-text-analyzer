@@ -277,10 +277,10 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
   return (
     <div className="sentiment-analysis-tool">
       <strong>Phân tích cảm xúc</strong>
-      <div className="options" style={{ marginBottom: 12 }}>
-        <label style={{ marginRight: 8 }}>Chọn mô hình:</label>
-        <div style={{ display: "inline-flex", gap: 16, alignItems: "center" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <div className="options sentiment-options-row">
+        <label className="sentiment-options-label">Chọn mô hình:</label>
+        <div className="sentiment-options-inline">
+          <label className="sentiment-radio-label">
             <input
               type="radio"
               value="sentiment"
@@ -289,7 +289,7 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
             />
             Cảm xúc (POS/NEU/NEG)
           </label>
-          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <label className="sentiment-radio-label">
             <input
               type="radio"
               value="vispam"
@@ -301,13 +301,13 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
         </div>
       </div>
       
-      <div style={{ color: "#d69e2e", fontStyle: "italic", marginBottom: 8 , fontSize: 14 }}>
+      <div className="feature-note sentiment-note">
         {selectedModel === "sentiment"
           ? "Mô hình phân tích cảm xúc: Dự đoán văn bản là Tích cực, Trung tính hoặc Tiêu cực."
           : "Mô hình phát hiện review spam: Dự đoán review trên các trang thương mại điện tử là Spam hoặc Không phải spam."}
       </div>
-      <div style={{ marginBottom: 8, display: "flex", gap: 16, alignItems: "center" }}>
-        <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
+      <div className="sentiment-compare-row">
+        <label className="sentiment-compare-label">
           <input
             type="checkbox"
             checked={compareMode}
@@ -349,7 +349,7 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
               />
 
             </>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div className="sentiment-action-row">
             <button
               className="analyze-button"
               onClick={() => {
@@ -360,8 +360,8 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
               Phân tích
             </button>
             {loading && (
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
+              <div className="feature-loading-stack">
+                <div className="feature-loading-text">
                   Đang phân tích... {batchProgress.total > 0 ? `${batchProgress.done}/${batchProgress.total}` : ""}
                 </div>
                 <div className="loading-bar-container">
@@ -385,13 +385,13 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
           <label>Kết quả</label>
             <div className="result-box">
               {!result && (
-                <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
+                <div className="feature-result-empty">Kết quả sẽ hiển thị ở đây...</div>
               )}
 
                 {result && !result.error && result.label && (
-              <div style={{ marginTop: 16 }}>
+              <div className="feature-summary">
                 <strong>Nhận định:  </strong>
-                <span style={{ color: "#0984e3", fontWeight: 600 }}>
+                <span className="feature-summary-value">
                   {selectedModel === "vispam"
                       ? (result.label === "spam" ? "Spam" : "Không phải spam")
                       : result.label === "NEG"
@@ -400,7 +400,7 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
                         ? "Trung tính"
                         : "Tích cực"}
                 </span>
-                  <div style={{ marginTop: 10, fontSize: 13, color: "#444" }}>
+                  <div className="feature-summary-meta">
                     <div><strong>Confidence:</strong> {result?.meta?.confidence_score ?? "N/A"}</div>
                     <div><strong>Thời gian xử lý:</strong> {result?.meta?.processing_time_ms ?? "N/A"} ms</div>
                     <div><strong>Số token:</strong> {result?.meta?.token_count ?? "N/A"}</div>
@@ -410,16 +410,16 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
             )}
 
               {compareResult && compareResult.length > 0 && (
-                <div style={{ marginTop: 16 }}>
+                <div className="feature-summary">
                   <strong>So sánh kết quả 2 model</strong>
-                  <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
+                  <table className="feature-table">
                     <thead>
                       <tr>
-                        <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Model</th>
-                        <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Label</th>
-                        <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Confidence</th>
-                        <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Time (ms)</th>
-                        <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Token</th>
+                        <th>Model</th>
+                        <th>Label</th>
+                        <th>Confidence</th>
+                        <th>Time (ms)</th>
+                        <th>Token</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -438,13 +438,13 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
               )}
 
             {lineErrors.length > 0 && (
-              <div style={{ marginTop: 16 }}>
+              <div className="feature-summary">
                 <strong>Lỗi theo dòng</strong>
-                <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
+                <table className="feature-table">
                   <thead>
                     <tr>
-                      <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Dòng</th>
-                      <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Thông báo lỗi</th>
+                      <th>Dòng</th>
+                      <th>Thông báo lỗi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -460,13 +460,13 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
             )}
             
             {result && result.error && (
-              <div style={{ color: "red" }}>{result.error}</div>
+              <div className="feature-error-text">{result.error}</div>
             )}
 
             {pieData && result.label && (
               <Pie
                 data={pieData}
-                className="custom-pie-chart"
+                className="custom-pie-chart feature-pie-chart"
                 options={{
                   plugins: {
                     legend: {
@@ -493,7 +493,6 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
                     },
                   },
                 }}
-                style={{ maxWidth: 500, margin: "16px auto" }}
               />
             )}
             </div>
@@ -507,48 +506,23 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
           <div className="csv-download-area">
             {/* Hiển thị nút tải file CSV nếu có kết quả */}
             {csvResultUrl && (
-              <div>
+              <div className="feature-download-row">
                 <a
                   href={csvResultUrl}
                   download={csvDownloadName}
-                  className="analyze-button"
+                  className="feature-download-link"
                   title={`Tải file kết quả: ${csvDownloadName}`}
-                  style={{
-                    background: "#e0e0e0", // màu xám nhạt
-                    color: "#444",
-                    textDecoration: "none",
-                    padding: "6px 10px",
-                    borderRadius: "50%",
-                    fontWeight: 500,
-                    fontSize: 18,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 2px 8px rgba(0,185,148,0.08)",
-                    transition: "background 0.2s",
-                    width: 36,
-                    height: 36,
-                  }}
                 >
                   <span role="img" aria-label="download">⬇️</span>
                 </a>
-                <span style={{ fontSize: 14, fontWeight: 500 }}>
+                <span className="feature-download-name">
                   {csvDownloadName}
                 </span>
                 {jsonResultUrl && (
                   <a
                     href={jsonResultUrl}
                     download={jsonDownloadName}
-                    className="analyze-button"
-                    style={{
-                      marginLeft: 8,
-                      background: "#dfe8ff",
-                      color: "#234",
-                      textDecoration: "none",
-                      fontSize: 12,
-                      width: "auto",
-                      padding: "8px 10px",
-                    }}
+                    className="feature-download-link feature-download-link-secondary"
                   >
                     JSON
                   </a>

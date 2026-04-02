@@ -6,13 +6,19 @@ import json
 DB_PATH = os.path.join(os.path.dirname(__file__), "main.db")
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout = 30000")
     return conn
 
 def init_db():
     conn = get_connection()
     c = conn.cursor()
+    try:
+        c.execute("PRAGMA journal_mode = WAL")
+    except sqlite3.OperationalError:
+        # If another process/thread holds the DB lock, continue with default mode.
+        pass
     # Bảng lưu lịch sử phân tích
     c.execute("""
         CREATE TABLE IF NOT EXISTS analysis_history (
@@ -290,6 +296,7 @@ def load_inference_feedback(limit=100):
     rows = [dict(row) for row in c.fetchall()]
     conn.close()
     return rows
+
 
 # Khởi tạo database khi import module
 init_db()

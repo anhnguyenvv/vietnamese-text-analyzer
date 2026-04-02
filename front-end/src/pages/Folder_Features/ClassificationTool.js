@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import "./Features.css";
 import FileUploader from "./FileUploader";
-import CsvViewer from "./csvViewer"; // Import CsvViewer component
+import CsvViewer from "./csvViewer";
 import Papa from "papaparse";
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
 import axios from "axios";
-import {API_BASE, TEST_SAMPLE_PATHS}from "../../config"; // Địa chỉ API backend
+import { API_BASE, TEST_SAMPLE_PATHS } from "../../config";
+
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const createDownloadUrl = (content, mimeType) => {
@@ -14,24 +15,26 @@ const createDownloadUrl = (content, mimeType) => {
 };
 
 const normalizeClassificationPayload = (responseData, fallbackText = "") => {
-  const payload = responseData?.result ? responseData : {
-    task: "classification",
-    model_name: responseData?.model_name,
-    input: {
-      text: fallbackText,
-      token_count: fallbackText ? fallbackText.trim().split(/\s+/).filter(Boolean).length : 0,
-    },
-    result: {
-      label: responseData?.label_name,
-      label_id: responseData?.label_id,
-    },
-    meta: {
-      confidence_score: null,
-      processing_time_ms: null,
-      token_count: fallbackText ? fallbackText.trim().split(/\s+/).filter(Boolean).length : 0,
-      warnings: [],
-    },
-  };
+  const payload = responseData?.result
+    ? responseData
+    : {
+        task: "classification",
+        model_name: responseData?.model_name,
+        input: {
+          text: fallbackText,
+          token_count: fallbackText ? fallbackText.trim().split(/\s+/).filter(Boolean).length : 0,
+        },
+        result: {
+          label: responseData?.label_name,
+          label_id: responseData?.label_id,
+        },
+        meta: {
+          confidence_score: null,
+          processing_time_ms: null,
+          token_count: fallbackText ? fallbackText.trim().split(/\s+/).filter(Boolean).length : 0,
+          warnings: [],
+        },
+      };
 
   if (!payload.label_name) {
     payload.label_name = payload.result?.label;
@@ -74,10 +77,10 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
   const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 });
   const [lineErrors, setLineErrors] = useState([]);
 
-  const handleFileSelect = (content, file, readMode, csvColumn) => {
+  const handleFileSelect = (content, file, mode) => {
     setSharedTextInput(content);
     setSharedFile(file || null);
-    setReadMode(readMode);
+    setReadMode(mode);
     setResult(null);
     setCompareResult(null);
     setCsvResultUrl(null);
@@ -86,18 +89,19 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
     setJsonDownloadName("classification_result.json");
     setBatchProgress({ done: 0, total: 0 });
     setLineErrors([]);
+
     if (file && file.name.endsWith(".csv")) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const parsed = Papa.parse(e.target.result.trim(), { skipEmptyLines: true });
-          setCsvData(parsed.data);
-        };
-        reader.readAsText(file);
-        
-      } else {
-        setCsvData([]);
-      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const parsed = Papa.parse(event.target.result.trim(), { skipEmptyLines: true });
+        setCsvData(parsed.data);
+      };
+      reader.readAsText(file);
+    } else {
+      setCsvData([]);
+    }
   };
+
   const handleAnalyze = async () => {
     setLoading(true);
     setResult(null);
@@ -109,7 +113,11 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
     setBatchProgress({ done: 0, total: 0 });
     setLineErrors([]);
 
-    const lines = sharedTextInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
+    const lines = sharedTextInput
+      .split(/\r?\n\s*\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line);
+
     if (lines.length === 0) {
       setResult({ error: "Vui lòng nhập văn bản hoặc chọn file để phân tích." });
       setLoading(false);
@@ -131,110 +139,108 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
         setCompareResult(compareRes.data?.comparisons || []);
         setLoading(false);
         return;
-      } catch (err) {
-        setResult({ error: err?.response?.data?.error || err.message || "Có lỗi xảy ra!" });
+      } catch (error) {
+        setResult({ error: error?.response?.data?.error || error.message || "Có lỗi xảy ra!" });
         setLoading(false);
         return;
       }
     }
 
-  try {
-    const total = lines.length;
-    setBatchProgress({ done: 0, total });
-    const payloads = [];
-    const exportRows = [];
-    const collectedLineErrors = [];
+    try {
+      const total = lines.length;
+      setBatchProgress({ done: 0, total });
+      const payloads = [];
+      const exportRows = [];
+      const collectedLineErrors = [];
 
-    for (let i = 0; i < lines.length; i += 1) {
-      const line = lines[i];
-      try {
-        const res = await axios.post(`${API_BASE}/api/classification/classify`, {
-          text: line,
-          model_name: selectedClassification,
-        });
-        const payload = normalizeClassificationPayload(res.data, line);
-        payloads.push(payload);
-        const successRow = {
-          line_number: i + 1,
-          status: "success",
-          error_message: "",
-          ...buildStandardExportRow(payload),
-        };
-        exportRows.push(successRow);
-      } catch (err) {
-        const errorMessage = err?.response?.data?.error || err.message || "Không rõ lỗi";
-        collectedLineErrors.push({ line_number: i + 1, error_message: errorMessage });
-        exportRows.push({
-          line_number: i + 1,
-          status: "error",
-          error_message: errorMessage,
-          task: "classification",
-          input_text: line,
-          model_name: selectedClassification,
-          prediction_label: "",
-          prediction_id: "",
-          confidence_score: "",
-          processing_time_ms: "",
-          token_count: line.trim().split(/\s+/).filter(Boolean).length,
-          warnings: "",
-          result_json: "{}",
-        });
+      for (let i = 0; i < lines.length; i += 1) {
+        const line = lines[i];
+        try {
+          const res = await axios.post(`${API_BASE}/api/classification/classify`, {
+            text: line,
+            model_name: selectedClassification,
+          });
+
+          const payload = normalizeClassificationPayload(res.data, line);
+          payloads.push(payload);
+          exportRows.push({
+            line_number: i + 1,
+            status: "success",
+            error_message: "",
+            ...buildStandardExportRow(payload),
+          });
+        } catch (error) {
+          const errorMessage = error?.response?.data?.error || error.message || "Không rõ lỗi";
+          collectedLineErrors.push({ line_number: i + 1, error_message: errorMessage });
+          exportRows.push({
+            line_number: i + 1,
+            status: "error",
+            error_message: errorMessage,
+            task: "classification",
+            input_text: line,
+            model_name: selectedClassification,
+            prediction_label: "",
+            prediction_id: "",
+            confidence_score: "",
+            processing_time_ms: "",
+            token_count: line.trim().split(/\s+/).filter(Boolean).length,
+            warnings: "",
+            result_json: "{}",
+          });
+        }
+        setBatchProgress({ done: i + 1, total });
       }
-      setBatchProgress({ done: i + 1, total });
-    }
 
-    setLineErrors(collectedLineErrors);
+      setLineErrors(collectedLineErrors);
 
-    if (lines.length === 1) {
-      if (payloads[0]) {
-        setResult(payloads[0]);
-      } else {
-        setResult({ error: collectedLineErrors[0]?.error_message || "Dòng xử lý thất bại." });
+      if (lines.length === 1) {
+        if (payloads[0]) {
+          setResult(payloads[0]);
+        } else {
+          setResult({ error: collectedLineErrors[0]?.error_message || "Dòng xử lý thất bại." });
+        }
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-      return;
-    }
 
-    setResult(null);
-    let csvResult = Papa.unparse(exportRows);
+      setResult(null);
+      let csvResult = Papa.unparse(exportRows);
 
-    if (sharedFile)
-    {
-      setCsvDownloadName(`${sharedFile.name.replace(/\.[^/.]+$/, "")}_classify.csv`);
-      setJsonDownloadName(`${sharedFile.name.replace(/\.[^/.]+$/, "")}_classify.json`);
+      if (sharedFile) {
+        setCsvDownloadName(`${sharedFile.name.replace(/\.[^/.]+$/, "")}_classify.csv`);
+        setJsonDownloadName(`${sharedFile.name.replace(/\.[^/.]+$/, "")}_classify.json`);
+
         if (sharedFile.name.endsWith(".csv")) {
-        const csvWithResults = csvData.map((row, index) => {
-          if (index === 0) {
-            const resultKeys = exportRows[0] ? Object.keys(exportRows[0]) : [];
-            return [...row, ...resultKeys];
-          }
-          if (index - 1 >= exportRows.length) {
-            return row; 
-          }
-          const res = exportRows[index - 1] ? exportRows[index - 1] : {};
-          return [
-              ...row,
-              ...Object.values(res)
-          ];
-        });
-        csvResult = Papa.unparse(csvWithResults);
+          const csvWithResults = csvData.map((row, index) => {
+            if (index === 0) {
+              const resultKeys = exportRows[0] ? Object.keys(exportRows[0]) : [];
+              return [...row, ...resultKeys];
+            }
+            if (index - 1 >= exportRows.length) {
+              return row;
+            }
+            const rowResult = exportRows[index - 1] ? exportRows[index - 1] : {};
+            return [...row, ...Object.values(rowResult)];
+          });
+          csvResult = Papa.unparse(csvWithResults);
+        }
       }
-    }
 
-    const csvUrl = createDownloadUrl(csvResult, "text/csv;charset=utf-8;");
-    const jsonUrl = createDownloadUrl(JSON.stringify(exportRows, null, 2), "application/json;charset=utf-8;");
-    setCsvResultUrl(csvUrl);
-    setJsonResultUrl(jsonUrl);
-    setLoading(false);
-  } catch (err) {
-    setResult({ error: err.message || "Có lỗi xảy ra!" });
-    setLoading(false);
-  }
+      const csvUrl = createDownloadUrl(csvResult, "text/csv;charset=utf-8;");
+      const jsonUrl = createDownloadUrl(JSON.stringify(exportRows, null, 2), "application/json;charset=utf-8;");
+      setCsvResultUrl(csvUrl);
+      setJsonResultUrl(jsonUrl);
+      setLoading(false);
+    } catch (error) {
+      setResult({ error: error.message || "Có lỗi xảy ra!" });
+      setLoading(false);
+    }
   };
 
   return (
     <div className="classification-tool">
       <strong>Tùy chọn phân loại:</strong>
+
       <div className="options">
         <label>
           <input
@@ -246,11 +252,11 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
               setSelectedClassification("essay_identification");
               setSampleUrls(TEST_SAMPLE_PATHS.essay_identification);
             }}
-
           />{" "}
           Phân loại thể loại văn bản
         </label>
-        <label style={{ marginLeft: 16 }}>
+
+        <label className="feature-label-offset">
           <input
             type="radio"
             name="classification"
@@ -264,65 +270,67 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
           Phân loại chủ đề
         </label>
       </div>
-      <div style={{ color: "#d69e2e", fontStyle: "italic", marginBottom: 8 , fontSize: 14 }}>
+
+      <div className="feature-note-italic">
         {selectedClassification === "essay_identification"
           ? "Mô hình phân loại thể loại văn bản: Dự đoán thể loại văn bản với các nhãn như: Nghị luận, Biểu cảm, Miêu tả, Thuyết minh, Tự sự."
           : "Mô hình phân loại chủ đề: Dự đoán văn bản thuộc về chủ đề nào với 10 chủ đề khác nhau."}
       </div>
-      <div style={{ marginBottom: 8, display: "flex", gap: 16, alignItems: "center" }}>
-        <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
+
+      <div className="feature-compare-row">
+        <label className="feature-flex-inline">
           <input
             type="checkbox"
             checked={compareMode}
-            onChange={(e) => {
-              setCompareMode(e.target.checked);
+            onChange={(event) => {
+              setCompareMode(event.target.checked);
               setResult(null);
               setCompareResult(null);
             }}
           />
           So sánh 2 model
         </label>
+
         {compareMode && (
           <>
-            <select value={compareModelA} onChange={(e) => setCompareModelA(e.target.value)}>
+            <select value={compareModelA} onChange={(event) => setCompareModelA(event.target.value)}>
               <option value="essay_identification">essay_identification</option>
               <option value="topic_classification">topic_classification</option>
             </select>
             <span>vs</span>
-            <select value={compareModelB} onChange={(e) => setCompareModelB(e.target.value)}>
+            <select value={compareModelB} onChange={(event) => setCompareModelB(event.target.value)}>
               <option value="topic_classification">topic_classification</option>
               <option value="essay_identification">essay_identification</option>
             </select>
           </>
         )}
       </div>
+
       <FileUploader
-        onFileSelect={handleFileSelect} 
+        onFileSelect={handleFileSelect}
         sampleUrls={sampleUrls}
         sharedFile={sharedFile}
         setSharedFile={setSharedFile}
       />
+
       <div className="text-area-container">
         <div className="input-area">
-              <label>Văn bản</label>
-              <textarea
-                rows={10}
-                placeholder="Nhập văn bản tại đây..."
-                value={sharedTextInput}
-                disabled={(readMode === "all" && sharedFile && sharedFile.name.endsWith(".csv"))}
-                onChange={(e) => setSharedTextInput(e.target.value)}
-              />
+          <label>Văn bản</label>
+          <textarea
+            rows={10}
+            placeholder="Nhập văn bản tại đây..."
+            value={sharedTextInput}
+            disabled={readMode === "all" && sharedFile && sharedFile.name.endsWith(".csv")}
+            onChange={(event) => setSharedTextInput(event.target.value)}
+          />
+
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button
-              className="analyze-button"
-              onClick={handleAnalyze}
-              disabled={loading}
-            >
+            <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
               Phân tích
             </button>
             {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
+                <div className="feature-label-hint">
                   Đang phân tích... {batchProgress.total > 0 ? `${batchProgress.done}/${batchProgress.total}` : ""}
                 </div>
                 <div className="loading-bar-container">
@@ -339,114 +347,107 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
             )}
           </div>
         </div>
+
         <div className="result-area">
           <label>Kết quả</label>
+
           {!csvResultUrl && (
-          <div className="result-box">
-            {!result&& (
-              <div style={{ color: "#888" }}>Kết quả sẽ hiển thị ở đây...</div>
-            )}
-            {result && result.error && (
-              <div style={{ color: "red" }}>{result.error}</div>
-            )}
-            {result && !result.error && result.label_name && (
-              <div style={{ marginTop: 16 }}>
-                <strong>Nhận định: </strong>
-                <span style={{ color: "#0984e3", fontWeight: 600 }}>
-                   {selectedClassification === "topic_classification" ? "Chủ đề" : "Thể loại"} {result.label_name}
-                </span>
-                <div style={{ marginTop: 10, fontSize: 13, color: "#444" }}>
-                  <div><strong>Confidence:</strong> {result?.meta?.confidence_score ?? "N/A"}</div>
-                  <div><strong>Thời gian xử lý:</strong> {result?.meta?.processing_time_ms ?? "N/A"} ms</div>
-                  <div><strong>Số token:</strong> {result?.meta?.token_count ?? "N/A"}</div>
-                  <div><strong>Cảnh báo:</strong> {(result?.meta?.warnings || []).length ? result.meta.warnings.join(" | ") : "Không"}</div>
+            <div className="result-box">
+              {!result && <div className="feature-hint-text">Kết quả sẽ hiển thị ở đây...</div>}
+
+              {result && result.error && <div className="feature-error-text">{result.error}</div>}
+
+              {result && !result.error && result.label_name && (
+                <div style={{ marginTop: 16 }}>
+                  <strong>Nhận định: </strong>
+                  <span style={{ color: "#0984e3", fontWeight: 600 }}>
+                    {selectedClassification === "topic_classification" ? "Chủ đề" : "Thể loại"} {result.label_name}
+                  </span>
+                  <div style={{ marginTop: 10, fontSize: 13, color: "#444" }}>
+                    <div>
+                      <strong>Confidence:</strong> {result?.meta?.confidence_score ?? "N/A"}
+                    </div>
+                    <div>
+                      <strong>Thời gian xử lý:</strong> {result?.meta?.processing_time_ms ?? "N/A"} ms
+                    </div>
+                    <div>
+                      <strong>Số token:</strong> {result?.meta?.token_count ?? "N/A"}
+                    </div>
+                    <div>
+                      <strong>Cảnh báo:</strong> {(result?.meta?.warnings || []).length ? result.meta.warnings.join(" | ") : "Không"}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
-            {compareResult && compareResult.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <strong>So sánh kết quả 2 model</strong>
-                <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr>
-                      <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Model</th>
-                      <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Label</th>
-                      <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Confidence</th>
-                      <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Time (ms)</th>
-                      <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Token</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {compareResult.map((item, idx) => (
-                      <tr key={`${item.model_name}-${idx}`}>
-                        <td>{item.model_name}</td>
-                        <td>{item?.result?.label || "N/A"}</td>
-                        <td>{item?.meta?.confidence_score ?? "N/A"}</td>
-                        <td>{item?.meta?.processing_time_ms ?? "N/A"}</td>
-                        <td>{item?.meta?.token_count ?? "N/A"}</td>
+              )}
+
+              {compareResult && compareResult.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <strong>So sánh kết quả 2 model</strong>
+                  <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        <th className="feature-table-cell-border">Model</th>
+                        <th className="feature-table-cell-border">Label</th>
+                        <th className="feature-table-cell-border">Confidence</th>
+                        <th className="feature-table-cell-border">Time (ms)</th>
+                        <th className="feature-table-cell-border">Token</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {lineErrors.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <strong>Lỗi theo dòng</strong>
-                <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr>
-                      <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Dòng</th>
-                      <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>Thông báo lỗi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {lineErrors.map((item, idx) => (
-                      <tr key={`${item.line_number}-${idx}`}>
-                        <td>{item.line_number}</td>
-                        <td>{item.error_message}</td>
+                    </thead>
+                    <tbody>
+                      {compareResult.map((item, idx) => (
+                        <tr key={`${item.model_name}-${idx}`}>
+                          <td>{item.model_name}</td>
+                          <td>{item?.result?.label || "N/A"}</td>
+                          <td>{item?.meta?.confidence_score ?? "N/A"}</td>
+                          <td>{item?.meta?.processing_time_ms ?? "N/A"}</td>
+                          <td>{item?.meta?.token_count ?? "N/A"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {lineErrors.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <strong>Lỗi theo dòng</strong>
+                  <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        <th className="feature-table-cell-border">Dòng</th>
+                        <th className="feature-table-cell-border">Thông báo lỗi</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-           
-          </div>
+                    </thead>
+                    <tbody>
+                      {lineErrors.map((item, idx) => (
+                        <tr key={`${item.line_number}-${idx}`}>
+                          <td>{item.line_number}</td>
+                          <td>{item.error_message}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           )}
-          {csvResultUrl && (
-              <CsvViewer csvFile={csvResultUrl} />
-          )}
+
+          {csvResultUrl && <CsvViewer csvFile={csvResultUrl} />}
+
           <div className="csv-download-area">
             {csvResultUrl && (
               <div>
                 <a
                   href={csvResultUrl}
                   download={csvDownloadName}
-                  className="analyze-button"
+                  className="feature-download-link"
                   title={`Tải file kết quả: ${csvDownloadName}`}
-                  style={{
-                    background: "#e0e0e0",
-                    color: "#444",
-                    textDecoration: "none",
-                    padding: "6px 10px",
-                    borderRadius: "50%",
-                    fontWeight: 500,
-                    fontSize: 18,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 2px 8px rgba(0,185,148,0.08)",
-                    transition: "background 0.2s",
-                    width: 36,
-                    height: 36,
-                  }}
                 >
-                  <span role="img" aria-label="download">⬇️</span>
+                  <span role="img" aria-label="download">
+                    ⬇️
+                  </span>
                 </a>
-                <span style={{ fontSize: 14, fontWeight: 500 }}>
-                  {csvDownloadName}
-                </span>
+                <span style={{ fontSize: 14, fontWeight: 500 }}>{csvDownloadName}</span>
                 {jsonResultUrl && (
                   <a
                     href={jsonResultUrl}
