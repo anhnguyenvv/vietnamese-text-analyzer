@@ -14,11 +14,11 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PRELOAD_MODELS_ON_STARTUP=False
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       openjdk-17-jre-headless \
-       build-essential \
+         default-jre-headless \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./

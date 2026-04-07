@@ -1,0 +1,85 @@
+groups:
+  - name: vta-recording-rules
+    interval: 30s
+    rules:
+      - record: job:vta_http_requests_rate5m
+        expr: sum(rate(vta_http_requests_total[5m]))
+
+      - record: job:vta_http_error_rate5m
+        expr: sum(rate(vta_http_requests_total{status_code=~"4..|5.."}[5m])) / clamp_min(sum(rate(vta_http_requests_total[5m])), 1e-9)
+
+      - record: job:vta_http_latency_p95_5m
+        expr: histogram_quantile(0.95, sum by (le) (rate(vta_http_request_duration_seconds_bucket[5m])))
+
+  - name: vta-alert-rules
+    interval: 30s
+    rules:
+      - alert: VTAApiTargetDown
+        expr: up{job="vietnamese-text-analyzer"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: vietnamese-text-analyzer
+        annotations:
+          summary: "VTA API target is down"
+          description: "Prometheus cannot scrape vietnamese-text-analyzer:5000 for more than 2 minutes."
+
+      - alert: VTAPrometheusTargetDown
+        expr: up{job="prometheus"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: prometheus
+        annotations:
+          summary: "Prometheus self target is down"
+          description: "Prometheus self scrape endpoint is unavailable."
+
+      - alert: VTAGrafanaTargetDown
+        expr: up{job="grafana"} == 0
+        for: 3m
+        labels:
+          severity: warning
+          service: grafana
+        annotations:
+          summary: "Grafana target is down"
+          description: "Prometheus cannot scrape Grafana metrics endpoint for more than 3 minutes."
+
+      - alert: VTAHighHttpErrorRate
+        expr: job:vta_http_error_rate5m > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: vietnamese-text-analyzer
+        annotations:
+          summary: "High HTTP error rate"
+          description: "HTTP error rate is above 10% for 5 minutes."
+
+      - alert: VTAHighP95Latency
+        expr: job:vta_http_latency_p95_5m > 1.5
+        for: 5m
+        labels:
+          severity: warning
+          service: vietnamese-text-analyzer
+        annotations:
+          summary: "High API latency"
+          description: "P95 HTTP latency is above 1.5 seconds for 5 minutes."
+
+      - alert: VTALowInferenceSuccessRate
+        expr: vta_inference_success_rate < 0.9
+        for: 10m
+        labels:
+          severity: warning
+          service: vietnamese-text-analyzer
+        annotations:
+          summary: "Low inference success rate"
+          description: "Inference success rate dropped below 90% for 10 minutes."
+
+      - alert: VTAHighInferenceErrorRate
+        expr: vta_inference_error_rate > 0.1
+        for: 10m
+        labels:
+          severity: critical
+          service: vietnamese-text-analyzer
+        annotations:
+          summary: "High inference error rate"
+          description: "Inference error rate exceeds 10% for 10 minutes."
