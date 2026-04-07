@@ -5,7 +5,8 @@
   width: 100%;
   box-sizing: border-box;
   padding: 12px 40px;
-  background-color: #fdfdfd;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -47,6 +48,7 @@ margin-right: 10px;
 .menu {
 display: flex;
 gap: 45px;
+align-items: center;
 }
 
 .menu span {
@@ -65,15 +67,15 @@ body {
 
 
 .nav-link:visited {
-  color: rgb(1, 53, 62);
+  color: var(--text-primary);
 }
 .nav-link:hover {
-  color: #1294eb;
+  color: var(--accent);
 }
 
 .nav-link {
   text-decoration: none;
-  color: #333;
+  color: var(--text-primary);
   margin-left: 16px;
   padding: 8px 15px; 
   border-radius: 12px;
@@ -87,14 +89,29 @@ body {
 
 .nav-link.active {
   padding: 8px 15px;
-  border: 1px solid #238FDE;  
+  border: 1px solid var(--accent);  
   border-radius: 8px;       
-  background-color: #f2f2f2;  
-  color: #238FDE;             
+  background-color: var(--bg-soft);  
+  color: var(--accent);             
   font-family: 'Segoe UI', sans-serif;
   transition: background-color 0.3s ease;
 }
 
 .nav-link.active:hover {
-  background-color: #c4e5ff  ;
+  background-color: color-mix(in srgb, var(--accent) 18%, var(--bg-surface));
+}
+
+.theme-toggle-btn {
+  margin-left: 20px;
+  background: var(--bg-soft);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  min-width: 72px;
+  font-weight: 600;
+  padding: 7px 12px;
+}
+
+.theme-toggle-btn:hover {
+  background: color-mix(in srgb, var(--accent) 20%, var(--bg-soft));
 }

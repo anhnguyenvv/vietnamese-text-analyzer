@@ -171,6 +171,21 @@ function normalizeTimeToken(token) {
   return `${numberToVietnameseWords(hours)} giờ ${numberToVietnameseWords(minutes)} phút`;
 }
 
+function normalizeDecimalCommaToken(token) {
+  const match = String(token).match(/^(\d+),(\d+)$/);
+  if (!match) {
+    return token;
+  }
+
+  const integerPart = numberToVietnameseWords(match[1]);
+  const decimalDigits = match[2]
+    .split("")
+    .map((digit) => numberToVietnameseWords(digit))
+    .join(" ");
+
+  return `${integerPart} phẩy ${decimalDigits}`;
+}
+
 export function normalizeVietnameseTtsText(text) {
   let normalized = String(text || "").trim();
   if (!normalized) {
@@ -179,8 +194,10 @@ export function normalizeVietnameseTtsText(text) {
 
   normalized = normalized.replace(/\s+/g, " ");
 
-  normalized = normalized.replace(/(\d+)\s*[-–]\s*(\d+)/g, (_, left, right) => {
-    return `${numberToVietnameseWords(left)} đến ${numberToVietnameseWords(right)}`;
+  normalized = normalized.replace(/(\d+(?:,\d+)?)\s*[-–]\s*(\d+(?:,\d+)?)/g, (_, left, right) => {
+    const leftWords = left.includes(",") ? normalizeDecimalCommaToken(left) : numberToVietnameseWords(left);
+    const rightWords = right.includes(",") ? normalizeDecimalCommaToken(right) : numberToVietnameseWords(right);
+    return `${leftWords} đến ${rightWords}`;
   });
 
   normalized = normalized.replace(/\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b/g, (token) => normalizeDateToken(token));
@@ -196,6 +213,8 @@ export function normalizeVietnameseTtsText(text) {
     return numberToVietnameseWords(value);
   });
 
+  normalized = normalized.replace(/\b\d+,\d+\b/g, (token) => normalizeDecimalCommaToken(token));
+
   normalized = normalized.replace(/\b\d+\b/g, (token) => numberToVietnameseWords(token));
 
   return normalized.replace(/\s+/g, " ").trim();
@@ -205,15 +224,6 @@ export function chunkTextForTts(text, maxChars = 220) {
   const input = String(text || "").trim();
   if (!input) {
     return [];
-  }
-
-  const sentenceParts = input
-    .split(/(?<=[.!?;:])\s+/)
-    .map((part) => part.trim())
-    .filter(Boolean);
-
-  if (sentenceParts.length === 0) {
-    return [input.slice(0, maxChars)];
   }
 
   const chunks = [];
@@ -226,35 +236,106 @@ export function chunkTextForTts(text, maxChars = 220) {
     }
   };
 
-  for (const sentence of sentenceParts) {
-    if (sentence.length > maxChars) {
-      pushCurrent();
-      const words = sentence.split(/\s+/).filter(Boolean);
-      let longChunk = "";
-      for (const word of words) {
-        const candidate = longChunk ? `${longChunk} ${word}` : word;
-        if (candidate.length > maxChars) {
-          if (longChunk) {
-            chunks.push(longChunk.trim());
-          }
-          longChunk = word;
-        } else {
-          longChunk = candidate;
+  const splitByWords = (value) => {
+    const words = String(value || "").split(/\s+/).filter(Boolean);
+    const longChunks = [];
+    let wordBuffer = "";
+
+    for (const word of words) {
+      const candidate = wordBuffer ? `${wordBuffer} ${word}` : word;
+      if (candidate.length > maxChars) {
+        if (wordBuffer) {
+          longChunks.push(wordBuffer.trim());
         }
+        wordBuffer = word;
+      } else {
+        wordBuffer = candidate;
       }
-      if (longChunk.trim()) {
-        chunks.push(longChunk.trim());
-      }
-      continue;
     }
 
-    const candidate = current ? `${current} ${sentence}` : sentence;
-    if (candidate.length > maxChars) {
-      pushCurrent();
-      current = sentence;
-    } else {
-      current = candidate;
+    if (wordBuffer.trim()) {
+      longChunks.push(wordBuffer.trim());
     }
+
+    return longChunks;
+  };
+
+  const splitLongSentence = (sentence) => {
+    if (sentence.length <= maxChars) {
+      return [sentence];
+    }
+
+    const phraseParts = sentence
+      .split(/(?<=[,;:])\s+/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    if (phraseParts.length <= 1) {
+      return splitByWords(sentence);
+    }
+
+    const result = [];
+    let phraseBuffer = "";
+    for (const phrase of phraseParts) {
+      if (phrase.length > maxChars) {
+        if (phraseBuffer) {
+          result.push(phraseBuffer.trim());
+          phraseBuffer = "";
+        }
+        result.push(...splitByWords(phrase));
+        continue;
+      }
+
+      const candidate = phraseBuffer ? `${phraseBuffer} ${phrase}` : phrase;
+      if (candidate.length > maxChars) {
+        if (phraseBuffer) {
+          result.push(phraseBuffer.trim());
+        }
+        phraseBuffer = phrase;
+      } else {
+        phraseBuffer = candidate;
+      }
+    }
+
+    if (phraseBuffer.trim()) {
+      result.push(phraseBuffer.trim());
+    }
+    return result;
+  };
+
+  const paragraphs = input
+    .replace(/\r\n?/g, "\n")
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  for (const paragraph of paragraphs) {
+    const sentenceParts = paragraph
+      .split(/(?<=[.!?…;:])\s+/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    if (sentenceParts.length === 0) {
+      sentenceParts.push(paragraph);
+    }
+
+    // Flush before moving to a new paragraph to preserve natural paragraph breaks.
+    pushCurrent();
+
+    for (const sentence of sentenceParts) {
+      const sentencePieces = splitLongSentence(sentence);
+      for (const piece of sentencePieces) {
+        const candidate = current ? `${current} ${piece}` : piece;
+        if (candidate.length > maxChars) {
+          pushCurrent();
+          current = piece;
+        } else {
+          current = candidate;
+        }
+      }
+    }
+
+    pushCurrent();
   }
 
   pushCurrent();

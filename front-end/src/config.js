@@ -43,6 +43,11 @@ const TEST_SAMPLE_PATHS = {
   ],
   stats: [
     "/test_samples/stats/statistic_sample.txt"
+  ],
+  tts: [
+    "/test_samples/tts/tts_sample_short.txt",
+    "/test_samples/tts/tts_sample_paragraphs.txt",
+    "/test_samples/tts/tts_sample_numbers.txt"
   ]
 };
 

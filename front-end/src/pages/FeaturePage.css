@@ -4,7 +4,7 @@
   /* display: flex; */
   min-height: 97vh;
   font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(to right, #eef9ff, #ffe9fd, #dcf0f3);
+  background: var(--feature-gradient);
 }
 
 /* Sidebar styles */
@@ -15,12 +15,12 @@
   /* height: calc(100vh - 60px);            */
   height: 75vh; /* Chiều cao của sidebar */
   width: 230px;
-  background-color: #ffffff;
-  color: rgb(15, 0, 0);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
   padding: 20px;
   border-radius: 16px; 
   margin: 13px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--surface-shadow);
   z-index: 1000;           /* Đảm bảo nằm trên */
   
 } 
@@ -48,11 +48,11 @@
 }
 
 .sidebar-item:hover {
-  background-color: #E6E9EC;
+  background-color: var(--bg-soft);
 }
 
 .sidebar-item.active {
-  background-color: #92E6FA;
+  background-color: color-mix(in srgb, var(--accent) 30%, var(--bg-surface));
 }
 
 .sidebar-item .icon {
@@ -65,10 +65,11 @@
 }
 
 .main-content {
-  background-color: rgb(249, 249, 249);
+  background-color: var(--bg-surface);
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  color: var(--text-primary);
+  box-shadow: var(--surface-shadow);
 }
 .menu-icon {
   font-size: 20px; /* tăng hoặc giảm kích thước */

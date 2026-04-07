@@ -30,6 +30,22 @@ DEFAULT_MODEL_CANDIDATES = (
 )
 
 
+def _env_float(name: str, default: float) -> float:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    try:
+        return float(raw_value)
+    except ValueError:
+        return default
+
+
+NONLINEAR_SPEED_EXPONENT = max(_env_float("PIPER_TTS_SPEED_EXPONENT", 1.2), 1.01)
+MIN_LENGTH_SCALE = 0.1
+PARAGRAPH_BREAK_MARKER = "__TTS_PARAGRAPH_BREAK__"
+PARAGRAPH_BREAK_MS = max(_env_float("PIPER_TTS_PARAGRAPH_BREAK_MS", 280.0), 0.0)
+
+
 def _resolve_model_paths() -> tuple[Path, Path]:
     env_model_path = os.getenv(MODEL_PATH_ENV)
     env_config_path = os.getenv(CONFIG_PATH_ENV)
@@ -93,7 +109,7 @@ def _build_syn_config(
 
     resolved_length_scale = length_scale
     if resolved_length_scale is None and speed is not None and speed > 0:
-        resolved_length_scale = 1.0 / speed
+        resolved_length_scale = max(1.0 / (speed ** NONLINEAR_SPEED_EXPONENT), MIN_LENGTH_SCALE)
     if resolved_length_scale is None and slow:
         resolved_length_scale = 1.25
 
@@ -234,8 +250,62 @@ def synthesize_tts_chunks_wav(
     use_cuda: bool = False,
 ) -> io.BytesIO:
     if chunks is not None:
-        cleaned = _split_text_chunks(chunks)
-        text_to_speak = " ".join(cleaned)
+        raw_chunks = [str(chunk).strip() for chunk in chunks if str(chunk).strip()]
+        if not raw_chunks:
+            raise ValueError("text/chunks must contain at least one non-empty value")
+
+        tts = PiperTTS(use_cuda=use_cuda)
+        joined_frames: list[bytes] = []
+        audio_format: tuple[int, int, int] | None = None
+
+        for chunk in raw_chunks:
+            if chunk == PARAGRAPH_BREAK_MARKER:
+                if audio_format is None:
+                    continue
+                channels, sample_width, sample_rate = audio_format
+                silence_frames = int((PARAGRAPH_BREAK_MS / 1000.0) * sample_rate)
+                if silence_frames > 0:
+                    joined_frames.append(b"\x00" * silence_frames * sample_width * channels)
+                continue
+
+            chunk_wav = tts.synthesize_wav(
+                chunk,
+                speaker_id=speaker_id,
+                slow=slow,
+                length_scale=length_scale,
+                speed=speed,
+                noise_scale=noise_scale,
+                noise_w_scale=noise_w_scale,
+                volume=volume,
+                normalize_audio=normalize_audio,
+            )
+
+            with wave.open(io.BytesIO(chunk_wav.getvalue()), "rb") as wav_reader:
+                channels = wav_reader.getnchannels()
+                sample_width = wav_reader.getsampwidth()
+                sample_rate = wav_reader.getframerate()
+                frames = wav_reader.readframes(wav_reader.getnframes())
+
+            if audio_format is None:
+                audio_format = (channels, sample_width, sample_rate)
+            elif audio_format != (channels, sample_width, sample_rate):
+                raise RuntimeError("Inconsistent WAV format across synthesized chunks")
+
+            joined_frames.append(frames)
+
+        if audio_format is None:
+            raise ValueError("No synthesizeable chunks were provided")
+
+        channels, sample_width, sample_rate = audio_format
+        out_buffer = io.BytesIO()
+        with wave.open(out_buffer, "wb") as wav_writer:
+            wav_writer.setnchannels(channels)
+            wav_writer.setsampwidth(sample_width)
+            wav_writer.setframerate(sample_rate)
+            wav_writer.writeframes(b"".join(joined_frames))
+
+        out_buffer.seek(0)
+        return out_buffer
     else:
         text_to_speak = str(text or "").strip()
 

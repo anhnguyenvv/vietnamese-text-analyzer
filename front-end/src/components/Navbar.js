@@ -4,7 +4,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import "./Navbar.css";
 
-const Navbar = () => {
+const Navbar = ({ theme, onToggleTheme }) => {
 return (
 <div className="navbar">
 <div className="logo-section">
@@ -39,6 +39,14 @@ className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
 >
 Phản hồi
 </NavLink>
+<button
+type="button"
+className="theme-toggle-btn"
+onClick={onToggleTheme}
+aria-label="Đổi giao diện sáng tối"
+>
+{theme === "dark" ? "Light" : "Dark"}
+</button>
 </div>
 </div>
 );

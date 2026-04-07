@@ -23,8 +23,8 @@ function highlightEntities(text, entities) {
     const word = ent[0];
     if (ent[1] && ent[1] !== "O") {
       const labelShort = ent[1].replace(/^B-/, "").replace(/^I-/, "");
-      const color = ENTITY_COLORS[labelShort] || "#dfe6e9";
-      result += `<span style="background:${color};border-radius:4px;padding:1px 4px;margin:0 1px;display:inline-block;" title="${ent[1]}">${word}<sub style="color:#636e72;font-size:10px;">${ent[1]}</sub></span>`;
+      const color = ENTITY_COLORS[labelShort] || "var(--bg-soft)";
+      result += `<span style="background:${color};border-radius:4px;padding:1px 4px;margin:0 1px;display:inline-block;" title="${ent[1]}">${word}<sub style="color:var(--text-muted);font-size:10px;">${ent[1]}</sub></span>`;
     } else {
       result += " " + word;
     }
@@ -304,7 +304,7 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
             </button>
             {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
+                <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 4 }}>
                   Đang phân tích...
                 </div>
                 <div className="loading-bar-container">
@@ -322,7 +322,7 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
               <select
                 value={selectedLineIdx}
                 onChange={(e) => handleSelectLine(Number(e.target.value))}
-                style={{ marginLeft: 8, padding: "4px 8px", borderRadius: 4, border: "1px solid #ccc" }}
+                style={{ marginLeft: 8, padding: "4px 8px", borderRadius: 4, border: "1px solid var(--border-color)", background: "var(--bg-surface)", color: "var(--text-primary)" }}
               >
                 {allResults.map((item, idx) => (
                   <option key={idx} value={idx}>
@@ -366,7 +366,7 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
             )}
 
             {compareMode && !comparePayload && (
-              <div style={{ color: "#888" }}>Kết quả so sánh sẽ hiển thị ở đây...</div>
+              <div style={{ color: "var(--text-muted)" }}>Kết quả so sánh sẽ hiển thị ở đây...</div>
             )}
 
             {!compareMode && Object.keys(entityCount).length > 0 && (
@@ -381,8 +381,8 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
                 >
                   <thead>
                     <tr>
-                      <th style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>Entity</th>
-                      <th style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>Số lượt</th>
+                      <th style={{ textAlign: "left", borderBottom: "1px solid var(--border-color)" }}>Entity</th>
+                      <th style={{ textAlign: "left", borderBottom: "1px solid var(--border-color)" }}>Số lượt</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -391,11 +391,11 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
                         <td>
                           <span
                             style={{
-                              background: ENTITY_COLORS[label] || "#dfe6e9",
+                              background: ENTITY_COLORS[label] || "var(--bg-soft)",
                               borderRadius: 4,
                               padding: "1px 6px",
                               marginRight: 4,
-                              color: "#222",
+                              color: "var(--text-primary)",
                             }}
                           >
                             {label}
@@ -415,7 +415,7 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
                 href={jsonResultUrl}
                 download={jsonDownloadName}
                 className="analyze-button"
-                style={{ background: "#f0f0f0", color: "#444", textDecoration: "none", padding: "6px 10px", borderRadius: 6 }}
+                style={{ background: "var(--bg-soft)", color: "var(--text-primary)", textDecoration: "none", padding: "6px 10px", borderRadius: 6, border: "1px solid var(--border-color)" }}
               >
                 <span role="img" aria-label="download">⬇️</span>
                 Tải file kết quả JSON
@@ -425,8 +425,9 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
         </div>
       </div>
       <div style={{
-        background: "#f1f2f6",
-        border: "1px solid #dfe4ea",
+        background: "var(--bg-soft)",
+        border: "1px solid var(--border-color)",
+        color: "var(--text-primary)",
         borderRadius: 4,
         padding: 8,
         margin: "12px 0"

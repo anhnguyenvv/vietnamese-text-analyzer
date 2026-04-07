@@ -11,6 +11,7 @@ from utils.input_validation import validate_text_input
 tts_bp = Blueprint("tts", __name__)
 
 ALLOWED_LANGS = {"vi", "en"}
+PARAGRAPH_BREAK_MARKER = "__TTS_PARAGRAPH_BREAK__"
 
 
 @tts_bp.route("/synthesize", methods=["POST"])
@@ -65,6 +66,12 @@ def synthesize_speech():
 
     if speed is not None and speed <= 0:
         return jsonify({"error": "speed must be greater than 0"}), 400
+    if speed is not None:
+        if speed < 0.25 or speed > 3:
+            return jsonify({"error": "speed must be between 0.25 and 3.0"}), 400
+        speed_step = speed * 4
+        if abs(speed_step - round(speed_step)) > 1e-9:
+            return jsonify({"error": "speed must be in steps of 0.25"}), 400
 
     try:
         audio_buffer = synthesize_tts_chunks_wav(
@@ -79,7 +86,11 @@ def synthesize_speech():
         )
 
         original_text = text if text_error is None else str(payload.get("text") or "").strip()
-        normalized_text = " ".join(chunks) if chunks is not None else original_text
+        normalized_text = (
+            " ".join(chunk for chunk in chunks if chunk != PARAGRAPH_BREAK_MARKER)
+            if chunks is not None
+            else original_text
+        )
         save_tts_history(
             input_text=original_text,
             normalized_text=normalized_text,

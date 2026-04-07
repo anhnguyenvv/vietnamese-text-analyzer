@@ -49,7 +49,7 @@
 textarea:focus,
 input:focus {
   outline: none; 
-  border: 1px solid #238FDE; /* Tạo viền xanh dương đậm */
+  border: 1px solid var(--accent); /* Tạo viền xanh dương đậm */
   box-shadow: 0 0 4px rgba(35, 143, 222, 0.4); 
 }
 
@@ -59,8 +59,9 @@ textarea {
   padding: 10px;
   font-size: 14px;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
 }
 
 /* Nút phân tích */
@@ -88,21 +89,21 @@ textarea {
 
 .file-limit-hint {
   font-size: 12px;
-  color: #4b5563;
+  color: var(--text-muted);
   margin-bottom: 8px;
 }
 
 .drop-zone {
-  border: 1.5px dashed #9cc7e6;
+  border: 1.5px dashed color-mix(in srgb, var(--accent) 45%, var(--border-color));
   border-radius: 10px;
   padding: 10px;
-  background: #f9fcff;
+  background: color-mix(in srgb, var(--bg-soft) 82%, var(--bg-surface));
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .drop-zone.active {
-  border-color: #238fde;
-  background: #eef7ff;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-surface));
 }
 
 .upload-alert {
@@ -151,7 +152,7 @@ textarea {
 
 .file-name strong {
   font-size: 14px;
-  color: #000000;
+  color: var(--text-primary);
   font-weight: normal;
   font-family: 'Segoe UI', sans-serif;
   margin-left: 5px;
@@ -165,8 +166,9 @@ textarea {
   padding: 10px;
   font-size: 14px;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
 }
 
  .result-box strong {
@@ -241,6 +243,46 @@ textarea {
 
 .tts-field-label {
   margin-bottom: 0;
+}
+
+.tts-speed-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: min(100%, 420px);
+  min-width: 320px;
+}
+
+.tts-speed-label {
+  margin-bottom: 0;
+  font-size: 13px;
+}
+
+.tts-speed-control input[type="range"] {
+  width: 100%;
+}
+
+.tts-speed-marks {
+  position: relative;
+  height: 18px;
+  font-size: 12px;
+  color: #666;
+}
+
+.tts-speed-mark {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.tts-speed-mark:first-child {
+  left: 0 !important;
+  transform: none;
+}
+
+.tts-speed-mark:last-child {
+  left: 100% !important;
+  transform: translateX(-100%);
 }
 
 .tts-switch-label {

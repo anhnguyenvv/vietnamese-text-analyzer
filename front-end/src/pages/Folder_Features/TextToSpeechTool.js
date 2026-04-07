@@ -6,12 +6,21 @@ import { chunkTextForTts, normalizeVietnameseTtsText } from "../../utils/ttsText
 import "./Features.css";
 
 
+const SPEED_MIN = 0.25;
+const SPEED_MAX = 3;
+const SPEED_STEP = 0.25;
+const SPEED_MARKS = [0.25, 0.5, 0.75, 1, 2, 3];
+const PARAGRAPH_BREAK_MARKER = "__TTS_PARAGRAPH_BREAK__";
+
+const formatSpeedLabel = (value) => `${Number(value).toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")}x`;
+const speedToPercent = (value) => ((value - SPEED_MIN) / (SPEED_MAX - SPEED_MIN)) * 100;
+
+
 const TextToSpeechTool = ({ sharedTextInput, setSharedTextInput }) => {
   const [audioUrl, setAudioUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [lang, setLang] = useState("vi");
-  const [slow, setSlow] = useState(false);
+  const [speed, setSpeed] = useState(1);
   const [chunkCount, setChunkCount] = useState(0);
 
   useEffect(() => {
@@ -31,9 +40,32 @@ const TextToSpeechTool = ({ sharedTextInput, setSharedTextInput }) => {
 
     setLoading(true);
     try {
-      const normalizedText = normalizeVietnameseTtsText(sharedTextInput);
-      const chunks = chunkTextForTts(normalizedText);
-      setChunkCount(chunks.length);
+      const paragraphs = String(sharedTextInput || "")
+        .replace(/\r\n?/g, "\n")
+        .split(/\n+/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
+
+      const chunks = [];
+      for (const paragraph of paragraphs) {
+        const normalizedParagraph = normalizeVietnameseTtsText(paragraph);
+        if (!normalizedParagraph) {
+          continue;
+        }
+
+        const paragraphChunks = chunkTextForTts(normalizedParagraph);
+        if (paragraphChunks.length === 0) {
+          continue;
+        }
+
+        if (chunks.length > 0) {
+          chunks.push(PARAGRAPH_BREAK_MARKER);
+        }
+        chunks.push(...paragraphChunks);
+      }
+
+      const spokenChunkCount = chunks.filter((chunk) => chunk !== PARAGRAPH_BREAK_MARKER).length;
+      setChunkCount(spokenChunkCount);
 
       if (chunks.length === 0) {
         setError("Không có nội dung hợp lệ sau khi xử lý văn bản.");
@@ -46,8 +78,7 @@ const TextToSpeechTool = ({ sharedTextInput, setSharedTextInput }) => {
         {
           text: sharedTextInput,
           chunks,
-          lang,
-          slow,
+          speed,
         },
         {
           responseType: "blob",
@@ -98,18 +129,31 @@ const TextToSpeechTool = ({ sharedTextInput, setSharedTextInput }) => {
           />
 
           <div className="tts-controls-row">
-            <label className="tts-field-label">
-              Ngôn ngữ:&nbsp;
-              <select value={lang} onChange={(event) => setLang(event.target.value)}>
-                <option value="vi">Tiếng Việt</option>
-                <option value="en">Tiếng Anh</option>
-              </select>
-            </label>
-
-            <label className="tts-switch-label">
-              <input type="checkbox" checked={slow} onChange={(event) => setSlow(event.target.checked)} />
-              Đọc chậm
-            </label>
+            <div className="tts-speed-control">
+              <label className="tts-speed-label" htmlFor="tts-speed-slider">
+                Tốc độ đọc: <strong>{formatSpeedLabel(speed)}</strong>
+              </label>
+              <input
+                id="tts-speed-slider"
+                type="range"
+                min={SPEED_MIN}
+                max={SPEED_MAX}
+                step={SPEED_STEP}
+                value={speed}
+                onChange={(event) => setSpeed(Number(event.target.value))}
+              />
+              <div className="tts-speed-marks" aria-hidden="true">
+                {SPEED_MARKS.map((mark) => (
+                  <span
+                    key={mark}
+                    className="tts-speed-mark"
+                    style={{ left: `${speedToPercent(mark)}%` }}
+                  >
+                    {formatSpeedLabel(mark)}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="tts-action-row">

@@ -6,6 +6,8 @@ import FileUploader from "./FileUploader";
 import { Bar } from "react-chartjs-2";
 import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
 
+const WORD_CLOUD_COLORS = ["#1976d2", "#00a86b", "#8e44ad", "#e67e22", "#16a085", "#d35400", "#2c3e50"];
+
 const StatisticsTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -77,6 +79,43 @@ const StatisticsTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
       data: sorted.map(([, count]) => count)
     };
   };
+
+  const getWordCloudItems = (wordFreq, maxWords = 120) => {
+    if (!wordFreq) return [];
+
+    const sorted = Object.entries(wordFreq)
+      .filter(([word, count]) => word && Number(count) > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, maxWords);
+
+    if (sorted.length === 0) {
+      return [];
+    }
+
+    const counts = sorted.map(([, count]) => Number(count));
+    const maxCount = Math.max(...counts);
+    const minCount = Math.min(...counts);
+    const spread = Math.max(maxCount - minCount, 1);
+
+    const cloudItems = sorted.map(([word, count], index) => {
+      const normalized = (Number(count) - minCount) / spread;
+      const fontSize = 14 + Math.round(normalized * 30);
+      return {
+        word,
+        count: Number(count),
+        fontSize,
+        color: WORD_CLOUD_COLORS[index % WORD_CLOUD_COLORS.length],
+        rotate: index % 5 === 0 ? -12 : index % 5 === 3 ? 10 : 0,
+      };
+    });
+
+    for (let i = cloudItems.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cloudItems[i], cloudItems[j]] = [cloudItems[j], cloudItems[i]];
+    }
+
+    return cloudItems;
+  };
   return (
     <div className="statistics-tool">
       <strong>Tùy chọn thống kê:</strong>
@@ -143,48 +182,106 @@ const StatisticsTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSh
             <div className="result-visualizations">
               {result.stats.word_freq && (() => {
                 const { labels, data } = getTopWords(result.stats.word_freq, 10);
+                const cloudItems = getWordCloudItems(result.stats.word_freq, 120);
                 return (
-                  <div style={{ margin: "16px auto", maxWidth: 500 }}>
-                    <strong>Biểu đồ các từ xuất hiện nhiều nhất:</strong>
-                    <Bar
-                      data={{
-                        labels,
-                        datasets: [
-                          {
-                            label: "Số lần xuất hiện",
-                            data,
-                            backgroundColor: "#1976d2",
+                  <div
+                    style={{
+                      margin: "16px auto",
+                      maxWidth: 980,
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 16,
+                      alignItems: "stretch",
+                    }}
+                  >
+                    <div
+                      style={{
+                        flex: "1 1 420px",
+                        minWidth: 320,
+                        border: "1px solid var(--border-color)",
+                        borderRadius: 10,
+                        background: "var(--bg-surface)",
+                        padding: 12,
+                      }}
+                    >
+                      <div style={{ marginBottom: 10 }}>
+                        <strong>Biểu đồ các từ xuất hiện nhiều nhất:</strong>
+                      </div>
+                      <Bar
+                        data={{
+                          labels,
+                          datasets: [
+                            {
+                              label: "Số lần xuất hiện",
+                              data,
+                              backgroundColor: "#1976d2",
+                            },
+                          ],
+                        }}
+                        options={{
+                          indexAxis: "y",
+                          plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: true },
                           },
-                        ],
+                          scales: {
+                            x: { beginAtZero: true, ticks: { precision: 0 } },
+                          },
+                          backgroundColor: "#fff",
+                        }}
+                        style={{ background: "var(--bg-surface)", borderRadius: 8, border: "1px solid var(--border-color)", padding: 8 }}
+                      />
+                    </div>
+
+                    <div
+                      style={{
+                        flex: "1 1 420px",
+                        minWidth: 320,
+                        border: "1px solid var(--border-color)",
+                        borderRadius: 10,
+                        background: "var(--bg-surface)",
+                        padding: 12,
                       }}
-                      options={{
-                        indexAxis: "y",
-                        plugins: {
-                          legend: { display: false },
-                          tooltip: { enabled: true },
-                        },
-                        scales: {
-                          x: { beginAtZero: true, ticks: { precision: 0 } },
-                        },
-                        backgroundColor: "#fff",
-                      }}
-                      style={{ background: "#fff", borderRadius: 8 }}
-                    />
+                    >
+                      <div style={{ marginBottom: 10 }}>
+                        <strong>Word Cloud:</strong>
+                      </div>
+                      <div
+                        style={{
+                          minHeight: 300,
+                          display: "flex",
+                          flexWrap: "wrap",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "10px 14px",
+                          padding: 14,
+                          borderRadius: 10,
+                          border: "1px solid var(--border-color)",
+                          background: "var(--bg-surface)",
+                        }}
+                      >
+                        {cloudItems.map((item) => (
+                          <span
+                            key={item.word}
+                            title={`${item.word}: ${item.count}`}
+                            style={{
+                              fontSize: `${item.fontSize}px`,
+                              color: item.color,
+                              fontWeight: 700,
+                              lineHeight: 1,
+                              transform: `rotate(${item.rotate}deg)`,
+                              display: "inline-block",
+                              userSelect: "none",
+                            }}
+                          >
+                            {item.word}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 );
               })()}
-
-              {result.wordcloud && (
-                <div style={{ margin: "16px auto", maxWidth: 500 }}>
-                  <strong>Word Cloud:</strong>
-                  <br />
-                  <img
-                    src={`data:image/png;base64,${result.wordcloud}`}
-                    alt="Word Cloud"
-                    style={{ maxWidth: "100%", margin: "10px 0", borderRadius: 8 }}
-                  />
-                </div>
-              )}
             </div>
         )}
 

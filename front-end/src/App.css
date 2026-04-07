@@ -1,16 +1,56 @@
+:root {
+	--bg-page: #f4f7f0;
+	--bg-surface: #ffffff;
+	--bg-soft: #f2f5f9;
+	--text-primary: #1d2633;
+	--text-muted: #556070;
+	--border-color: #cfd8e3;
+	--accent: #238fde;
+	--accent-hover: #1a72b5;
+	--accent-contrast: #ffffff;
+	--success: #00b96b;
+	--success-hover: #029e5d;
+	--hero-gradient: linear-gradient(to right, #eef9ff, #ffeefa, #fffeea);
+	--feature-gradient: linear-gradient(to right, #eef9ff, #ffe9fd, #dcf0f3);
+	--surface-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+	--bg-page: #0f1722;
+	--bg-surface: #1a2432;
+	--bg-soft: #202d3d;
+	--text-primary: #e7edf7;
+	--text-muted: #a9b7cb;
+	--border-color: #33475e;
+	--accent: #5cb7ff;
+	--accent-hover: #3ba8fb;
+	--accent-contrast: #09131f;
+	--success: #25c985;
+	--success-hover: #12b373;
+	--hero-gradient: linear-gradient(to right, #0f1d30, #212338, #172c34);
+	--feature-gradient: linear-gradient(to right, #121f2f, #212235, #172934);
+	--surface-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+* {
+	box-sizing: border-box;
+}
+
 body {
-background-color: #F4F7F0;
-font-family: 'Be Vietnam Pro', sans-serif;
-margin: 0;
-padding: 0;
+	background-color: var(--bg-page);
+	color: var(--text-primary);
+	font-family: 'Be Vietnam Pro', sans-serif;
+	margin: 0;
+	padding: 0;
+	transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 button {
-background-color: #238FDE;
-color: white;
-border: none;
-padding: 8px 12px;
-border-radius: 5px;
-cursor: pointer;
+	background-color: var(--accent);
+	color: var(--accent-contrast);
+	border: none;
+	padding: 8px 12px;
+	border-radius: 5px;
+	cursor: pointer;
 }
 
