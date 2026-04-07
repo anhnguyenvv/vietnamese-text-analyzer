@@ -23,6 +23,7 @@
     "web-vitals": "^5.2.0"
   },
   "scripts": {
+    "postinstall": "node ./scripts/patch-react-dev-utils-fok.js",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
