@@ -39,7 +39,6 @@ The platform is suitable for academic use, model experimentation, and integratio
 
 Dự án được thiết kế theo mô hình **phân tầng (Layered Architecture)** để đáp ứng yêu cầu về khả năng bảo trì, mở rộng, và kiểm thử:
 
-
 ### Hiệu Năng và Mở Rộng
 
 - **Model Preloading**: Gunicorn preload mode đảm bảo models được load trước khi workers fork
@@ -628,7 +627,7 @@ docker compose version
 ## XIII. Documentation and Resources
 
 - Frontend guide: `front-end/README.md`
-- Demo video: [YouTube](https://www.youtube.com/watch?v=K1Yqx6mqJoY)
+- Demo video: 
 - Backend entrypoint: `src/app.py`
 - Test suite: `tests/`
 
@@ -660,7 +659,7 @@ Stop and remove DB volume:
 docker compose down -v
 ```
 
-If your environment still uses legacy Compose v1, `docker-compose` may work, but Docker Desktop (Compose v2) uses `docker compose`.
+If your environment still uses legacy Compose v1, `docker-compose` may work, but Docker Desktop (Compose v2) uses `docker compose`
 
 ### 2. Build and run with Docker CLI
 

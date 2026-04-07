@@ -15,7 +15,6 @@ ROUTE_BLUEPRINTS = {
     "routes.summarization": "summarization_bp",
     "routes.statistics": "statistics_bp",
     "routes.metrics": "metrics_bp",
-    "routes.logs": "logs_bp",
     "routes.model_preload": "model_preload_bp",
     "routes.tts": "tts_bp",
 }
@@ -44,8 +43,11 @@ def test_system_logs_endpoint_returns_rows(monkeypatch):
     app_module = importlib.import_module("app")
     app_module = importlib.reload(app_module)
     monkeypatch.setattr(app_module, "save_system_log", lambda **kwargs: None)
+
+    from routes import logs as logs_routes
+
     monkeypatch.setattr(
-        app_module,
+        logs_routes,
         "load_system_log",
         lambda limit=100: [
             {

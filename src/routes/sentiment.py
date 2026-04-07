@@ -44,6 +44,10 @@ def _run_sentiment_model(text, model_name):
     raise UnsupportedModelError(f"Unsupported model_name: {model_name}")
 
 
+def _is_supported_model_name(model_name):
+    return model_name in {'sentiment', 'vispam', 'vispam-VisoBert', 'vispam-Phobert'}
+
+
 def _infer_sentiment(text, model_name):
     started_at = start_timer()
     result, resolved_model_name = _run_sentiment_model(text, model_name)
@@ -253,6 +257,21 @@ def compare_models():
     if not isinstance(models, list) or len(models) != 2:
         LOGGER.warning(build_log_message("sentiment", "compare_invalid_models"))
         return jsonify({"error": "models must be a list of exactly 2 model names"}), 400
+
+    unsupported_models = [model_name for model_name in models if not _is_supported_model_name(model_name)]
+    if unsupported_models:
+        unsupported_model = unsupported_models[0]
+        LOGGER.warning(
+            build_log_message(
+                "sentiment",
+                "compare_unsupported_model",
+                request_id=request_id,
+                model_name=unsupported_model,
+                error_code="unsupported_model_name",
+                models=models,
+            )
+        )
+        return jsonify({"error": f"Unsupported model_name: {unsupported_model}", "error_code": "unsupported_model_name"}), 400
 
     LOGGER.info(
         build_log_message(
