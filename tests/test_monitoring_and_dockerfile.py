@@ -51,6 +51,7 @@ def test_dockerfile_uses_runtime_java_and_gunicorn():
     dockerfile = (PROJECT_ROOT / "Dockerfile").read_text(encoding="utf-8")
 
     assert "FROM node:20-alpine AS frontend-builder" in dockerfile
+    assert "npm ci --legacy-peer-deps" in dockerfile
     assert "FROM python:3.11-slim AS runtime" in dockerfile
     assert "default-jre-headless" in dockerfile
     assert "build-essential" not in dockerfile
