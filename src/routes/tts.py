@@ -69,9 +69,6 @@ def synthesize_speech():
     if speed is not None:
         if speed < 0.25 or speed > 3:
             return jsonify({"error": "speed must be between 0.25 and 3.0"}), 400
-        speed_step = speed * 4
-        if abs(speed_step - round(speed_step)) > 1e-9:
-            return jsonify({"error": "speed must be in steps of 0.25"}), 400
 
     try:
         audio_buffer = synthesize_tts_chunks_wav(
