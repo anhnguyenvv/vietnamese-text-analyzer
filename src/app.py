@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, g, Response, send_from_directory
+from pathlib import Path
 from routes.preprocessing import preprocessing_bp
 from routes.pos import pos_bp
 from routes.ner import ner_bp
@@ -24,6 +25,8 @@ logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
 
 from database.db import save_system_log  
 from database.db import get_online_metrics_summary
+
+TTS_MODEL_DIR = Path(__file__).resolve().parent / "model" / "tts"
 try:
     _prometheus_client = importlib.import_module("prometheus_client")
     CollectorRegistry = _prometheus_client.CollectorRegistry
@@ -215,6 +218,13 @@ def create_app():
         _collect_prometheus_business_metrics()
         payload = generate_latest(PROMETHEUS_REGISTRY)
         return Response(payload, mimetype=CONTENT_TYPE_LATEST)
+
+    @app.route("/model/tts/<path:filename>", methods=["GET"])
+    def serve_tts_model_asset(filename):
+        asset_path = TTS_MODEL_DIR / filename
+        if not asset_path.exists() or not asset_path.is_file():
+            return jsonify({"error": "TTS model asset not found"}), 404
+        return send_from_directory(TTS_MODEL_DIR, filename, conditional=True)
 
     @app.errorhandler(429)
     def ratelimit_handler(_):

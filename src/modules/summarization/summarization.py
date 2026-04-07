@@ -1,17 +1,28 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from config.settings import Config
 import re
+import logging
 from modules.statistics.stats import get_word_freq
 
 _SUMMARIZATION_TOKENIZER = None
 _SUMMARIZATION_MODEL = None
+LOGGER = logging.getLogger("vta.api.summarization")
 
 
 def _get_summarization_resources():
     global _SUMMARIZATION_TOKENIZER, _SUMMARIZATION_MODEL
     if _SUMMARIZATION_TOKENIZER is None or _SUMMARIZATION_MODEL is None:
-        _SUMMARIZATION_TOKENIZER = AutoTokenizer.from_pretrained(Config.MODELS_DIR['summarization'])
-        _SUMMARIZATION_MODEL = AutoModelForSeq2SeqLM.from_pretrained(Config.MODELS_DIR['summarization'])
+        model_path = Config.MODELS_DIR['summarization']
+        LOGGER.info(
+            "Loading summarization model resources",
+            extra={"model_path": str(model_path)},
+        )
+        _SUMMARIZATION_TOKENIZER = AutoTokenizer.from_pretrained(model_path)
+        _SUMMARIZATION_MODEL = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+        LOGGER.info(
+            "Summarization model resources loaded",
+            extra={"model_path": str(model_path)},
+        )
     return _SUMMARIZATION_TOKENIZER, _SUMMARIZATION_MODEL
 
 
@@ -37,25 +48,51 @@ def summarize_text(text: str, length="medium") -> str:
     """
     Tóm tắt văn bản tiếng Việt.
     """
-    tokenizer, model = _get_summarization_resources()
-    word_freq, _, _= get_word_freq(text, remove_stopwords=True, keep_case=False)
-    key_words = [w for w, _ in sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:5]]
-    length_setting = length_settings.get(length, length_settings["medium"])
-    text = text + " </s>" + f"Tóm tắt văn bản trên với độ dài {length_setting['target_length']}. Ưu tiên giữ các thông tin liên quan đến: {key_words}, không thêm bất kỳ thông tin nào không có trong văn bản."
-    enc = tokenizer(text, return_tensors="pt", max_length=1024, truncation=True)
-    outputs = model.generate(
-        **enc,
-        max_length=length_setting["max_tokens"],
-        min_length=length_setting["min_tokens"],
-        length_penalty=1.5,
-        num_beams=5
-    )
-    res = ""
-    for output in outputs:
-        line = tokenizer.decode(output, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-        if line:
-            res += line + " "
-    return res
+    try:
+        tokenizer, model = _get_summarization_resources()
+        word_freq, _, _= get_word_freq(text, remove_stopwords=True, keep_case=False)
+        key_words = [w for w, _ in sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:5]]
+        requested_length = length
+        length_setting = length_settings.get(length, length_settings["medium"])
+        if requested_length not in length_settings:
+            LOGGER.warning(
+                "Unsupported summarization length, fallback to medium",
+                extra={"requested_length": requested_length},
+            )
+        text = text + " </s>" + f"Tóm tắt văn bản trên với độ dài {length_setting['target_length']}. Ưu tiên giữ các thông tin liên quan đến: {key_words}, không thêm bất kỳ thông tin nào không có trong văn bản."
+        enc = tokenizer(text, return_tensors="pt", max_length=1024, truncation=True)
+        outputs = model.generate(
+            **enc,
+            max_length=length_setting["max_tokens"],
+            min_length=length_setting["min_tokens"],
+            length_penalty=1.5,
+            num_beams=5
+        )
+        res = ""
+        for output in outputs:
+            line = tokenizer.decode(output, skip_special_tokens=True, clean_up_tokenization_spaces=True)
+            if line:
+                res += line + " "
+
+        LOGGER.info(
+            "Summarization completed",
+            extra={
+                "requested_length": requested_length,
+                "text_length": len(text or ""),
+                "summary_length": len(res.strip()),
+                "keyword_count": len(key_words),
+            },
+        )
+        return res
+    except Exception:
+        LOGGER.exception(
+            "Summarization failed",
+            extra={
+                "requested_length": length,
+                "text_length": len(text or ""),
+            },
+        )
+        raise
 # Ví dụ sử dụng
 if __name__ == "__main__":
     text = """Trong những năm gần đây, thương mại điện tử tại Việt Nam đã có sự phát triển vượt bậc, đặc biệt là sau đại dịch COVID-19. Nhiều doanh nghiệp truyền thống đã chuyển hướng sang bán hàng trực tuyến để thích ứng với xu hướng mới.

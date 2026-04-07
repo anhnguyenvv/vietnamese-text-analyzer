@@ -5,6 +5,12 @@ const API_BASE =
     ? "http://localhost:5000"
     : window.location.origin);
 
+const TTS_MODEL_BASE =
+  process.env.REACT_APP_TTS_MODEL_BASE || "/model/tts";
+
+const TTS_MODEL_PATH = `${TTS_MODEL_BASE}/viettts.onnx`;
+const TTS_CONFIG_PATH = `${TTS_MODEL_BASE}/config.json`;
+
 const TEST_SAMPLE_PATHS = {
   preprocess: [
     "/test_samples/preprocess/preprocess_sample.txt",
@@ -41,5 +47,6 @@ const TEST_SAMPLE_PATHS = {
 };
 
 export { API_BASE, TEST_SAMPLE_PATHS };
+export { TTS_MODEL_BASE, TTS_MODEL_PATH, TTS_CONFIG_PATH };
 export default API_BASE;
 

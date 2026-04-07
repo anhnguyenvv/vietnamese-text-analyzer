@@ -69,6 +69,18 @@ def init_db():
             created_at TEXT
         )
     """)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS tts_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            input_text TEXT,
+            normalized_text TEXT,
+            chunk_count INTEGER,
+            lang TEXT,
+            slow INTEGER,
+            audio_blob BLOB,
+            created_at TEXT
+        )
+    """)
     conn.commit()
     conn.close()
 
@@ -296,6 +308,57 @@ def load_inference_feedback(limit=100):
     rows = [dict(row) for row in c.fetchall()]
     conn.close()
     return rows
+
+
+def save_tts_history(input_text, normalized_text, chunk_count, lang, slow, audio_blob):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute(
+        """
+        INSERT INTO tts_history (
+            input_text, normalized_text, chunk_count, lang, slow, audio_blob, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            input_text,
+            normalized_text,
+            int(chunk_count or 0),
+            lang,
+            1 if slow else 0,
+            sqlite3.Binary(audio_blob),
+            datetime.now().isoformat(),
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+
+def load_tts_history(limit=50):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute(
+        """
+        SELECT id, input_text, normalized_text, chunk_count, lang, slow, created_at
+        FROM tts_history
+        ORDER BY id DESC
+        LIMIT ?
+        """,
+        (limit,),
+    )
+    rows = [dict(row) for row in c.fetchall()]
+    conn.close()
+    return rows
+
+
+def load_tts_audio(history_id):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT audio_blob FROM tts_history WHERE id = ?", (history_id,))
+    row = c.fetchone()
+    conn.close()
+    if row is None:
+        return None
+    return row["audio_blob"]
 
 
 # Khởi tạo database khi import module

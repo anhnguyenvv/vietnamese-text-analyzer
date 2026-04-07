@@ -36,3 +36,5 @@ runtime.txt
 # src/model/vispam/visoBert_vispamReview.pth
 front-end/generate_samples.js
 src/config/settings.py
+src/modules/tts/output.wav
+src/modules/tts/test_output.wav

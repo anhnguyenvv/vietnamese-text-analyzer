@@ -1,27 +1,27 @@
-# Vietnamese Text Analyzer Platform
+# Nền tảng Phân Tích Văn Bản Tiếng Việt
 
-A Vietnamese natural language processing platform with a backend + frontend architecture, integrating multiple NLP tasks such as text preprocessing, POS tagging, NER, sentiment analysis, topic classification, summarization, and text statistics.
+Nền tảng xử lý ngôn ngữ tự nhiên tiếng Việt với kiến trúc backend + frontend, tích hợp nhiều tác vụ NLP như tiền xử lý văn bản, gán nhãn từ loại, nhận diện thực thể có tên, phân tích cảm xúc, phân loại chủ đề, tóm tắt văn bản, chuyển văn bản thành giọng nói và thống kê văn bản.
 
-## Table of Contents
+## Mục Lục
 
-- [I. Overview](#i-overview)
-- [II. System Architecture](#ii-system-architecture)
-- [III. Project Structure](#iii-project-structure)
-- [IV. Technology Stack](#iv-technology-stack)
-- [V. Quick Start Guide](#v-quick-start-guide)
-- [VI. Model and Data Setup](#vi-model-and-data-setup)
-- [VII. Running the Application](#vii-running-the-application)
-- [VIII. API and Key Features](#viii-api-and-key-features)
-- [IX. Testing and Quality Assurance](#ix-testing-and-quality-assurance)
-- [X. Model Training and Evaluation](#x-model-training-and-evaluation)
-- [XI. Operations and Monitoring](#xi-operations-and-monitoring)
-- [XII. Troubleshooting](#xii-troubleshooting)
-- [XIII. Documentation and Resources](#xiii-documentation-and-resources)
-- [XIV. Docker Deployment](#xiv-docker-deployment)
+- I. Tổng Quan
+- II. Kiến Trúc Hệ Thống
+- III. Cấu Trúc Dự Án
+- IV. Công Nghệ Sử Dụng
+- V. Hướng Dẫn Khởi Động Nhanh
+- VI. Thiết Lập Model Và Dữ Liệu
+- VII. Chạy Ứng Dụng
+- VIII. API Và Các Chức Năng Chính
+- IX. Kiểm Thử Và Đảm Bảo Chất Lượng
+- X. Huấn Luyện Và Đánh Giá Model
+- XI. Vận Hành Và Giám Sát
+- XII. Khắc Phục Sự Cố
+- XIII. Tài Liệu Và Tài Nguyên
+- XIV. Triển Khai Docker
 
-## I. Overview
+## I. Tổng Quan
 
-Vietnamese Text Analyzer is a web application that supports multiple Vietnamese NLP tasks in one unified system:
+Vietnamese Text Analyzer là một ứng dụng web hỗ trợ nhiều tác vụ NLP tiếng Việt trong một hệ thống thống nhất:
 
 - Text Preprocessing: normalize text, tokenize, and remove stopwords.
 - POS Tagging: assign part-of-speech tags.
@@ -39,54 +39,6 @@ The platform is suitable for academic use, model experimentation, and integratio
 
 Dự án được thiết kế theo mô hình **phân tầng (Layered Architecture)** để đáp ứng yêu cầu về khả năng bảo trì, mở rộng, và kiểm thử:
 
-**1. Frontend Layer (React)**
-- Cung cấp giao diện người dùng tương tác
-- Gọi các API endpoint của backend thông qua HTTP/REST
-- Hiển thị kết quả phân tích NLP một cách trực quan
-
-**2. API Layer (Flask Routes)**
-- Xử lý request/response từ frontend
-- Định nghĩa các endpoint cho từng tác vụ NLP
-- Áp dụng rate limiting để bảo vệ các endpoint nặng
-- Ghi nhật ký có cấu trúc với `request_id` để truy vết hoạt động
-
-**3. Schema Validation Layer (Pydantic v2)**
-- Xác thực input từ người dùng
-- Xác định output contracts cho các response
-- Cung cấp error messages rõ ràng khi input không hợp lệ
-
-**4. Service Layer (Business Logic)**
-- Điều phối logic nghiệp vụ giữa API và các tầng khác
-- Xử lý business rules và constraints
-- Gọi các phương thức inference và repository
-
-**5. Inference Layer (NLP Module)**
-- Quản lý tải mô hình AI
-- Thực hiện dự đoán/suy luận cho các tác vụ NLP:
-  - Text Classification
-  - POS Tagging & NER
-  - Sentiment Analysis
-  - Text Preprocessing
-  - Summarization
-  - Statistics Extraction
-- Models được preload trong memory để tái sử dụng giữa các request
-
-**6. Repository Layer (Data Access)**
-- Xử lý lưu trữ và truy xuất dữ liệu
-- Quản lý database persistence (SQLite)
-- Lưu trữ feedback, metrics, history từ người dùng
-
-**7. Utilities & Shared Resources**
-- Helper functions cho xác thực input
-- Model warmup và preloading management
-- Error handling utilities
-- Vietnamese language utilities (stopwords, tokenization)
-
-### Dữ Liệu và Lưu Trữ
-
-- **SQLite Database**: Lưu trữ history, feedback, metrics online
-- **Model Cache**: Models được load vào memory một lần và tái sử dụng
-- **Pre-trained Models**: Lưu trữ tại `src/model/` có kích thước lớn
 
 ### Hiệu Năng và Mở Rộng
 
@@ -97,7 +49,7 @@ Dự án được thiết kế theo mô hình **phân tầng (Layered Architectu
 
 ### Quy Trình Dữ Liệu Mẫu
 
-```
+```text
 User Request (Frontend)
         ↓
     API Endpoint (Flask Route)
@@ -272,7 +224,7 @@ vietnamese-text-analyzer/
 
 Dự án tuân theo mô hình kiến trúc phân tầng để dễ bảo trì và mở rộng:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │              Frontend Layer (React)                     │
 │           front-end/src/components & pages              │
@@ -660,18 +612,18 @@ npm.cmd install react-scripts@5.0.1 --save
 
 ### 6. Docker Command Not Recognized on Windows
 
-If you see `docker` or `docker-compose` is not recognized:
+Nếu bạn thấy `docker` hoặc `docker-compose` không được nhận diện:
 
-1. Install Docker Desktop for Windows: https://www.docker.com/products/docker-desktop/
-2. Fully close and reopen PowerShell after installation.
-3. Verify installation:
+1. Cài Docker Desktop cho Windows: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+2. Đóng hoàn toàn rồi mở lại PowerShell sau khi cài đặt.
+3. Kiểm tra cài đặt:
 
 ```powershell
 docker --version
 docker compose version
 ```
 
-4. If command is still missing, sign out/in Windows or restart your machine to refresh PATH.
+- Nếu vẫn thiếu lệnh, hãy đăng xuất/đăng nhập Windows hoặc khởi động lại máy để làm mới PATH.
 
 ## XIII. Documentation and Resources
 

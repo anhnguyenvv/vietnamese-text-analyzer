@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 import { API_BASE } from "../../config";
+import { chunkTextForTts, normalizeVietnameseTtsText } from "../../utils/ttsTextProcessing";
 import "./Features.css";
 
 
@@ -11,6 +12,7 @@ const TextToSpeechTool = ({ sharedTextInput, setSharedTextInput }) => {
   const [error, setError] = useState("");
   const [lang, setLang] = useState("vi");
   const [slow, setSlow] = useState(false);
+  const [chunkCount, setChunkCount] = useState(0);
 
   useEffect(() => {
     return () => {
@@ -29,10 +31,21 @@ const TextToSpeechTool = ({ sharedTextInput, setSharedTextInput }) => {
 
     setLoading(true);
     try {
+      const normalizedText = normalizeVietnameseTtsText(sharedTextInput);
+      const chunks = chunkTextForTts(normalizedText);
+      setChunkCount(chunks.length);
+
+      if (chunks.length === 0) {
+        setError("Không có nội dung hợp lệ sau khi xử lý văn bản.");
+        setLoading(false);
+        return;
+      }
+
       const response = await axios.post(
         `${API_BASE}/api/tts/synthesize`,
         {
           text: sharedTextInput,
+          chunks,
           lang,
           slow,
         },
@@ -47,12 +60,24 @@ const TextToSpeechTool = ({ sharedTextInput, setSharedTextInput }) => {
       }
       setAudioUrl(nextAudioUrl);
     } catch (err) {
-      const apiMessage = err?.response?.data?.error;
+      let apiMessage = "";
+      if (err?.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          apiMessage = JSON.parse(text)?.error || "";
+        } catch (_e) {
+          apiMessage = "";
+        }
+      } else {
+        apiMessage = err?.response?.data?.error || "";
+      }
+
       setError(apiMessage || "Không thể tạo giọng nói. Vui lòng thử lại.");
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
       setAudioUrl("");
+      setChunkCount(0);
     } finally {
       setLoading(false);
     }
@@ -108,6 +133,11 @@ const TextToSpeechTool = ({ sharedTextInput, setSharedTextInput }) => {
               {error}
             </div>
           )}
+          {!error && chunkCount > 0 && (
+            <div className="upload-alert success">
+              Đã chia thành {chunkCount} đoạn để tổng hợp giọng nói.
+            </div>
+          )}
         </div>
 
         <div className="result-area">
@@ -116,8 +146,8 @@ const TextToSpeechTool = ({ sharedTextInput, setSharedTextInput }) => {
           {audioUrl && (
             <div className="result-box tts-audio-card">
               <audio controls src={audioUrl} />
-              <a href={audioUrl} download="speech.mp3" className="file-button tts-download-link">
-                Tải file MP3
+              <a href={audioUrl} download="speech.wav" className="file-button tts-download-link">
+                Tải file WAV
               </a>
             </div>
           )}
