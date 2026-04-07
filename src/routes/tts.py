@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request, send_file
 
 from database.db import load_tts_audio, load_tts_history, save_tts_history
 from extensions import limiter
-from modules.tts import synthesize_tts_audio
+from modules.tts import synthesize_tts_chunks_wav
 from utils.input_validation import validate_text_input
 
 
@@ -67,7 +67,7 @@ def synthesize_speech():
         return jsonify({"error": "speed must be greater than 0"}), 400
 
     try:
-        audio_buffer = synthesize_tts_audio(
+        audio_buffer = synthesize_tts_chunks_wav(
             text=text,
             chunks=chunks,
             slow=slow,
