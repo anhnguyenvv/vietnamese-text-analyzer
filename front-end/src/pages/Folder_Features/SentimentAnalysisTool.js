@@ -98,7 +98,6 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
   const [csvData, setCsvData] = useState([]); 
   const [readMode, setReadMode] = useState("paragraph");
   const [sampleUrls, setSampleUrls] = useState(TEST_SAMPLE_PATHS.sentiment);
-  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 });
   const [lineErrors, setLineErrors] = useState([]);
 
   const handleFileSelect = (content, file, readMode, csvColumn) => {
@@ -112,7 +111,6 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
     setSharedFile(file || null);
     setCsvDownloadName("sentiment_result.csv");
     setJsonDownloadName("sentiment_result.json");
-    setBatchProgress({ done: 0, total: 0 });
     setLineErrors([]);
     if (file && file.name.endsWith(".csv")) {
         const reader = new FileReader();
@@ -136,7 +134,6 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
     setJsonResultUrl(null);
     setCsvDownloadName("sentiment_result.csv");
     setJsonDownloadName("sentiment_result.json");
-    setBatchProgress({ done: 0, total: 0 });
     setLineErrors([]);
     const lines = sharedTextInput.split(/\r?\n\s*\r?\n/).map(line => line.trim()).filter(line => line);
     if (lines.length === 0) {
@@ -168,8 +165,6 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
     }
 
     try {
-      const total = lines.length;
-      setBatchProgress({ done: 0, total });
       const payloads = [];
       const exportRows = [];
       const collectedLineErrors = [];
@@ -214,7 +209,6 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
             result_json: errorInfo.raw_payload || "{}",
           });
         }
-        setBatchProgress({ done: i + 1, total });
       }
 
       setLineErrors(collectedLineErrors);

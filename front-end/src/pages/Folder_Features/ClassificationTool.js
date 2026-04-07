@@ -74,7 +74,6 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
   const [csvData, setCsvData] = useState([]);
   const [readMode, setReadMode] = useState("paragraph");
   const [sampleUrls, setSampleUrls] = useState(TEST_SAMPLE_PATHS.essay_identification);
-  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 });
   const [lineErrors, setLineErrors] = useState([]);
 
   const handleFileSelect = (content, file, mode) => {
@@ -87,7 +86,6 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
     setJsonResultUrl(null);
     setCsvDownloadName("classification_result.csv");
     setJsonDownloadName("classification_result.json");
-    setBatchProgress({ done: 0, total: 0 });
     setLineErrors([]);
 
     if (file && file.name.endsWith(".csv")) {
@@ -110,7 +108,6 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
     setJsonResultUrl(null);
     setCsvDownloadName("classification_result.csv");
     setJsonDownloadName("classification_result.json");
-    setBatchProgress({ done: 0, total: 0 });
     setLineErrors([]);
 
     const lines = sharedTextInput
@@ -147,8 +144,6 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
     }
 
     try {
-      const total = lines.length;
-      setBatchProgress({ done: 0, total });
       const payloads = [];
       const exportRows = [];
       const collectedLineErrors = [];
@@ -188,7 +183,6 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
             result_json: "{}",
           });
         }
-        setBatchProgress({ done: i + 1, total });
       }
 
       setLineErrors(collectedLineErrors);

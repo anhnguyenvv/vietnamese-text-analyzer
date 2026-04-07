@@ -151,23 +151,6 @@ def load_system_log(limit=100):
     return [dict(row) for row in rows]
 
 
-def load_system_log_by_request_id(request_id, limit=100):
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute(
-        """
-        SELECT id, level, message, module, created_at
-        FROM system_log
-        WHERE message LIKE ?
-        ORDER BY id DESC
-        LIMIT ?
-        """,
-        (f"%request_id={request_id}%", limit),
-    )
-    rows = c.fetchall()
-    conn.close()
-    return [dict(row) for row in rows]
-
 
 def record_inference_metric(
     task,
