@@ -56,6 +56,7 @@ def test_create_app_registers_prefixed_blueprints(monkeypatch):
     assert "/api/classification/ping" in all_routes
     assert "/api/summarization/ping" in all_routes
     assert "/api/statistics/ping" in all_routes
+    assert "/api/tts/ping" in all_routes
     assert "/api/metrics/ping" in all_routes
 
 

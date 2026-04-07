@@ -11,7 +11,7 @@ def _create_statistics_client():
     return app.test_client()
 
 
-def test_statistics_returns_wordcloud(monkeypatch):
+def test_statistics_returns_stats_only(monkeypatch):
     client = _create_statistics_client()
 
     monkeypatch.setattr(
@@ -39,6 +39,7 @@ def test_statistics_returns_wordcloud(monkeypatch):
     assert response.status_code == 200
     payload = response.get_json()
     assert "stats" in payload
+    assert "wordcloud" not in payload
 
 
 def test_statistics_requires_text():

@@ -4,6 +4,8 @@ from types import SimpleNamespace
 import io
 import wave
 
+import pytest
+
 import modules.tts.tts as tts_module
 
 
@@ -30,6 +32,55 @@ def test_resolve_model_paths_prefers_config_json_next_to_model(monkeypatch, tmp_
 def test_split_text_chunks_supports_sentences_and_lists():
     assert tts_module._split_text_chunks("Xin chào. Thế giới!\nHôm nay.") == ["Xin chào.", "Thế giới!", "Hôm nay."]
     assert tts_module._split_text_chunks(["  A  ", "", "B"]) == ["A", "B"]
+
+
+def test_build_syn_config_uses_nonlinear_speed_mapping(monkeypatch):
+    captured = {}
+
+    class DummySynthesisConfig:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    monkeypatch.setattr(tts_module, "SynthesisConfig", DummySynthesisConfig)
+    monkeypatch.setattr(tts_module, "NONLINEAR_SPEED_EXPONENT", 1.2)
+
+    config = tts_module._build_syn_config(speed=2)
+
+    assert config is not None
+    assert captured["length_scale"] == pytest.approx(1 / (2 ** 1.2), rel=1e-6)
+
+
+def test_synthesize_tts_chunks_wav_inserts_paragraph_silence(monkeypatch):
+    sample_rate = 22050
+
+    def make_wav_bytes(frame_count):
+        buffer = io.BytesIO()
+        with wave.open(buffer, "wb") as wav_file:
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2)
+            wav_file.setframerate(sample_rate)
+            wav_file.writeframes(b"\x01\x00" * frame_count)
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    class DummyTTS:
+        def __init__(self, use_cuda=False):
+            self.use_cuda = use_cuda
+
+        def synthesize_wav(self, text, **kwargs):
+            return io.BytesIO(make_wav_bytes(20))
+
+    monkeypatch.setattr(tts_module, "PiperTTS", DummyTTS)
+
+    out_buffer = tts_module.synthesize_tts_chunks_wav(
+        chunks=["Doan 1", tts_module.PARAGRAPH_BREAK_MARKER, "Doan 2"],
+    )
+
+    with wave.open(io.BytesIO(out_buffer.getvalue()), "rb") as wav_file:
+        total_frames = wav_file.getnframes()
+
+    expected_min_frames = 20 + 20 + int((tts_module.PARAGRAPH_BREAK_MS / 1000.0) * sample_rate)
+    assert total_frames >= expected_min_frames
 
 
 def test_piper_tts_stream_yields_chunk_payloads(monkeypatch):
