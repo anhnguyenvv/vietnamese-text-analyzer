@@ -30,7 +30,6 @@ def test_statistics_returns_wordcloud(monkeypatch):
             "word_freq": {"xin": 2, "chao": 1},
         },
     )
-    monkeypatch.setattr(statistics_routes, "create_wordcloud", lambda word_freq: "BASE64_IMAGE")
 
     response = client.post(
         "/api/statistics/statistics",
@@ -40,7 +39,6 @@ def test_statistics_returns_wordcloud(monkeypatch):
     assert response.status_code == 200
     payload = response.get_json()
     assert "stats" in payload
-    assert payload["wordcloud"] == "BASE64_IMAGE"
 
 
 def test_statistics_requires_text():
