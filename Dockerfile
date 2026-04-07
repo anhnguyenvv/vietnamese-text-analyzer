@@ -2,6 +2,7 @@ FROM node:20-alpine AS frontend-builder
 WORKDIR /app/front-end
 
 COPY front-end/package*.json ./
+COPY front-end/scripts ./scripts
 RUN npm ci --legacy-peer-deps
 
 COPY front-end/ ./
