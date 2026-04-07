@@ -20,6 +20,15 @@ class UnsupportedModelError(ValueError):
     pass
 
 
+def _preview_text(text, limit=180):
+    if text is None:
+        return ""
+    normalized = str(text).replace("\n", " ").replace("\r", " ").strip()
+    if len(normalized) <= limit:
+        return normalized
+    return f"{normalized[:limit]}..."
+
+
 def _run_sentiment_model(text, model_name):
     if model_name == 'sentiment':
         return analyze_sentiment(text), 'sentiment'
@@ -62,8 +71,17 @@ def analyze():
 
     model_name = data.get('model_name', 'sentiment')
     ab_meta = None
+    request_id = request.headers.get("X-Request-ID")
     LOGGER.info(
-        build_log_message("sentiment", "request_received", path=request.path, method=request.method),
+        build_log_message(
+            "sentiment",
+            "request_received",
+            path=request.path,
+            method=request.method,
+            request_id=request_id,
+            model_name=model_name,
+            text_length=len(text),
+        ),
     )
 
     ab_config = data.get("ab_test") or {}
@@ -91,10 +109,19 @@ def analyze():
                 ),
             )
         except Exception as exc:
-            LOGGER.exception(build_log_message("sentiment", "ab_variant_selection_failed", error=str(exc)))
+            LOGGER.exception(
+                build_log_message(
+                    "sentiment",
+                    "ab_variant_selection_failed",
+                    error=str(exc),
+                    request_id=request_id,
+                    model_name=model_name,
+                    text_preview=_preview_text(text),
+                    ab_enabled=True,
+                )
+            )
             return jsonify({"error": f"A/B test configuration failed: {exc}", "error_code": "ab_test_configuration_failed"}), 400
 
-    request_id = request.headers.get("X-Request-ID")
     try:
         payload = _infer_sentiment(text, model_name)
         # Backward-compatible fields for existing clients.
@@ -130,11 +157,32 @@ def analyze():
 
         return jsonify(payload)
     except UnsupportedModelError as exc:
-        LOGGER.warning(build_log_message("sentiment", "unsupported_model", model_name=model_name, error=str(exc)))
+        LOGGER.warning(
+            build_log_message(
+                "sentiment",
+                "unsupported_model",
+                model_name=model_name,
+                request_id=request_id,
+                error=str(exc),
+                error_code="unsupported_model_name",
+                text_preview=_preview_text(text),
+            )
+        )
         return jsonify({"error": str(exc), "error_code": "unsupported_model_name"}), 400
     except Exception as exc:
         LOGGER.exception(
-            build_log_message("sentiment", "request_failed", request_id=request_id, model_name=model_name),
+            build_log_message(
+                "sentiment",
+                "request_failed",
+                request_id=request_id,
+                model_name=model_name,
+                error=str(exc),
+                error_code="sentiment_internal_error",
+                text_preview=_preview_text(text),
+                text_length=len(text),
+                ab_experiment=(ab_meta or {}).get("experiment"),
+                ab_variant=(ab_meta or {}).get("variant"),
+            ),
         )
         record_inference_metric(
             task="sentiment",
@@ -194,6 +242,7 @@ def analyze_file():
 @limiter.limit("20 per minute")
 def compare_models():
     data = request.get_json(silent=True) or {}
+    request_id = request.headers.get("X-Request-ID")
     text, text_error = validate_text_input(data.get('text'))
     if text_error is not None:
         LOGGER.warning(build_log_message("sentiment", "compare_validation_failed"))
@@ -205,7 +254,15 @@ def compare_models():
         LOGGER.warning(build_log_message("sentiment", "compare_invalid_models"))
         return jsonify({"error": "models must be a list of exactly 2 model names"}), 400
 
-    LOGGER.info(build_log_message("sentiment", "compare_request_received", models=models))
+    LOGGER.info(
+        build_log_message(
+            "sentiment",
+            "compare_request_received",
+            models=models,
+            request_id=request_id,
+            text_length=len(text),
+        )
+    )
     comparisons = []
     try:
         for model_name in models:
@@ -213,14 +270,35 @@ def compare_models():
             payload['label'] = payload['result'].get('label')
             comparisons.append(payload)
     except UnsupportedModelError as exc:
-        LOGGER.warning(build_log_message("sentiment", "compare_unsupported_model", error=str(exc)))
+        LOGGER.warning(
+            build_log_message(
+                "sentiment",
+                "compare_unsupported_model",
+                error=str(exc),
+                request_id=request_id,
+                error_code="unsupported_model_name",
+                text_preview=_preview_text(text),
+                models=models,
+            )
+        )
         return jsonify({"error": str(exc), "error_code": "unsupported_model_name"}), 400
     except Exception as exc:
-        LOGGER.exception(build_log_message("sentiment", "compare_request_failed", error=str(exc)))
+        LOGGER.exception(
+            build_log_message(
+                "sentiment",
+                "compare_request_failed",
+                error=str(exc),
+                request_id=request_id,
+                error_code="sentiment_internal_error",
+                text_preview=_preview_text(text),
+                models=models,
+            )
+        )
         return jsonify({"error": str(exc), "error_code": "sentiment_internal_error"}), 500
 
     return jsonify({
         'task': 'sentiment',
-        'input_text': text,
         'comparisons': comparisons,
     })
+
+

@@ -85,14 +85,15 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
                 style={{
                 position: "absolute",
                 zIndex: 1000,
-                background: "#fff",
-                border: "1px solid #ccc",
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border-color)",
                 borderRadius: 8,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                 padding: 12,
                 minWidth: 220,
                 top: filterPopup.anchor?.top ?? 40,
                 left: filterPopup.anchor?.left ?? 40,
+                color: "var(--text-primary)",
                 }}
             >
                 <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
@@ -101,7 +102,15 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
                     placeholder="Tìm kiếm nhãn..."
                     value={searchKeyword}
                     onChange={e => setSearchKeyword(e.target.value)}
-                    style={{ width: "100%", padding: "6px 8px", fontSize: 14, borderRadius: 4, border: "1px solid #ccc" }}
+                    style={{
+                        width: "100%",
+                        padding: "6px 8px",
+                        fontSize: 14,
+                        borderRadius: 4,
+                        border: "1px solid var(--border-color)",
+                        background: "var(--bg-surface)",
+                        color: "var(--text-primary)",
+                    }}
                 />
                 <span role="img" aria-label="search">🔍</span>
                 </div>
@@ -137,8 +146,9 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
                     style={{
                     padding: "4px 12px",
                     borderRadius: 4,
-                    border: "1px solid #ccc",
-                    background: "#f1f2f6",
+                    border: "1px solid var(--border-color)",
+                    background: "var(--bg-soft)",
+                    color: "var(--text-primary)",
                     cursor: "pointer",
                     fontSize: 13,
                     }}
@@ -150,8 +160,8 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
                     style={{
                     padding: "4px 12px",
                     borderRadius: 4,
-                    border: "1px solid #0984e3",
-                    background: "#0984e3",
+                    border: "1px solid var(--accent, #0984e3)",
+                    background: "var(--accent, #0984e3)",
                     color: "#fff",
                     cursor: "pointer",
                     fontSize: 13,
@@ -190,7 +200,7 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
                 {
                     label: "Số lượng",
                     data,
-                    backgroundColor: "#0984e3",
+                    backgroundColor: "var(--accent, #0984e3)",
                 },
             ],
         };
@@ -202,10 +212,10 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
         }}>
             <div style={{ position: "relative" }}>
             {statistics && (
-            <div style={{ fontSize: 12, margin: "8px 0" }}>
+            <div style={{ fontSize: 12, margin: "8px 0", color: "var(--text-primary)" }}>
                 <strong>Thống kê nhãn:</strong>
                 {Object.keys(labelStats).length === 0 ? (
-                <span style={{ color: "#888", marginLeft: 8 }}>Không có dữ liệu.</span>
+                <span style={{ color: "var(--text-muted)", marginLeft: 8 }}>Không có dữ liệu.</span>
                 ) : (
                 <div style={{ maxWidth: 300, margin: "7px 0" }}>
                     <Bar
@@ -230,8 +240,8 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
             )}  
              <div
                 style={{
-                background: "#fafafa",
-                border: "1px solid #eee",
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border-color)",
                 borderRadius: 4,
                 padding: 8,
                 fontFamily: "monospace",
@@ -239,6 +249,7 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
                 maxHeight: 320,
                 overflow: "auto",
                 marginBottom: 8,
+                color: "var(--text-primary)",
             }}
             >
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
@@ -248,9 +259,10 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
                     <th
                         key={colIdx}
                         style={{
-                        border: "1px solid #ddd",
+                        border: "1px solid var(--border-color)",
                         padding: "4px 32px 4px 8px", // padding right lớn để tránh che chữ
-                        background: "#e0e0e0",
+                        background: "var(--bg-soft)",
+                        color: "var(--text-primary)",
                         fontWeight: "bold",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
@@ -270,8 +282,9 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
                             transform: "translateY(-50%)",
                             padding: "2px 6px",
                             borderRadius: "50%",
-                            border: "1px solid #ccc",
-                            background: "#f1f2f6",
+                            border: "1px solid var(--border-color)",
+                            background: "var(--bg-surface)",
+                            color: "var(--text-primary)",
                             cursor: "pointer",
                             fontSize: 13,
                             verticalAlign: "middle",
@@ -305,7 +318,7 @@ const CsvViewer = ({ csvFile, onFilteredDataChange, statistics=true }) => {
                         <td
                         key={cidx}
                         style={{
-                            border: "1px solid #ddd",
+                            border: "1px solid var(--border-color)",
                             padding: "4px 8px",
                             whiteSpace: "nowrap",
                             overflow: "hidden",

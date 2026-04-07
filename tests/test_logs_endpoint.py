@@ -91,3 +91,74 @@ def test_system_logs_endpoint_rejects_bad_limit(monkeypatch):
 
     assert response.status_code == 400
     assert response.get_json()["error"] == "limit must be an integer"
+
+
+def test_request_logs_endpoint_returns_matching_rows(monkeypatch):
+    for module_name, blueprint_name in ROUTE_BLUEPRINTS.items():
+        monkeypatch.setitem(
+            sys.modules,
+            module_name,
+            _make_stub_route_module(module_name, blueprint_name),
+        )
+
+    app_module = importlib.import_module("app")
+    app_module = importlib.reload(app_module)
+    monkeypatch.setattr(app_module, "save_system_log", lambda **kwargs: None)
+    monkeypatch.setattr(app_module, "load_system_log", lambda limit=100: [])
+
+    from routes import logs as logs_routes
+
+    monkeypatch.setattr(
+        logs_routes,
+        "load_system_log_by_request_id",
+        lambda request_id, limit=100: [
+            {
+                "id": 11,
+                "level": "INFO",
+                "message": f"vta component=request event=received request_id={request_id} path=/api/sentiment/analyze",
+                "module": "request",
+                "created_at": "2026-04-08T10:00:00",
+            },
+            {
+                "id": 12,
+                "level": "ERROR",
+                "message": f"vta component=sentiment event=request_failed request_id={request_id} error_code=sentiment_internal_error",
+                "module": "sentiment",
+                "created_at": "2026-04-08T10:00:01",
+            },
+        ],
+    )
+
+    flask_app = app_module.create_app()
+    flask_app.config["TESTING"] = True
+    client = flask_app.test_client()
+
+    response = client.get("/api/logs/request/abc-123?limit=2")
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert isinstance(payload, list)
+    assert len(payload) == 2
+    assert all("abc-123" in row["message"] for row in payload)
+
+
+def test_request_logs_endpoint_rejects_missing_request_id(monkeypatch):
+    for module_name, blueprint_name in ROUTE_BLUEPRINTS.items():
+        monkeypatch.setitem(
+            sys.modules,
+            module_name,
+            _make_stub_route_module(module_name, blueprint_name),
+        )
+
+    app_module = importlib.import_module("app")
+    app_module = importlib.reload(app_module)
+    monkeypatch.setattr(app_module, "save_system_log", lambda **kwargs: None)
+
+    flask_app = app_module.create_app()
+    flask_app.config["TESTING"] = True
+    client = flask_app.test_client()
+
+    response = client.get("/api/logs/request/   ?limit=2")
+
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "request_id is required"

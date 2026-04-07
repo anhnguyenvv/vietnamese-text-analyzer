@@ -66,6 +66,22 @@ const normalizeErrorMessage = (message) => {
   return normalized;
 };
 
+const buildErrorInfo = (err) => {
+  const responseData = err?.response?.data;
+  const errorCode = typeof responseData?.error_code === "string" ? responseData.error_code : "";
+  const rawPayload = responseData ? JSON.stringify(responseData, null, 0) : "";
+
+  const message = normalizeErrorMessage(
+    responseData?.error || responseData?.message || err?.message || rawPayload
+  );
+
+  return {
+    error_message: message,
+    error_code: errorCode,
+    raw_payload: rawPayload,
+  };
+};
+
 
 const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [result, setResult] = useState(null);
@@ -171,15 +187,21 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
             line_number: i + 1,
             status: "success",
             error_message: "",
+            error_code: "",
             ...buildStandardExportRow(payload),
           });
         } catch (err) {
-          const errorMessage = normalizeErrorMessage(err?.response?.data?.error || err.message);
-          collectedLineErrors.push({ line_number: i + 1, error_message: errorMessage });
+          const errorInfo = buildErrorInfo(err);
+          collectedLineErrors.push({
+            line_number: i + 1,
+            error_message: errorInfo.error_message,
+            error_code: errorInfo.error_code,
+          });
           exportRows.push({
             line_number: i + 1,
             status: "error",
-            error_message: errorMessage,
+            error_message: errorInfo.error_message,
+            error_code: errorInfo.error_code,
             task: "sentiment",
             input_text: line,
             model_name: selectedModel,
@@ -189,7 +211,7 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
             processing_time_ms: "",
             token_count: line.trim().split(/\s+/).filter(Boolean).length,
             warnings: "",
-            result_json: "{}",
+            result_json: errorInfo.raw_payload || "{}",
           });
         }
         setBatchProgress({ done: i + 1, total });
@@ -442,14 +464,17 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
                 <table className="feature-table">
                   <thead>
                     <tr>
+                      <th>Dòng</th>
                       <th>Thông báo lỗi</th>
+                      <th>Mã lỗi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {lineErrors.map((item, idx) => (
                       <tr key={`${item.line_number}-${idx}`}>
                         <td>{item.line_number}</td>
-                          <td>{item.error_message || "Không rõ lỗi"}</td>
+                        <td>{item.error_message || "Không rõ lỗi"}</td>
+                        <td>{item.error_code || "N/A"}</td>
                       </tr>
                     ))}
                   </tbody>

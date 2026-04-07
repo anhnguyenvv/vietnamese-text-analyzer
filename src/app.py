@@ -18,13 +18,17 @@ import logging
 import importlib
 import os
 import json
+import io
 import uuid
+import contextlib
 from datetime import datetime, UTC
 from time import perf_counter
 from config.settings import Config
 from utils.logging_utils import build_log_message
 from utils.model_warmup import warmup_models
 logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("huggingface_hub").setLevel(logging.ERROR)
 
 from database.db import save_system_log  
 from database.db import get_online_metrics_summary
@@ -181,6 +185,25 @@ def log_to_db(level, message, module="system"):
         )
 
 
+@contextlib.contextmanager
+def _suppress_model_preload_output():
+    previous_levels = {
+        "transformers": logging.getLogger("transformers").level,
+        "transformers.modeling_utils": logging.getLogger("transformers.modeling_utils").level,
+        "huggingface_hub": logging.getLogger("huggingface_hub").level,
+    }
+    try:
+        logging.getLogger("transformers").setLevel(logging.ERROR)
+        logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
+        logging.getLogger("huggingface_hub").setLevel(logging.ERROR)
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            yield
+    finally:
+        logging.getLogger("transformers").setLevel(previous_levels["transformers"])
+        logging.getLogger("transformers.modeling_utils").setLevel(previous_levels["transformers.modeling_utils"])
+        logging.getLogger("huggingface_hub").setLevel(previous_levels["huggingface_hub"])
+
+
 def _collect_prometheus_business_metrics() -> None:
     if PROMETHEUS_REGISTRY is None:
         return
@@ -222,11 +245,12 @@ def create_app():
                 model_count=len(model_names),
             )
         )
-        preload_result = warmup_models(
-            model_names,
-            logger=api_logger,
-            fail_fast=Config.PRELOAD_FAIL_FAST,
-        )
+        with _suppress_model_preload_output():
+            preload_result = warmup_models(
+                model_names,
+                logger=api_logger,
+                fail_fast=Config.PRELOAD_FAIL_FAST,
+            )
         api_logger.info(
             build_log_message(
                 "startup",
