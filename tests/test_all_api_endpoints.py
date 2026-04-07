@@ -117,7 +117,7 @@ def _make_stub_route_module(module_name: str, blueprint_name: str, routes):
     for path, methods in routes:
         endpoint_name = f"{blueprint_name}_{path.strip('/').replace('/', '_').replace('<', '').replace('>', '').replace(':', '_') or 'root'}"
 
-        def _handler(_endpoint=endpoint_name):
+        def _handler(_endpoint=endpoint_name, **_kwargs):
             return jsonify({"ok": True, "endpoint": _endpoint})
 
         blueprint.add_url_rule(path, endpoint=endpoint_name, view_func=_handler, methods=methods)
@@ -148,9 +148,10 @@ def test_all_registered_api_endpoints_are_reachable(monkeypatch):
     for module_name, spec in ROUTE_SPECS.items():
         prefix = URL_PREFIX_BY_MODULE[module_name]
         for route_path, methods in spec["routes"]:
+            expected_rule = f"{prefix}{route_path}"
             sample_path = route_path.replace("<int:history_id>", "1")
             full_path = f"{prefix}{sample_path}"
-            assert full_path in all_routes
+            assert expected_rule in all_routes
 
             method = methods[0]
             if method == "GET":

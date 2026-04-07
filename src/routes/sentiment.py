@@ -12,6 +12,13 @@ from utils.ab_testing import choose_ab_variant
 
 sentiment_bp = Blueprint('sentiment', __name__)
 
+SUPPORTED_SENTIMENT_MODELS = {
+    'sentiment',
+    'vispam',
+    'vispam-VisoBert',
+    'vispam-Phobert',
+}
+
 
 def _run_sentiment_model(text, model_name):
     if model_name == 'sentiment':
@@ -56,13 +63,19 @@ def analyze():
 
     ab_config = data.get("ab_test") or {}
     if isinstance(ab_config, dict) and ab_config.get("enabled"):
-        ab_choice = choose_ab_variant(
-            task="sentiment",
-            input_text=text,
-            models=ab_config.get("models", [model_name, model_name]),
-            client_id=ab_config.get("client_id"),
-            experiment_name=ab_config.get("experiment_name"),
-        )
+        try:
+            ab_choice = choose_ab_variant(
+                task="sentiment",
+                input_text=text,
+                models=ab_config.get("models", [model_name, model_name]),
+                client_id=ab_config.get("client_id"),
+                experiment_name=ab_config.get("experiment_name"),
+            )
+        except Exception as exc:
+            return jsonify({
+                "error": str(exc),
+                "error_code": "ab_test_configuration_failed",
+            }), 400
         model_name = ab_choice["model_name"]
         ab_meta = {
             "experiment": ab_choice["experiment"],
@@ -97,6 +110,20 @@ def analyze():
         )
 
         return jsonify(payload)
+    except ValueError as exc:
+        record_inference_metric(
+            task="sentiment",
+            model_name=model_name,
+            latency_ms=0,
+            is_success=False,
+            ab_experiment=(ab_meta or {}).get("experiment"),
+            ab_variant=(ab_meta or {}).get("variant"),
+            request_id=request_id,
+        )
+        return jsonify({
+            "error": str(exc),
+            "error_code": "unsupported_model_name",
+        }), 400
     except Exception as exc:
         record_inference_metric(
             task="sentiment",
@@ -107,7 +134,10 @@ def analyze():
             ab_variant=(ab_meta or {}).get("variant"),
             request_id=request_id,
         )
-        return jsonify({"error": str(exc)}), 500
+        return jsonify({
+            "error": str(exc),
+            "error_code": "sentiment_internal_error",
+        }), 500
 
 @sentiment_bp.route('/analyze-file', methods=['POST'])
 @limiter.limit("5 per minute")
@@ -160,11 +190,29 @@ def compare_models():
     if not isinstance(models, list) or len(models) != 2:
         return jsonify({"error": "models must be a list of exactly 2 model names"}), 400
 
+    invalid_models = [model_name for model_name in models if model_name not in SUPPORTED_SENTIMENT_MODELS]
+    if invalid_models:
+        return jsonify({
+            "error": f"Unsupported model_name: {invalid_models[0]}",
+            "error_code": "unsupported_model_name",
+        }), 400
+
     comparisons = []
-    for model_name in models:
-        payload = _infer_sentiment(text, model_name)
-        payload['label'] = payload['result'].get('label')
-        comparisons.append(payload)
+    try:
+        for model_name in models:
+            payload = _infer_sentiment(text, model_name)
+            payload['label'] = payload['result'].get('label')
+            comparisons.append(payload)
+    except ValueError as exc:
+        return jsonify({
+            "error": str(exc),
+            "error_code": "unsupported_model_name",
+        }), 400
+    except Exception as exc:
+        return jsonify({
+            "error": str(exc),
+            "error_code": "sentiment_internal_error",
+        }), 500
 
     return jsonify({
         'task': 'sentiment',
