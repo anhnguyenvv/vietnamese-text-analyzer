@@ -256,7 +256,7 @@ def normalize_text(text, remove_html_tags=True, remove_icon=False, lowercase=Fal
     return txt
 
 if __name__ == '__main__':
-    print(chuan_hoa_dau_cau_tieng_viet('anh Hoà, đang làm.. gì laf ai biết? HỌC TẬP HOÀ là chính!'))
-    print(normalize_text('HOÀ.', lowercase=False))
+    LOGGER.info(build_log_message("normalization", "example_normalization_output", sample="anh Hoà, đang làm.. gì laf ai biết? HỌC TẬP HOÀ là chính!"))
+    LOGGER.info(build_log_message("normalization", "example_normalization_output", sample="HOÀ.", lowercase=False))
     txt = 'Hà Nội, Việt Nam,    COVID-19!🧐😗☺️\n tôi là 587'
-    print(normalize_text(txt, remove_icon=True))
+    LOGGER.info(build_log_message("normalization", "example_normalization_output", sample=txt, remove_icon=True))

@@ -53,6 +53,19 @@ const buildStandardExportRow = (payload) => ({
   result_json: JSON.stringify(payload?.result || {}, null, 0),
 });
 
+const normalizeErrorMessage = (message) => {
+  if (message === null || message === undefined) {
+    return "";
+  }
+
+  const normalized = String(message).trim();
+  if (!normalized || normalized === "0") {
+    return "Không rõ lỗi";
+  }
+
+  return normalized;
+};
+
 
 const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setSharedFile }) => {
   const [result, setResult] = useState(null);
@@ -161,7 +174,7 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
             ...buildStandardExportRow(payload),
           });
         } catch (err) {
-          const errorMessage = err?.response?.data?.error || err.message || "Không rõ lỗi";
+          const errorMessage = normalizeErrorMessage(err?.response?.data?.error || err.message);
           collectedLineErrors.push({ line_number: i + 1, error_message: errorMessage });
           exportRows.push({
             line_number: i + 1,
@@ -349,30 +362,17 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
               />
 
             </>
-          <div className="sentiment-action-row">
-            <button
-              className="analyze-button"
-              onClick={() => {
-                handleAnalyze();
-              }}
-              disabled={loading}
-            >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button className="analyze-button" onClick={handleAnalyze} disabled={loading}>
               Phân tích
             </button>
             {loading && (
-              <div className="feature-loading-stack">
-                <div className="feature-loading-text">
-                  Đang phân tích... {batchProgress.total > 0 ? `${batchProgress.done}/${batchProgress.total}` : ""}
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 4 }}>
+                  Đang xử lý...
                 </div>
                 <div className="loading-bar-container">
-                  <div
-                    className="loading-bar"
-                    style={{
-                      transform: "none",
-                      animation: "none",
-                      width: `${batchProgress.total > 0 ? (batchProgress.done / batchProgress.total) * 100 : 0}%`,
-                    }}
-                  />
+                  <div className="loading-bar" />
                 </div>
               </div>
             )}
@@ -439,11 +439,9 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
 
             {lineErrors.length > 0 && (
               <div className="feature-summary">
-                <strong>Lỗi theo dòng</strong>
                 <table className="feature-table">
                   <thead>
                     <tr>
-                      <th>Dòng</th>
                       <th>Thông báo lỗi</th>
                     </tr>
                   </thead>
@@ -451,7 +449,7 @@ const SentimentAnalysisTool = ({ sharedTextInput, setSharedTextInput, sharedFile
                     {lineErrors.map((item, idx) => (
                       <tr key={`${item.line_number}-${idx}`}>
                         <td>{item.line_number}</td>
-                        <td>{item.error_message}</td>
+                          <td>{item.error_message || "Không rõ lỗi"}</td>
                       </tr>
                     ))}
                   </tbody>

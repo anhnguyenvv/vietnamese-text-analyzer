@@ -679,6 +679,33 @@ docker run -d --name vietnamese-text-analyzer -p 5000:5000 vietnamese-text-analy
 - If local model files are already present in `src/model`, they are copied into the image.
 - If some Hugging Face models are remote, first request may download and cache model weights.
 
+### 5. Package backend artifact for deployment
+
+Use the packaging script to build backend image and export a portable artifact:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\package_backend.ps1
+```
+
+Optional parameters:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\package_backend.ps1 -ImageName "vta/backend" -Tag "v1.0.0" -OutputDir "dist"
+```
+
+Generated files in `dist/`:
+
+- `backend-<tag>.tar.gz`: Docker image artifact.
+- `backend-<tag>.txt`: image metadata.
+- `backend-<tag>.sha256`: checksum for integrity verification.
+
+Deploy on target server:
+
+```bash
+gunzip -c backend-<tag>.tar.gz | docker load
+docker run -d --name vta-backend -p 5000:5000 vta/backend:<tag>
+```
+
 ## License
 
 This project is distributed under the MIT License (see LICENSE if available in this repository).

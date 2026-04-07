@@ -137,12 +137,7 @@ if __name__ == "__main__":
     Những thác nước sôi réo ào ạt đổ về từ thượng nguồn, cuồn cuộn chảy bọt tung trắng xoá, có sức tàn phá thật đáng sợ! Những tai hoạ do sông Đà gây ra trở thành mối lo thường xuyên của người dân sinh sống hai bên bờ từ bao đời nay. Em rất thích vẻ đẹp của sông Đà vào mùa nước cạn, nước trong vắt có thể nhìn thấy rõ từng đàn cá lội tung tăng, từng hòn đá, hòn cuội dưới đáy sông. Chiều chiều, chúng em thoả thích bơi lội và nô giỡn. Giữa lòng sông, những doi cát dài nối tiếp nhau. Từng đoàn thuyền của dân kéo ra đây lấy cát. Chúng em sục chân thật sâu vào cát rồi lội ngược dòng với một niềm thích thú khó tả
         """
     while True:
-        print("Classifying text:", text)
         predicted = classifier.classify(text)
-        print("Predicted Label:", predicted['label'])
-        print("Label ID:", predicted['label_id'])
-        print("All Labels:", {k: v for k, v in predicted.items() if k != 'label'})
-        print("Model Name:", classifier.model_name)
         text = input("Enter text to classify: ")
         if not text.strip():
             break

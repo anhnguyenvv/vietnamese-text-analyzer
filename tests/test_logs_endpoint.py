@@ -33,7 +33,7 @@ def _make_stub_route_module(module_name: str, blueprint_name: str) -> types.Modu
     return module
 
 
-def test_metrics_endpoint_exposes_prometheus_payload(monkeypatch):
+def test_system_logs_endpoint_returns_rows(monkeypatch):
     for module_name, blueprint_name in ROUTE_BLUEPRINTS.items():
         monkeypatch.setitem(
             sys.modules,
@@ -46,30 +46,48 @@ def test_metrics_endpoint_exposes_prometheus_payload(monkeypatch):
     monkeypatch.setattr(app_module, "save_system_log", lambda **kwargs: None)
     monkeypatch.setattr(
         app_module,
-        "get_online_metrics_summary",
-        lambda limit=1000: {
-            "total_requests": 3,
-            "avg_latency_ms": 12.5,
-            "error_rate": 0.25,
-            "avg_confidence": 0.9,
-            "by_task": {
-                "classification": {
-                    "total_requests": 2,
-                    "avg_latency_ms": 10.0,
-                    "error_rate": 0.5,
-                    "avg_confidence": 0.85,
-                }
-            },
-        },
+        "load_system_log",
+        lambda limit=100: [
+            {
+                "id": 1,
+                "level": "INFO",
+                "message": "vta component=request event=completed",
+                "module": "request",
+                "created_at": "2026-04-07T00:00:00",
+            }
+        ],
     )
 
     flask_app = app_module.create_app()
     flask_app.config["TESTING"] = True
     client = flask_app.test_client()
 
-    response = client.get("/metrics")
+    response = client.get("/api/logs/system?limit=1")
 
     assert response.status_code == 200
-    assert response.mimetype == "text/plain"
-    assert b"vta_http_requests_total" in response.data
-    assert b"vta_inference_requests_total" in response.data
+    data = response.get_json()
+    assert isinstance(data, list)
+    assert data[0]["module"] == "request"
+    assert "vta component=request event=completed" in data[0]["message"]
+
+
+def test_system_logs_endpoint_rejects_bad_limit(monkeypatch):
+    for module_name, blueprint_name in ROUTE_BLUEPRINTS.items():
+        monkeypatch.setitem(
+            sys.modules,
+            module_name,
+            _make_stub_route_module(module_name, blueprint_name),
+        )
+
+    app_module = importlib.import_module("app")
+    app_module = importlib.reload(app_module)
+    monkeypatch.setattr(app_module, "save_system_log", lambda **kwargs: None)
+
+    flask_app = app_module.create_app()
+    flask_app.config["TESTING"] = True
+    client = flask_app.test_client()
+
+    response = client.get("/api/logs/system?limit=abc")
+
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "limit must be an integer"

@@ -15,6 +15,7 @@ ROUTE_BLUEPRINTS = {
     "routes.summarization": "summarization_bp",
     "routes.statistics": "statistics_bp",
     "routes.metrics": "metrics_bp",
+    "routes.logs": "logs_bp",
     "routes.model_preload": "model_preload_bp",
     "routes.tts": "tts_bp",
 }

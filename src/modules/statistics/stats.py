@@ -147,6 +147,4 @@ Và đó cũng là lý do, dù không phải ai cũng trở thành vận động
     result = analyze_text(text, remove_stopwords=True)
     wordcloud_url = create_wordcloud(result['word_freq'])
     time_end = time.time()
-    print(f"Analysis took {time_end - time_start:.2f} seconds")
-    print(result)
-    print(f"Wordcloud URL: {wordcloud_url[:50]}...")  # Print first 50 characters of the wordcloud URL
+    LOGGER.info(build_log_message("statistics_model", "example_analysis_completed", elapsed_seconds=round(time_end - time_start, 2), result=result, wordcloud_url_prefix=wordcloud_url[:50]))

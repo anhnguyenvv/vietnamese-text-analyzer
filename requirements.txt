@@ -9,7 +9,9 @@ matplotlib
 numpy
 pandas
 regex==2024.11.6
-Requests
+requests>=2.32.3
+chardet<6
+urllib3<3
 torch
 underthesea
 wordcloud==1.9.4

@@ -1,11 +1,16 @@
+import logging
+
 from flask import Blueprint, jsonify
+from utils.logging_utils import build_log_message
 
 
 capabilities_bp = Blueprint("capabilities", __name__)
+LOGGER = logging.getLogger("vta.api.capabilities")
 
 
 @capabilities_bp.route("/", methods=["GET"])
 def list_capabilities():
+    LOGGER.info(build_log_message("capabilities", "request_received"))
     return jsonify(
         {
             "project": "vietnamese-text-analyzer",

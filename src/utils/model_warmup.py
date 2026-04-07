@@ -2,6 +2,7 @@ from modules.classification.classification import get_classifier
 from modules.sentiment.sentiment import _get_sentiment_resources
 from modules.summarization.summarization import _get_summarization_resources
 from utils.vncore import get_vncore_model
+from utils.logging_utils import build_log_message
 
 
 def warmup_models(model_names, logger=None, fail_fast=False):
@@ -21,11 +22,11 @@ def warmup_models(model_names, logger=None, fail_fast=False):
 
             loaded.append(model_name)
             if logger is not None:
-                logger.info(f"model_preloaded:{model_name}")
+                logger.info(build_log_message("model_warmup", "preloaded", model=model_name))
         except Exception as exc:
             failed.append({"model": model_name, "error": str(exc)})
             if logger is not None:
-                logger.error(f"model_preload_failed:{model_name} error={exc}")
+                logger.error(build_log_message("model_warmup", "preload_failed", model=model_name, error=str(exc)))
             if fail_fast:
                 raise
 
@@ -65,11 +66,11 @@ def warmup_models_with_progress(model_names, logger=None, fail_fast=False, progr
 
             loaded.append(model_name)
             if logger is not None:
-                logger.info(f"model_preloaded:{model_name}")
+                logger.info(build_log_message("model_warmup", "preloaded", model=model_name))
         except Exception as exc:
             failed.append({"model": model_name, "error": str(exc)})
             if logger is not None:
-                logger.error(f"model_preload_failed:{model_name} error={exc}")
+                logger.error(build_log_message("model_warmup", "preload_failed", model=model_name, error=str(exc)))
             if fail_fast:
                 raise
 

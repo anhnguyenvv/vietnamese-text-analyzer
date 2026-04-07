@@ -27,8 +27,8 @@ class Config:
 
     }
 
-    # Startup model warm-up (disabled by default to keep local dev fast).
-    PRELOAD_MODELS_ON_STARTUP = os.getenv('PRELOAD_MODELS_ON_STARTUP', 'False') == 'True'
+    # Startup model warm-up (enabled by default so backend is ready before first request).
+    PRELOAD_MODELS_ON_STARTUP = os.getenv('PRELOAD_MODELS_ON_STARTUP', 'True') == 'True'
     PRELOAD_MODELS = [
         item.strip()
         for item in os.getenv(

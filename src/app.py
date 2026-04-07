@@ -9,6 +9,7 @@ from routes.summarization import summarization_bp
 from routes.statistics import statistics_bp
 from routes.capabilities import capabilities_bp
 from routes.metrics import metrics_bp
+from routes.logs import logs_bp
 from routes.tts import tts_bp
 from flask_cors import CORS
 from routes.feedback import feedback_bp
@@ -21,6 +22,8 @@ import uuid
 from datetime import datetime, UTC
 from time import perf_counter
 from config.settings import Config
+from utils.logging_utils import build_log_message
+from utils.model_warmup import warmup_models
 logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
 
 from database.db import save_system_log  
@@ -173,7 +176,9 @@ def log_to_db(level, message, module="system"):
     try:
         save_system_log(level=level, message=message, module=module)
     except Exception as e:
-        print("Log DB error:", e)
+        logging.getLogger("vta.api.db").error(
+            build_log_message("db", "system_log_write_failed", error=str(e))
+        )
 
 
 def _collect_prometheus_business_metrics() -> None:
@@ -208,10 +213,42 @@ def create_app():
     api_logger = configure_structured_logging()
     app.config['JSON_AS_ASCII'] = False  # To handle Vietnamese characters correctly
 
+    if Config.PRELOAD_MODELS_ON_STARTUP:
+        model_names = Config.PRELOAD_MODELS
+        api_logger.info(
+            build_log_message(
+                "startup",
+                "model_preload_started",
+                model_count=len(model_names),
+            )
+        )
+        preload_result = warmup_models(
+            model_names,
+            logger=api_logger,
+            fail_fast=Config.PRELOAD_FAIL_FAST,
+        )
+        api_logger.info(
+            build_log_message(
+                "startup",
+                "model_preload_completed",
+                loaded_count=len(preload_result.get("loaded", [])),
+                failed_count=len(preload_result.get("failed", [])),
+            )
+        )
+
     @app.before_request
     def attach_request_id():
         g.request_id = str(uuid.uuid4())
         g.request_started_at = perf_counter()
+        api_logger.info(
+            build_log_message(
+                "request",
+                "received",
+                request_id=g.request_id,
+                path=request.path,
+                method=request.method,
+            )
+        )
 
     @app.route("/metrics", methods=["GET"])
     def prometheus_metrics():
@@ -228,6 +265,16 @@ def create_app():
 
     @app.errorhandler(429)
     def ratelimit_handler(_):
+        api_logger.warning(
+            build_log_message(
+                "request",
+                "rate_limited",
+                request_id=getattr(g, "request_id", ""),
+                path=request.path,
+                method=request.method,
+                status_code=429,
+            )
+        )
         return jsonify({"error": "Too many requests. Please try again later."}), 429
 
     # Register blueprints
@@ -241,6 +288,7 @@ def create_app():
     app.register_blueprint(statistics_bp, url_prefix='/api/statistics')
     app.register_blueprint(capabilities_bp, url_prefix='/api/capabilities')
     app.register_blueprint(metrics_bp, url_prefix='/api/metrics')
+    app.register_blueprint(logs_bp, url_prefix='/api/logs')
     app.register_blueprint(tts_bp, url_prefix='/api/tts')
 
     @app.route("/", defaults={"path": ""})
@@ -271,18 +319,26 @@ def create_app():
         ).observe(duration_seconds)
 
         api_logger.info(
-            "request_completed",
-            extra={
-                "request_id": request_id,
-                "path": request.path,
-                "method": request.method,
-                "status_code": response.status_code,
-            },
+            build_log_message(
+                "request",
+                "completed",
+                request_id=request_id,
+                path=request.path,
+                method=request.method,
+                status_code=response.status_code,
+            )
         )
 
         log_to_db(
             level="INFO",
-            message=f"request_id={request_id} {request.method} {request.path} - {response.status_code}",
+            message=build_log_message(
+                "request",
+                "completed",
+                request_id=request_id,
+                path=request.path,
+                method=request.method,
+                status_code=response.status_code,
+            ),
             module="request"
         )
 
@@ -293,4 +349,4 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)

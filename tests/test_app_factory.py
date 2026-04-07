@@ -15,6 +15,7 @@ ROUTE_BLUEPRINTS = {
     "routes.summarization": "summarization_bp",
     "routes.statistics": "statistics_bp",
     "routes.metrics": "metrics_bp",
+    "routes.logs": "logs_bp",
     "routes.model_preload": "model_preload_bp",
     "routes.tts": "tts_bp",
 }
@@ -58,6 +59,7 @@ def test_create_app_registers_prefixed_blueprints(monkeypatch):
     assert "/api/statistics/ping" in all_routes
     assert "/api/tts/ping" in all_routes
     assert "/api/metrics/ping" in all_routes
+    assert "/api/logs/ping" in all_routes
 
 
 def test_root_returns_501_when_frontend_build_missing(monkeypatch):

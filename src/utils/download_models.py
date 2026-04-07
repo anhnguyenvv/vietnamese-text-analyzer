@@ -3,6 +3,9 @@ import os
 from config.settings import BASE_DIR
 import os
 import requests
+import logging
+
+from utils.logging_utils import build_log_message
 
 MODELS = [
     # (model_name, pipeline_task, model_class)
@@ -15,9 +18,11 @@ MODEL_DIR = os.path.join(BASE_DIR, "model")
 
 os.makedirs(MODEL_DIR, exist_ok=True)
 
+LOGGER = logging.getLogger("vta.api.download_models")
+
 
 for model_name, task, model_class in MODELS:
-    print(f"Downloading {model_name} for task {task} ...")
+    LOGGER.info(build_log_message("download_models", "download_started", task=task, model_name=model_name))
     local_dir = os.path.join(MODEL_DIR, model_name.replace("/", "_"))
     os.makedirs(local_dir, exist_ok=True)
     # Tải tokenizer
@@ -29,6 +34,6 @@ for model_name, task, model_class in MODELS:
     # Tải model
     model = model_class.from_pretrained(model_name, )
     model.save_pretrained(local_dir)
-    print(f"Saved to {local_dir}")
+    LOGGER.info(build_log_message("download_models", "download_completed", task=task, model_name=model_name, save_dir=local_dir))
 
-print("All models downloaded and saved to ./model/")
+LOGGER.info(build_log_message("download_models", "all_models_downloaded", save_dir="./model/"))

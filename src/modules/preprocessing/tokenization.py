@@ -23,8 +23,8 @@ def tokenize_sentences(text):
 if __name__ == '__main__':
     # Example usage
     text = "Hôm nay là một ngày đẹp trời! Tôi đi học và gặp bạn bè."
-    print("Original Text:", text)
+    LOGGER.info(build_log_message("tokenization", "example_original_text", text_length=len(text)))
     words = tokenize_words(text)
     sentences = tokenize_sentences(text)
-    print("Words:", words)
-    print("Sentences:", sentences)  # Output: ['Hôm nay là một ngày đẹp trời.', 'Tôi đi học và gặp bạn bè.']
+    LOGGER.info(build_log_message("tokenization", "example_words", word_count=len(words)))
+    LOGGER.info(build_log_message("tokenization", "example_sentences", sentence_count=len(sentences)))

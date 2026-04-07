@@ -330,18 +330,11 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
             </button>
             {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <div className="feature-label-hint">
-                  Đang phân tích... {batchProgress.total > 0 ? `${batchProgress.done}/${batchProgress.total}` : ""}
+                <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 4 }}>
+                  Đang xử lý...
                 </div>
                 <div className="loading-bar-container">
-                  <div
-                    className="loading-bar"
-                    style={{
-                      transform: "none",
-                      animation: "none",
-                      width: `${batchProgress.total > 0 ? (batchProgress.done / batchProgress.total) * 100 : 0}%`,
-                    }}
-                  />
+                  <div className="loading-bar" />
                 </div>
               </div>
             )}
@@ -358,12 +351,49 @@ const ClassificationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, s
               {result && result.error && <div className="feature-error-text">{result.error}</div>}
 
               {result && !result.error && result.label_name && (
-                <div style={{ marginTop: 16 }}>
-                  <strong>Nhận định: </strong>
-                  <span style={{ color: "#0984e3", fontWeight: 600 }}>
-                    {selectedClassification === "topic_classification" ? "Chủ đề" : "Thể loại"} {result.label_name}
-                  </span>
-                  <div style={{ marginTop: 10, fontSize: 13, color: "#444" }}>
+                <div
+                  style={{
+                    marginTop: 16,
+                    padding: 14,
+                    borderRadius: 10,
+                    border: "1px solid var(--border-color)",
+                    background: "var(--bg-surface)",
+                    color: "var(--text-primary)",
+                    boxShadow: "0 1px 2px rgba(15, 23, 42, 0.04)",
+                  }}
+                >
+                  <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 8, fontWeight: 600 }}>
+                    Nhận định
+                  </div>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "6px 10px",
+                      borderRadius: 999,
+                      background: "var(--bg-soft)",
+                      border: "1px solid var(--border-color)",
+                      color: "var(--text-primary)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    <span>
+                      {selectedClassification === "topic_classification" ? "Chủ đề" : "Thể loại"}
+                    </span>
+                    <span style={{ color: "var(--accent-color, #0984e3)" }}>{result.label_name}</span>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 12,
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap: 10,
+                      fontSize: 13,
+                      color: "var(--text-primary)",
+                    }}
+                  >
                     <div>
                       <strong>Confidence:</strong> {result?.meta?.confidence_score ?? "N/A"}
                     </div>

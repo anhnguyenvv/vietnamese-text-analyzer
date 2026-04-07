@@ -305,7 +305,7 @@ const NamedEntityTool = ({ sharedTextInput, setSharedTextInput, sharedFile, setS
             {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 4 }}>
-                  Đang phân tích...
+                  Đang xử lý...
                 </div>
                 <div className="loading-bar-container">
                   <div className="loading-bar" />

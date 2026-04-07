@@ -8,8 +8,13 @@ import wave
 from functools import lru_cache
 from pathlib import Path
 from typing import Iterable
+import logging
 
 from piper import PiperVoice
+from utils.logging_utils import build_log_message
+
+
+LOGGER = logging.getLogger("vta.api.tts_model")
 
 try:
     from piper import SynthesisConfig
@@ -340,4 +345,4 @@ if __name__ == "__main__":
     wav = synthesize_tts_wav(text=args.text, use_cuda=args.use_cuda)
     with open(args.output, "wb") as out_file:
         out_file.write(wav.getvalue())
-    print(f"Audio synthesis complete. Output saved to {args.output}")
+    LOGGER.info(build_log_message("tts_model", "example_synthesis_completed", output=args.output))

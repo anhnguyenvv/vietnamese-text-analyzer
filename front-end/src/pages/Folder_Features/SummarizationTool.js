@@ -74,7 +74,7 @@ const SummarizationTool = ({ sharedTextInput, setSharedTextInput, sharedFile, se
             {loading && (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ fontSize: 14, color: "#888", marginBottom: 4 }}>
-                  Đang phân tích...
+                  Đang xử lý...
                 </div>
                 <div className="loading-bar-container">
                   <div className="loading-bar" />

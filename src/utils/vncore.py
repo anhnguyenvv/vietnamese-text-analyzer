@@ -4,6 +4,12 @@ import os
 import requests
 from vncorenlp import VnCoreNLP
 from pathlib import Path
+import logging
+
+from utils.logging_utils import build_log_message
+
+
+LOGGER = logging.getLogger("vta.api.vncore")
 
 
 _VNCORE_INSTANCE = None
@@ -40,7 +46,7 @@ class VnCore:
 
         # Kiểm tra nếu model đã tồn tại
         if os.path.isdir(save_dir + "/models") and os.path.exists(jar_path):
-            print("VnCoreNLP model folder " + save_dir + " already exists! Please load VnCoreNLP from this folder!")
+            LOGGER.info(build_log_message("vncore", "model_folder_exists", save_dir=save_dir))
             
             return
 
@@ -72,7 +78,7 @@ class VnCore:
         # parse
         download_file("https://raw.githubusercontent.com/vncorenlp/VnCoreNLP/master/models/dep/vi-dep.xz",
                     save_dir + "/models/dep/vi-dep.xz")
-        print("VnCoreNLP model downloaded to " + save_dir)
+        LOGGER.info(build_log_message("vncore", "model_downloaded", save_dir=save_dir))
 
     def tokenize(self, text):
         return self.annotator.tokenize(text)

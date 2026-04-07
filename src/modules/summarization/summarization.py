@@ -3,6 +3,7 @@ from config.settings import Config
 import re
 import logging
 from modules.statistics.stats import get_word_freq
+from utils.logging_utils import build_log_message
 
 _SUMMARIZATION_TOKENIZER = None
 _SUMMARIZATION_MODEL = None
@@ -14,14 +15,12 @@ def _get_summarization_resources():
     if _SUMMARIZATION_TOKENIZER is None or _SUMMARIZATION_MODEL is None:
         model_path = Config.MODELS_DIR['summarization']
         LOGGER.info(
-            "Loading summarization model resources",
-            extra={"model_path": str(model_path)},
+            build_log_message("summarization", "resources_loading", model_path=str(model_path)),
         )
         _SUMMARIZATION_TOKENIZER = AutoTokenizer.from_pretrained(model_path)
         _SUMMARIZATION_MODEL = AutoModelForSeq2SeqLM.from_pretrained(model_path)
         LOGGER.info(
-            "Summarization model resources loaded",
-            extra={"model_path": str(model_path)},
+            build_log_message("summarization", "resources_loaded", model_path=str(model_path)),
         )
     return _SUMMARIZATION_TOKENIZER, _SUMMARIZATION_MODEL
 
@@ -55,10 +54,7 @@ def summarize_text(text: str, length="medium") -> str:
         requested_length = length
         length_setting = length_settings.get(length, length_settings["medium"])
         if requested_length not in length_settings:
-            LOGGER.warning(
-                "Unsupported summarization length, fallback to medium",
-                extra={"requested_length": requested_length},
-            )
+            LOGGER.warning(build_log_message("summarization", "unsupported_length_fallback", requested_length=requested_length))
         text = text + " </s>" + f"Tóm tắt văn bản trên với độ dài {length_setting['target_length']}. Ưu tiên giữ các thông tin liên quan đến: {key_words}, không thêm bất kỳ thông tin nào không có trong văn bản."
         enc = tokenizer(text, return_tensors="pt", max_length=1024, truncation=True)
         outputs = model.generate(
@@ -75,23 +71,18 @@ def summarize_text(text: str, length="medium") -> str:
                 res += line + " "
 
         LOGGER.info(
-            "Summarization completed",
-            extra={
-                "requested_length": requested_length,
-                "text_length": len(text or ""),
-                "summary_length": len(res.strip()),
-                "keyword_count": len(key_words),
-            },
+            build_log_message(
+                "summarization",
+                "completed",
+                requested_length=requested_length,
+                text_length=len(text or ""),
+                summary_length=len(res.strip()),
+                keyword_count=len(key_words),
+            )
         )
         return res
     except Exception:
-        LOGGER.exception(
-            "Summarization failed",
-            extra={
-                "requested_length": length,
-                "text_length": len(text or ""),
-            },
-        )
+        LOGGER.exception(build_log_message("summarization", "failed", requested_length=length, text_length=len(text or "")))
         raise
 # Ví dụ sử dụng
 if __name__ == "__main__":
@@ -99,10 +90,7 @@ if __name__ == "__main__":
 Các nền tảng như Shopee, Lazada và Tiki ghi nhận lượng truy cập tăng mạnh, đặc biệt trong các dịp khuyến mãi lớn như 11/11 hay Black Friday. Người tiêu dùng cũng dần quen với việc mua sắm qua mạng, từ thực phẩm, quần áo cho đến thiết bị điện tử.
 Tuy nhiên, sự phát triển nhanh chóng này cũng đặt ra nhiều thách thức về quản lý, vận chuyển và bảo mật thông tin người dùng. Các chuyên gia cho rằng, để phát triển bền vững, ngành thương mại điện tử cần chú trọng hơn đến trải nghiệm khách hàng, hạ tầng công nghệ và niềm tin người tiêu dùng.
 """
-    print(summarize_text(text, length="medium"))
-    print("Độ dài:", len(summarize_text(text, length="medium")))
-    print(summarize_text(text, length="short"))
-    print("Độ dài:", len(summarize_text(text, length="short")))
-    print(summarize_text(text, length="long"))
-    print("Độ dài:", len(summarize_text(text, length="long")))
+    LOGGER.info(build_log_message("summarization", "example_output", length="medium", summary=summarize_text(text, length="medium"), summary_length=len(summarize_text(text, length="medium"))))
+    LOGGER.info(build_log_message("summarization", "example_output", length="short", summary=summarize_text(text, length="short"), summary_length=len(summarize_text(text, length="short"))))
+    LOGGER.info(build_log_message("summarization", "example_output", length="long", summary=summarize_text(text, length="long"), summary_length=len(summarize_text(text, length="long"))))
     

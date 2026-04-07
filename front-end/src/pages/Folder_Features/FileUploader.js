@@ -310,7 +310,17 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
       {fileName && sharedFile && sharedFile.name.endsWith(".csv") && csvColumns.length > 0 && (
         <div style={{ marginTop: 10 }}>
           <label>Chọn cột chứa văn bản cần xử lý:&nbsp;</label>
-          <select value={csvColumn} onChange={handleSelectCsvColumn}>
+          <select
+            value={csvColumn}
+            onChange={handleSelectCsvColumn}
+            style={{
+              background: "var(--bg-surface)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--border-color)",
+              borderRadius: 6,
+              padding: "6px 8px",
+            }}
+          >
             {csvColumns.map((col, idx) => (
               <option key={col + idx} value={col}>{col}</option>
             ))}
@@ -319,26 +329,33 @@ const FileUploader = ({ onFileSelect, sampleUrls, sharedFile, setSharedFile, cha
             <strong>Xem trước file CSV:</strong>
             <div
               style={{
-                background: "#fafafa",
-                border: "1px solid #eee",
-                borderRadius: 4,
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border-color)",
+                borderRadius: 8,
                 padding: 8,
                 fontFamily: "monospace",
                 fontSize: 13,
                 maxHeight: 220,
                 overflow: "auto",
                 marginBottom: 8,
+                color: "var(--text-primary)",
               }}
             >
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <tbody>
                   {csvPreviewTable.map((row, idx) => (
-                    <tr key={idx} style={{ background: idx === 0 ? "#e0e0e0" : "inherit" }}>
+                    <tr
+                      key={idx}
+                      style={{
+                        background: idx === 0 ? "var(--bg-soft)" : "transparent",
+                        color: "var(--text-primary)",
+                      }}
+                    >
                       {row.map((cell, cidx) => (
                         <td
                           key={cidx}
                           style={{
-                            border: "1px solid #eee",
+                            border: "1px solid var(--border-color)",
                             padding: 4,
                             textAlign: "left",
                           }}
